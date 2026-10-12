@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, role")
     .eq("id", user.id)
@@ -25,23 +25,19 @@ export default async function DashboardPage() {
   if (role === "pending") {
     return (
       <main className="container" style={{ paddingTop: "3rem", paddingBottom: "3rem" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto", background: "#ffffff", padding: "2rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+        <div style={{ maxWidth: "500px", margin: "0 auto", background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
           <h1 style={{ fontSize: "1.5rem", color: "#d97706", marginBottom: "1rem" }}>
             অনুমোদনের অপেক্ষায়
           </h1>
           <p style={{ color: "#475569", marginBottom: "1rem" }}>
             আসসালামু আলাইকুম, {fullName}।
           </p>
-
-          <div style={{ background: "#f1f5f9", padding: "1rem", borderRadius: "6px", marginBottom: "1rem", fontSize: "0.85rem", fontFamily: "monospace", textAlign: "left" }}>
-            <div><strong>Debug Info:</strong></div>
-            <div>User ID: {user.id}</div>
-            <div>User Email: {user.email}</div>
-            <div>Profile Role: {profile?.role || "NULL/not found"}</div>
-            <div>Profile Name: {profile?.full_name || "NULL/not found"}</div>
-            <div>Error: {error?.message || "none"}</div>
-          </div>
-
+          <p style={{ color: "#475569", marginBottom: "1rem" }}>
+            আপনার ইমেইল যাচাই সম্পন্ন হয়েছে। এখন Admin অনুমোদন দিলে আপনি সিস্টেমে ঢুকতে পারবেন।
+          </p>
+          <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
+            অনুগ্রহ করে অপেক্ষা করুন অথবা Admin-এর সাথে যোগাযোগ করুন।
+          </p>
           <LogoutButton />
         </div>
       </main>
