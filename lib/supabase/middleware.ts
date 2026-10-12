@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { type CookieOptions } from "@supabase/ssr";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -16,8 +15,11 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(
-  cookiesToSet: { name: string; value: string; options: CookieOptions }[]
-) {
+          cookiesToSet: { name: string; value: string; options: CookieOptions }[]
+        ) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
           supabaseResponse = NextResponse.next({
             request,
           });
@@ -33,7 +35,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // যদি লগইন না থাকে এবং সুরক্ষিত পেজে যেতে চায়
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&
@@ -45,7 +46,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // যদি লগইন থাকে এবং লগইন/রেজিস্টার পেজে যেতে চায়
   if (
     user &&
     (request.nextUrl.pathname === "/login" ||
