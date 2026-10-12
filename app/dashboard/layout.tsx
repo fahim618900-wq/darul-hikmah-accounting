@@ -26,13 +26,15 @@ export default async function DashboardLayout({
   }
 
   const navLinks = [
-    { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
-    { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
-    { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
-  ];
+  { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
+  { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
+  { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
+];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
 
