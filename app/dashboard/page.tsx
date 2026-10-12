@@ -13,19 +13,29 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("full_name, role")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role === "pending") {
+  if (error) {
+    console.error("Profile read error:", error);
+  }
+
+  const role = profile?.role || "pending";
+  const fullName = profile?.full_name || user.email || "ব্যবহারকারী";
+
+  if (role === "pending") {
     return (
       <main className="container" style={{ paddingTop: "3rem", paddingBottom: "3rem" }}>
-        <div style={{ maxWidth: "500px", margin: "0 auto", background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center" }}>
+        <div style={{ maxWidth: "500px", margin: "0 auto", background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
           <h1 style={{ fontSize: "1.5rem", color: "#d97706", marginBottom: "1rem" }}>
             অনুমোদনের অপেক্ষায়
           </h1>
+          <p style={{ color: "#475569", marginBottom: "1rem" }}>
+            আসসালামু আলাইকুম, {fullName}।
+          </p>
           <p style={{ color: "#475569", marginBottom: "1rem" }}>
             আপনার ইমেইল যাচাই সম্পন্ন হয়েছে। এখন Admin অনুমোদন দিলে আপনি সিস্টেমে ঢুকতে পারবেন।
           </p>
@@ -46,7 +56,7 @@ export default async function DashboardPage() {
             দারুল হিকমাহ মডেল মাদ্রাসা
           </h1>
           <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
-            আসসালামু আলাইকুম, {profile?.full_name}
+            আসসালামু আলাইকুম, {fullName}
           </p>
         </div>
         <LogoutButton />
@@ -57,7 +67,7 @@ export default async function DashboardPage() {
           ড্যাশবোর্ড
         </h2>
         <p style={{ color: "#475569", marginBottom: "0.5rem" }}>
-          আপনার Role: <strong>{profile?.role}</strong>
+          আপনার Role: <strong>{role}</strong>
         </p>
         <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
           শীঘ্রই এখানে আয়-ব্যয় এন্ট্রি, শিক্ষার্থী ব্যবস্থাপনা ও রিপোর্ট যোগ করা হবে।
