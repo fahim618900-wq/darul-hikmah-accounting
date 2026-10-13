@@ -79,7 +79,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="no-print">
+      {/* ============ ডেস্কটপ হেডার (শুধু lg-এ দেখাবে) ============ */}
+      <div className="no-print hidden lg:block">
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -90,7 +91,7 @@ export default async function DashboardLayout({
                     <polyline points="9 22 9 12 15 12 15 22" />
                   </svg>
                 </div>
-                <div className="hidden sm:block">
+                <div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                     দারুল হিকমাহ
                   </div>
@@ -100,7 +101,7 @@ export default async function DashboardLayout({
                 </div>
               </Link>
 
-              <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
+              <nav className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
                 {visibleLinks.slice(0, 7).map((link) => (
                   <Link
                     key={link.href}
@@ -115,8 +116,8 @@ export default async function DashboardLayout({
               <div className="flex items-center gap-2 shrink-0">
                 <ThemeToggle />
                 <NotificationBell userId={user?.id || ""} />
-                <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">
-                  <div className="text-right leading-tight hidden lg:block">
+                <div className="flex items-center gap-3 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">
+                  <div className="text-right leading-tight">
                     <div className="text-xs text-slate-400 dark:text-slate-500">আসসালামু আলাইকুম</div>
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fullName}</div>
                   </div>
@@ -125,12 +126,11 @@ export default async function DashboardLayout({
                   </div>
                 </div>
                 <LogoutButton />
-                <MobileMenu navLinks={visibleLinks} fullName={fullName} />
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 hidden lg:block">
+          <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-1 overflow-x-auto py-2">
                 {visibleLinks.slice(7).map((link) => (
@@ -148,11 +148,31 @@ export default async function DashboardLayout({
         </header>
       </div>
 
-      {/* মূল কনটেন্ট — মোবাইলে নিচে space যোগ (যাতে bottom nav আটকে না যায়) */}
-      <div className="lg:pb-0 pb-20">{children}</div>
+      {/* ============ মোবাইল টপ বার (শুধু ছোট আইকন) ============ */}
+      <div className="no-print lg:hidden sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-700 to-brand-500 flex items-center justify-center text-white">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+            </div>
+            <div className="text-sm font-bold text-slate-900 dark:text-white">
+              দারুল হিকমাহ
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <NotificationBell userId={user?.id || ""} />
+          </div>
+        </div>
+      </div>
 
-      {/* মোবাইল বটম নেভিগেশন */}
-      <MobileBottomNav role={role} />
+      {/* মূল কনটেন্ট */}
+      <div className="pb-24">{children}</div>
+
+      {/* মোবাইল বটম নেভিগেশন (সব পেজে) */}
+      <MobileBottomNav role={role} fullName={fullName} />
     </div>
   );
 }
