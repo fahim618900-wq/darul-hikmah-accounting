@@ -66,6 +66,7 @@ export default async function DashboardLayout({
     { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
     { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
     { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
+    { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
   ];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
