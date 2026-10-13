@@ -137,6 +137,54 @@ export default function StudentView() {
     );
   }
 
+  // বকেয়া নোটিফিকেশন তৈরি
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const dueNotifications = students
+    .map((s) => {
+      const sp = payments[s.id] || [];
+      const monthPayments = sp.filter((p) => p.month === currentMonth && p.year === currentYear);
+      const paid = monthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const payable = Number(s.monthly_fee) - Number(s.discount || 0);
+      const due = payable - paid;
+      return { student: s, due, payable, paid };
+    })
+    .filter((x) => x.due > 0);
+
+  const totalDue = dueNotifications.reduce((sum, x) => sum + x.due, 0);
+
+  return (
+    <>
+      {/* বকেয়া নোটিফিকেশন বার */}
+      {dueNotifications.length > 0 && (
+        <div className="no-print" style={{ background: "#fef3c7", border: "1px solid #fcd34d", padding: "1rem 1.25rem", borderRadius: "8px", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: "0.15rem" }}>
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <div>
+              <div style={{ fontWeight: "600", color: "#78350f", fontSize: "0.95rem", marginBottom: "0.35rem" }}>
+                {MONTHS[currentMonth - 1]} {toBangla(currentYear)} মাসের বেতন বাকি
+              </div>
+              <div style={{ fontSize: "0.85rem", color: "#92400e" }}>
+                {dueNotifications.length === 1 && dueNotifications[0].student.id === students[0].id ? (
+                  <>আপনার এই মাসের বেতন <strong>৳ {toBangla(totalDue)}</strong> বাকি আছে।</>
+                ) : (
+                  <>{toBangla(dueNotifications.length)} জনের মোট বাকি <strong>৳ {toBangla(totalDue)}</strong></>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* স্ক্রিনে বাটন */}
+      <div className="no-print" style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+  
   return (
     <>
       {/* স্ক্রিনে বাটন */}
