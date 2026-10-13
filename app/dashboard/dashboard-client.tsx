@@ -17,6 +17,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  Users,
+  TrendingUp,
+  Wallet,
+  AlertCircle,
+  DollarSign,
+} from "lucide-react";
 
 type Student = {
   id: number;
@@ -51,7 +58,7 @@ const MONTHS = [
   "জুলাই", "আগ", "সেপ্ট", "অক্টো", "নভে", "ডিসে",
 ];
 
-const COLORS = ["#2563eb", "#7c3aed", "#ec4899", "#06b6d4", "#f59e0b", "#10b981"];
+const COLORS = ["#22d3ee", "#f472b6", "#a78bfa", "#60a5fa", "#34d399", "#fbbf24"];
 
 function toBangla(input: string | number): string {
   const map: Record<string, string> = {
@@ -90,7 +97,10 @@ export default function DashboardClient({
     };
     check();
     const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -106,7 +116,10 @@ export default function DashboardClient({
     const thisMonthPayments = payments.filter(
       (p) => p.month === currentMonth && p.year === currentYear
     );
-    const totalCollected = thisMonthPayments.reduce((s, p) => s + Number(p.amount), 0);
+    const totalCollected = thisMonthPayments.reduce(
+      (s, p) => s + Number(p.amount),
+      0
+    );
     const totalDue = totalPayable - totalCollected;
 
     const totalIncome = incomes.reduce((s, i) => s + Number(i.amount), 0);
@@ -168,9 +181,14 @@ export default function DashboardClient({
   const textMuted = isDark ? "#94a3b8" : "#64748b";
   const gridColor = isDark ? "#334155" : "#e2e8f0";
 
+  const collectionRate =
+    stats.totalPayable > 0
+      ? Math.round((stats.totalCollected / stats.totalPayable) * 100)
+      : 0;
+
   return (
-    <div style={{ padding: "1.5rem 1rem 6rem", maxWidth: "1200px", margin: "0 auto" }}>
-      {/* হেডার */}
+    <div style={{ padding: "1.5rem 1rem 3rem", maxWidth: "1200px", margin: "0 auto" }}>
+      {/* শিরোনাম */}
       <div style={{ marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem" }}>
           <div>
@@ -181,23 +199,23 @@ export default function DashboardClient({
               আসসালামু আলাইকুম, {userName}
             </p>
           </div>
-          <div style={{ background: cardBg, padding: "0.6rem 1rem", borderRadius: "12px", fontSize: "0.85rem", color: textMuted, fontWeight: "500" }}>
+          <div style={{ background: cardBg, padding: "0.6rem 1rem", borderRadius: "12px", fontSize: "0.85rem", color: textMuted, fontWeight: "500", border: `1px solid ${gridColor}` }}>
             {dateStr}
           </div>
         </div>
       </div>
 
-      {/* মোট ব্যালেন্স কার্ড (বড়, গ্রেডিয়েন্ট) */}
+      {/* মোট ব্যালেন্স কার্ড */}
       <div
         style={{
-          background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #3b0764 50%, #4c1d95 100%)",
           borderRadius: "24px",
           padding: "2rem 1.75rem",
           marginBottom: "1.5rem",
           color: "#ffffff",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 20px 40px -12px rgba(37, 99, 235, 0.4)",
+          boxShadow: "0 20px 40px -12px rgba(76, 29, 149, 0.5)",
         }}
       >
         <div
@@ -205,30 +223,50 @@ export default function DashboardClient({
             position: "absolute",
             top: "-50px",
             right: "-50px",
+            width: "220px",
+            height: "220px",
+            borderRadius: "50%",
+            background: "rgba(34, 211, 238, 0.2)",
+            filter: "blur(40px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-80px",
+            left: "-40px",
             width: "200px",
             height: "200px",
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.1)",
-            filter: "blur(30px)",
+            background: "rgba(244, 114, 182, 0.2)",
+            filter: "blur(40px)",
           }}
         />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ fontSize: "0.85rem", opacity: 0.85, marginBottom: "0.5rem" }}>
-            মোট ব্যালেন্স (চলতি মাস)
-          </div>
-          <div style={{ fontSize: "2.2rem", fontWeight: "700", marginBottom: "1rem", letterSpacing: "-0.02em" }}>
-            {formatTaka(stats.balance)}
-          </div>
-          <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <div style={{ fontSize: "0.75rem", opacity: 0.85 }}>আয়</div>
-              <div style={{ fontSize: "1.05rem", fontWeight: "600" }}>
+              <div style={{ fontSize: "0.85rem", opacity: 0.85, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Wallet size={14} />
+                মোট ব্যালেন্স (চলতি মাস)
+              </div>
+              <div style={{ fontSize: "2.2rem", fontWeight: "700", marginBottom: "1rem", letterSpacing: "-0.02em" }}>
+                {formatTaka(stats.balance)}
+              </div>
+            </div>
+            <div style={{ background: "rgba(34, 211, 238, 0.2)", padding: "0.5rem 0.85rem", borderRadius: "999px", fontSize: "0.8rem", fontWeight: "500", border: "1px solid rgba(34, 211, 238, 0.3)" }}>
+              Collections: {toBangla(collectionRate)}%
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "1.75rem", flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: "0.75rem", opacity: 0.75, marginBottom: "0.15rem" }}>মোট আয়</div>
+              <div style={{ fontSize: "1.05rem", fontWeight: "600", color: "#67e8f9" }}>
                 {formatTaka(stats.totalIncome + stats.totalCollected)}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: "0.75rem", opacity: 0.85 }}>ব্যয়</div>
-              <div style={{ fontSize: "1.05rem", fontWeight: "600" }}>
+              <div style={{ fontSize: "0.75rem", opacity: 0.75, marginBottom: "0.15rem" }}>মোট ব্যয়</div>
+              <div style={{ fontSize: "1.05rem", fontWeight: "600", color: "#f9a8d4" }}>
                 {formatTaka(stats.totalExpense)}
               </div>
             </div>
@@ -245,20 +283,68 @@ export default function DashboardClient({
           marginBottom: "1.5rem",
         }}
       >
-        <StatCard label="শিক্ষার্থী" value={toBangla(stats.activeStudents)} suffix="জন" color="#2563eb" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted} link="/dashboard/students" />
-        <StatCard label="প্রাপ্য বেতন" value={formatTaka(stats.totalPayable)} color="#7c3aed" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted} link="/dashboard/fees-status" />
-        <StatCard label="আদায়" value={formatTaka(stats.totalCollected)} color="#10b981" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted} link="/dashboard/fees-status" />
-        <StatCard label="বাকি" value={formatTaka(stats.totalDue)} color="#ef4444" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted} link="/dashboard/fees-status" />
+        <StatCard
+          icon={<Users size={18} />}
+          label="শিক্ষার্থী"
+          value={toBangla(stats.activeStudents)}
+          suffix="জন"
+          color="#2563eb"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+          link="/dashboard/students"
+        />
+        <StatCard
+          icon={<TrendingUp size={18} />}
+          label="প্রাপ্য বেতন"
+          value={formatTaka(stats.totalPayable)}
+          color="#7c3aed"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+          link="/dashboard/fees-status"
+        />
+        <StatCard
+          icon={<DollarSign size={18} />}
+          label="আদায়"
+          value={formatTaka(stats.totalCollected)}
+          color="#10b981"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+          link="/dashboard/fees-status"
+        />
+        <StatCard
+          icon={<AlertCircle size={18} />}
+          label="বাকি"
+          value={formatTaka(stats.totalDue)}
+          color="#ef4444"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+          link="/dashboard/fees-status"
+        />
       </div>
 
-      {/* লাইন চার্ট — মাসিক আদায় */}
-      <ChartCard title="মাসিক বেতন আদায়" subtitle={`${toBangla(currentYear)} সালের ধারা`} cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted}>
+      {/* লাইন চার্ট */}
+      <ChartCard
+        title="মাসিক বেতন আদায়"
+        subtitle={`${toBangla(currentYear)} সালের ধারা`}
+        cardBg={cardBg}
+        textPrimary={textPrimary}
+        textMuted={textMuted}
+        borderColor={gridColor}
+      >
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={lineData}>
             <defs>
               <linearGradient id="lineColor" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#2563eb" />
-                <stop offset="100%" stopColor="#7c3aed" />
+                <stop offset="0%" stopColor="#22d3ee" />
+                <stop offset="100%" stopColor="#a78bfa" />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="4 4" stroke={gridColor} vertical={false} />
@@ -279,14 +365,14 @@ export default function DashboardClient({
               dataKey="collection"
               stroke="url(#lineColor)"
               strokeWidth={3}
-              dot={{ fill: "#2563eb", r: 4, strokeWidth: 2, stroke: "#ffffff" }}
+              dot={{ fill: "#22d3ee", r: 4, strokeWidth: 2, stroke: "#ffffff" }}
               activeDot={{ r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* দুইটি চার্ট পাশাপাশি */}
+      {/* দুই চার্ট পাশাপাশি */}
       <div
         style={{
           display: "grid",
@@ -295,8 +381,14 @@ export default function DashboardClient({
           marginTop: "1rem",
         }}
       >
-        {/* ডোনাট — আয়ের খাত */}
-        <ChartCard title="আয়ের খাত" subtitle="চলতি মাসের বিভাজন" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted}>
+        <ChartCard
+          title="আয়ের খাত"
+          subtitle="চলতি মাসের বিভাজন"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+        >
           {donutData.length === 0 ? (
             <EmptyBox textMuted={textMuted} />
           ) : (
@@ -335,8 +427,14 @@ export default function DashboardClient({
           )}
         </ChartCard>
 
-        {/* বার — শ্রেণিভিত্তিক শিক্ষার্থী */}
-        <ChartCard title="শ্রেণিভিত্তিক শিক্ষার্থী" subtitle="প্রতিটি শ্রেণিতে সংখ্যা" cardBg={cardBg} textPrimary={textPrimary} textMuted={textMuted}>
+        <ChartCard
+          title="শ্রেণিভিত্তিক শিক্ষার্থী"
+          subtitle="প্রতিটি শ্রেণিতে সংখ্যা"
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          borderColor={gridColor}
+        >
           {barData.length === 0 ? (
             <EmptyBox textMuted={textMuted} />
           ) : (
@@ -344,8 +442,8 @@ export default function DashboardClient({
               <BarChart data={barData}>
                 <defs>
                   <linearGradient id="barColor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7c3aed" />
-                    <stop offset="100%" stopColor="#2563eb" />
+                    <stop offset="0%" stopColor="#a78bfa" />
+                    <stop offset="100%" stopColor="#22d3ee" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" stroke={gridColor} vertical={false} />
@@ -372,6 +470,7 @@ export default function DashboardClient({
 }
 
 function StatCard({
+  icon,
   label,
   value,
   suffix,
@@ -379,8 +478,10 @@ function StatCard({
   cardBg,
   textPrimary,
   textMuted,
+  borderColor,
   link,
 }: {
+  icon: React.ReactNode;
   label: string;
   value: string;
   suffix?: string;
@@ -388,6 +489,7 @@ function StatCard({
   cardBg: string;
   textPrimary: string;
   textMuted: string;
+  borderColor: string;
   link: string;
 }) {
   return (
@@ -398,13 +500,17 @@ function StatCard({
         borderRadius: "16px",
         padding: "1rem",
         textDecoration: "none",
-        border: `1px solid ${color}20`,
+        border: `1px solid ${borderColor}`,
         borderLeft: `3px solid ${color}`,
         display: "block",
+        transition: "transform 0.15s",
       }}
     >
-      <div style={{ fontSize: "0.72rem", color: textMuted, marginBottom: "0.4rem", fontWeight: "500" }}>
-        {label}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+        <div style={{ fontSize: "0.72rem", color: textMuted, fontWeight: "500" }}>
+          {label}
+        </div>
+        <div style={{ color, opacity: 0.8 }}>{icon}</div>
       </div>
       <div style={{ fontSize: "1.1rem", fontWeight: "700", color }}>
         {value}
@@ -425,6 +531,7 @@ function ChartCard({
   cardBg,
   textPrimary,
   textMuted,
+  borderColor,
 }: {
   title: string;
   subtitle: string;
@@ -432,6 +539,7 @@ function ChartCard({
   cardBg: string;
   textPrimary: string;
   textMuted: string;
+  borderColor: string;
 }) {
   return (
     <div
@@ -440,6 +548,7 @@ function ChartCard({
         borderRadius: "20px",
         padding: "1.25rem",
         marginBottom: "0.5rem",
+        border: `1px solid ${borderColor}`,
       }}
     >
       <div style={{ marginBottom: "1rem" }}>
