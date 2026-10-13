@@ -35,10 +35,19 @@ export default async function DashboardPage() {
   const monthEnd = new Date(currentYear, currentMonth, 0).toISOString().split("T")[0];
 
   const { data: incomes } = await supabase
-    .from("incomes")
-    .select("amount, entry_date, category_id, income_categories(name)")
-    .gte("entry_date", monthStart)
-    .lte("entry_date", monthEnd);
+  .from("incomes")
+  .select("amount, entry_date, category_id, income_categories(name)")
+  .gte("entry_date", monthStart)
+  .lte("entry_date", monthEnd);
+
+const normalizedIncomes = (incomes || []).map((i: any) => ({
+  amount: i.amount,
+  entry_date: i.entry_date,
+  category_id: i.category_id,
+  income_categories: Array.isArray(i.income_categories)
+    ? i.income_categories[0] || null
+    : i.income_categories,
+}));
 
   const { data: expenses } = await supabase
     .from("expenses")
@@ -50,7 +59,7 @@ export default async function DashboardPage() {
     <DashboardClient
       students={students || []}
       payments={payments || []}
-      incomes={incomes || []}
+      incomes={normalizedIncomes}
       expenses={expenses || []}
       userName={profile?.full_name || user?.email || "ব্যবহারকারী"}
       currentMonth={currentMonth}
