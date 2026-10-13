@@ -18,21 +18,45 @@ export default function SettingsClient({ settings }: { settings: Setting[] }) {
   );
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   async function updateSetting(key: string, value: string) {
-    await supabase
+    // আগে try update
+    const { data: existing } = await supabase
       .from("app_settings")
-      .upsert({ key, value, updated_at: new Date().toISOString() });
+      .select("key")
+      .eq("key", key)
+      .single();
+
+    if (existing) {
+      const { error } = await supabase
+        .from("app_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", key);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from("app_settings")
+        .insert({ key, value });
+      if (error) throw error;
+    }
   }
 
   async function handleSave() {
     setLoading(true);
     setMessage("");
-    await updateSetting("signup_enabled", signupEnabled ? "true" : "false");
-    await updateSetting("student_portal_enabled", portalEnabled ? "true" : "false");
-    setMessage("সেটিংস সংরক্ষিত হয়েছে");
+    setError("");
+
+    try {
+      await updateSetting("signup_enabled", signupEnabled ? "true" : "false");
+      await updateSetting("student_portal_enabled", portalEnabled ? "true" : "false");
+      setMessage("সেটিংস সংরক্ষিত হয়েছে");
+      router.refresh();
+    } catch (e: any) {
+      setError("সমস্যা: " + (e?.message || "অজানা ত্রুটি"));
+    }
+
     setLoading(false);
-    router.refresh();
   }
 
   return (
@@ -56,6 +80,7 @@ export default function SettingsClient({ settings }: { settings: Setting[] }) {
               position: "relative",
               cursor: "pointer",
               transition: "background 0.2s",
+              flexShrink: 0,
             }}
           >
             <span
@@ -93,6 +118,7 @@ export default function SettingsClient({ settings }: { settings: Setting[] }) {
               position: "relative",
               cursor: "pointer",
               transition: "background 0.2s",
+              flexShrink: 0,
             }}
           >
             <span
@@ -123,6 +149,7 @@ export default function SettingsClient({ settings }: { settings: Setting[] }) {
           fontSize: "0.9rem",
           fontWeight: "500",
           opacity: loading ? 0.7 : 1,
+          cursor: loading ? "wait" : "pointer",
         }}
       >
         {loading ? "সংরক্ষণ..." : "সংরক্ষণ করুন"}
@@ -131,6 +158,12 @@ export default function SettingsClient({ settings }: { settings: Setting[] }) {
       {message && (
         <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#dcfce7", color: "#15803d", borderRadius: "6px", fontSize: "0.85rem" }}>
           {message}
+        </div>
+      )}
+
+      {error && (
+        <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#fef2f2", color: "#b91c1c", borderRadius: "6px", fontSize: "0.85rem" }}>
+          {error}
         </div>
       )}
     </div>
