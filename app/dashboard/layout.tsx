@@ -4,6 +4,7 @@ import LogoutButton from "./logout-button";
 import NotificationBell from "./notification-bell";
 import ThemeToggle from "./theme-toggle";
 import MobileMenu from "./mobile-menu";
+import MobileBottomNav from "./mobile-bottom-nav";
 
 export default async function DashboardLayout({
   children,
@@ -147,7 +148,11 @@ export default async function DashboardLayout({
         </header>
       </div>
 
-      {children}
+      {/* মূল কনটেন্ট — মোবাইলে নিচে space যোগ (যাতে bottom nav আটকে না যায়) */}
+      <div className="lg:pb-0 pb-20">{children}</div>
+
+      {/* মোবাইল বটম নেভিগেশন */}
+      <MobileBottomNav role={role} />
     </div>
   );
 }
