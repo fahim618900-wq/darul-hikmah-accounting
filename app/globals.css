@@ -253,3 +253,31 @@
     padding: 0.12rem 0.4rem;
   }
 }
+/* শিক্ষার্থীর প্রোফাইল প্রিন্ট */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .print-header {
+    display: block !important;
+  }
+
+  .print-area table {
+    font-size: 10px;
+  }
+
+  .print-area th,
+  .print-area td {
+    padding: 4px 6px;
+  }
+}
