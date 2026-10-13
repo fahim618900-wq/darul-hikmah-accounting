@@ -29,6 +29,7 @@ export default async function DashboardLayout({
   { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
   { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
   { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
   { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
   { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
   { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
