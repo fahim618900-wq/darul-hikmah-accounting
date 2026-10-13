@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./logout-button";
 import NotificationBell from "./notification-bell";
+import ThemeToggle from "./theme-toggle";
+import MobileMenu from "./mobile-menu";
 
 export default async function DashboardLayout({
   children,
@@ -29,27 +31,27 @@ export default async function DashboardLayout({
 
   if (isHeld) {
     return (
-      <div style={{ minHeight: "100vh", background: "#f5f7fa", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem" }}>
-        <div style={{ maxWidth: "500px", width: "100%", background: "#ffffff", padding: "2.5rem 2rem", borderRadius: "10px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <h2 style={{ fontSize: "1.3rem", color: "#b45309", marginBottom: "0.75rem" }}>
+          <h2 className="text-xl font-bold text-amber-700 mb-3">
             আপনার অ্যাকাউন্ট Hold করা হয়েছে
           </h2>
-          <p style={{ color: "#475569", marginBottom: "0.5rem", lineHeight: 1.6 }}>
+          <p className="text-slate-600 mb-2">
             আপনার অ্যাকাউন্ট সাময়িকভাবে বন্ধ রাখা হয়েছে।
           </p>
           {profile?.held_reason && (
-            <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            <p className="text-slate-500 text-sm mb-4">
               কারণ: {profile.held_reason}
             </p>
           )}
-          <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6 }}>
+          <p className="text-slate-500 text-sm">
             অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
           </p>
         </div>
@@ -67,56 +69,85 @@ export default async function DashboardLayout({
     { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
     { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
     { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
-    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
     { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
+    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
     { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
   ];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f5f7fa" }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="no-print">
-        <header style={{ background: "#0f766e", color: "#ffffff", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-          <div className="container" style={{ paddingTop: "1rem", paddingBottom: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-              <div>
-                <h1 style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-                  দারুল হিকমাহ মডেল মাদ্রাসা
-                </h1>
-                <p style={{ fontSize: "0.85rem", opacity: 0.9 }}>
-                  আসসালামু আলাইকুম, {fullName}
-                </p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              {/* Logo */}
+              <Link href="/dashboard" className="flex items-center gap-3 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-700 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                    দারুল হিকমাহ
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+                    মডেল মাদ্রাসা
+                  </div>
+                </div>
+              </Link>
+
+              {/* Desktop Nav */}
+              <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
+                {visibleLinks.slice(0, 7).map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="px-4 py-2 rounded-full text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Right Side */}
+              <div className="flex items-center gap-2 shrink-0">
+                <ThemeToggle />
                 <NotificationBell userId={user?.id || ""} />
+                <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">
+                  <div className="text-right leading-tight hidden lg:block">
+                    <div className="text-xs text-slate-400 dark:text-slate-500">আসসালামু আলাইকুম</div>
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fullName}</div>
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 flex items-center justify-center font-semibold text-sm">
+                    {fullName.charAt(0)}
+                  </div>
+                </div>
                 <LogoutButton />
+                <MobileMenu navLinks={visibleLinks} fullName={fullName} />
               </div>
             </div>
           </div>
 
-          <nav style={{ background: "#0d5d56", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="container">
-              <div style={{ display: "flex", gap: "0.25rem", overflowX: "auto", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}>
-                {visibleLinks.map((link) => (
+          {/* Secondary Nav (all admin links) */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 hidden lg:block">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center gap-1 overflow-x-auto py-2">
+                {visibleLinks.slice(7).map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    style={{
-                      padding: "0.5rem 1rem",
-                      color: "#ffffff",
-                      borderRadius: "6px",
-                      fontSize: "0.9rem",
-                      whiteSpace: "nowrap",
-                      textDecoration: "none",
-                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition whitespace-nowrap"
                   >
                     {link.label}
                   </Link>
                 ))}
               </div>
             </div>
-          </nav>
+          </div>
         </header>
       </div>
 
