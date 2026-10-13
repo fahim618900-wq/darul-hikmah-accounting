@@ -41,7 +41,6 @@ export default async function DashboardLayout({
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f7fa" }}>
-      {/* হেডার — প্রিন্টে লুকানো */}
       <div className="no-print">
         <header style={{ background: "#0f766e", color: "#ffffff", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
           <div className="container" style={{ paddingTop: "1rem", paddingBottom: "1rem" }}>
@@ -83,35 +82,7 @@ export default async function DashboardLayout({
         </header>
       </div>
 
-      {/* মূল কনটেন্ট */}
       {children}
-
-      {/* প্রিন্ট স্টাইল */}
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 10mm;
-          }
-          body {
-            background: #ffffff !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .container {
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .print-container {
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
