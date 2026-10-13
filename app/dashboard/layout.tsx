@@ -808,118 +808,72 @@ export default async function DashboardLayout({
         }
 
         /* ========================================
-           Dark Mode
-           ======================================== */
-        @media (prefers-color-scheme: dark) {
-          /* theme-toggle ক্লাস-ভিত্তিক dark mode ব্যবহার করলে
-             এই সিলেক্টরগুলো .dark .layout-... হবে। এখানে
-             system preference এর জন্য রাখা হলো। */
+   Dark Mode (class-based)
+   ======================================== */
+.dark .layout-root {
+  background: #020617;
+  color: #e2e8f0;
+}
 
-          .layout-root {
-            background: #020617;
-            color: #e2e8f0;
-          }
+.dark .layout-header {
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom-color: #1e293b;
+}
 
-          .layout-header {
-            background: rgba(15, 23, 42, 0.85);
-            border-bottom-color: #1e293b;
-          }
+.dark .layout-logo-title { color: #f1f5f9; }
+.dark .layout-logo-sub { color: #94a3b8; }
 
-          .layout-logo-title {
-            color: #f1f5f9;
-          }
+.dark .layout-nav-primary {
+  background: #0f172a;
+  border-color: #1e293b;
+}
 
-          .layout-logo-sub {
-            color: #94a3b8;
-          }
+.dark .nav-link-primary { color: #cbd5e1; }
+.dark .nav-link-primary:hover { background: #1e293b; color: #fff; }
+.dark .nav-link-primary.nav-link-active {
+  background: #0f766e;
+  color: #fff;
+}
 
-          .layout-nav-primary {
-            background: #0f172a;
-            border-color: #1e293b;
-          }
+.dark .nav-link-secondary { color: #94a3b8; }
+.dark .nav-link-secondary:hover { background: #1e293b; color: #e2e8f0; }
+.dark .nav-link-secondary.nav-link-active {
+  background: rgba(15, 118, 110, 0.2);
+  color: #5eead4;
+  box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3);
+}
 
-          .nav-link-primary {
-            color: #cbd5e1;
-          }
+.dark .layout-user-chip { border-left-color: #1e293b; }
+.dark .layout-user-greet { color: #64748b; }
+.dark .layout-user-name { color: #e2e8f0; }
+.dark .layout-user-avatar {
+  background: rgba(15, 118, 110, 0.25);
+  color: #5eead4;
+  border-color: rgba(94, 234, 212, 0.3);
+}
 
-          .nav-link-primary:hover {
-            background: #1e293b;
-            color: #ffffff;
-          }
+.dark .layout-nav-secondary-bar {
+  background: #0b1220;
+  border-top-color: #1e293b;
+}
 
-          .nav-link-primary.nav-link-active {
-            background: #0f766e;
-            color: #ffffff;
-          }
+.dark .layout-nav-secondary-label {
+  color: #5eead4;
+  background: rgba(15, 118, 110, 0.18);
+  border-color: rgba(94, 234, 212, 0.3);
+}
 
-          .nav-link-secondary {
-            color: #94a3b8;
-          }
-
-          .nav-link-secondary:hover {
-            background: #1e293b;
-            color: #e2e8f0;
-          }
-
-          .nav-link-secondary.nav-link-active {
-            background: rgba(15, 118, 110, 0.2);
-            color: #5eead4;
-            box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3);
-          }
-
-          .layout-user-chip {
-            border-left-color: #1e293b;
-          }
-
-          .layout-user-greet {
-            color: #64748b;
-          }
-
-          .layout-user-name {
-            color: #e2e8f0;
-          }
-
-          .layout-user-avatar {
-            background: rgba(15, 118, 110, 0.25);
-            color: #5eead4;
-            border-color: rgba(94, 234, 212, 0.3);
-          }
-
-          .layout-nav-secondary-bar {
-            background: #0b1220;
-            border-top-color: #1e293b;
-          }
-
-          .layout-nav-secondary-label {
-            color: #5eead4;
-            background: rgba(15, 118, 110, 0.18);
-            border-color: rgba(94, 234, 212, 0.3);
-          }
-
-          .layout-hold-wrapper {
-            background: #020617;
-          }
-
-          .layout-hold-card {
-            background: #0f172a;
-            border-color: rgba(217, 119, 6, 0.35);
-          }
-
-          .layout-hold-title {
-            color: #fbbf24;
-          }
-
-          .layout-hold-text,
-          .layout-hold-hint {
-            color: #94a3b8;
-          }
-
-          .layout-hold-reason {
-            background: rgba(180, 83, 9, 0.18);
-            color: #fcd34d;
-          }
-        }
-
+.dark .layout-hold-wrapper { background: #020617; }
+.dark .layout-hold-card {
+  background: #0f172a;
+  border-color: rgba(217, 119, 6, 0.35);
+}
+.dark .layout-hold-title { color: #fbbf24; }
+.dark .layout-hold-text, .dark .layout-hold-hint { color: #94a3b8; }
+.dark .layout-hold-reason {
+  background: rgba(180, 83, 9, 0.18);
+  color: #fcd34d;
+}
         /* Print: hide header (no-print) */
         @media print {
           .no-print {
