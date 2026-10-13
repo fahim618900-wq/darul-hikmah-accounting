@@ -19,6 +19,8 @@ type Payment = {
   month: number;
   year: number;
   amount: number;
+  payment_date: string;
+  receipt_no: string | null;
 };
 
 const MONTHS = [
@@ -71,7 +73,13 @@ export default function FeesReport({
       else if (paid === 0) status = "unpaid";
       else status = "partial";
 
-      return { student: s, payable, paid, due, status };
+      // সর্বশেষ পেমেন্টের রসিদ নম্বর
+      const sorted = [...sp].sort(
+        (a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()
+      );
+      const lastReceiptNo = sorted[0]?.receipt_no || null;
+
+      return { student: s, payable, paid, due, status, lastReceiptNo };
     });
   }, [students, filteredPayments]);
 
@@ -85,7 +93,8 @@ export default function FeesReport({
       return (
         r.student.name.toLowerCase().includes(q) ||
         (r.student.student_id || "").toLowerCase().includes(q) ||
-        (r.student.roll || "").toLowerCase().includes(q)
+        (r.student.roll || "").toLowerCase().includes(q) ||
+        (r.lastReceiptNo || "").toLowerCase().includes(q)
       );
     }
     return true;
@@ -131,8 +140,8 @@ export default function FeesReport({
             </select>
           </div>
           <div>
-            <label style={lbl}>খুঁজুন</label>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="নাম / আইডি / রোল" style={inp} />
+            <label style={lbl}>খুঁজুন (নাম / আইডি / রোল / রসিদ)</label>
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="রসিদ নম্বর..." style={inp} />
           </div>
         </div>
         <button onClick={() => window.print()} style={{ marginTop: "0.75rem", padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
@@ -144,7 +153,7 @@ export default function FeesReport({
         <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়নসিংহ</p>
+            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
             <div><strong>বিষয়:</strong> বেতন আদায় রিপোর্ট ({statusLabel})</div>
@@ -156,7 +165,7 @@ export default function FeesReport({
           </div>
         </div>
 
-        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.85rem" }}>
+        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.82rem" }}>
           <thead>
             <tr style={{ background: "#0f766e", color: "#fff" }}>
               <th style={th}>নং</th>
@@ -167,6 +176,7 @@ export default function FeesReport({
               <th style={th}>জমা</th>
               <th style={th}>বকেয়া</th>
               <th style={th}>স্ট্যাটাস</th>
+              <th style={th}>শেষ রসিদ</th>
             </tr>
           </thead>
           <tbody>
@@ -188,6 +198,9 @@ export default function FeesReport({
                     {r.status === "paid" ? "Paid" : r.status === "unpaid" ? "Unpaid" : "Partial"}
                   </span>
                 </td>
+                <td style={{ ...td, fontSize: "0.72rem", color: "#64748b" }}>
+                  {r.lastReceiptNo || "-"}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -197,7 +210,7 @@ export default function FeesReport({
               <td style={{ ...td, fontWeight: "600" }}>৳ {toBangla(totalPayable)}</td>
               <td style={{ ...td, fontWeight: "600", color: "#15803d" }}>৳ {toBangla(totalPaid)}</td>
               <td style={{ ...td, fontWeight: "600", color: "#b91c1c" }}>৳ {toBangla(totalDue)}</td>
-              <td></td>
+              <td colSpan={2}></td>
             </tr>
           </tfoot>
         </table>
@@ -208,5 +221,5 @@ export default function FeesReport({
 
 const lbl: React.CSSProperties = { display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" };
 const inp: React.CSSProperties = { width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", background: "#ffffff", fontFamily: "inherit" };
-const th: React.CSSProperties = { padding: "0.7rem 0.85rem", textAlign: "left", fontWeight: "600", fontSize: "0.8rem", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { padding: "0.7rem 0.85rem", color: "#1a1a1a" };
+const th: React.CSSProperties = { padding: "0.65rem 0.7rem", textAlign: "left", fontWeight: "600", fontSize: "0.75rem", whiteSpace: "nowrap" };
+const td: React.CSSProperties = { padding: "0.65rem 0.7rem", color: "#1a1a1a" };
