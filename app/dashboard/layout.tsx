@@ -56,9 +56,7 @@ export default async function DashboardLayout({
             আপনার অ্যাকাউন্ট সাময়িকভাবে বন্ধ রাখা হয়েছে।
           </p>
           {profile?.held_reason && (
-            <p className="layout-hold-reason">
-              কারণ: {profile.held_reason}
-            </p>
+            <p className="layout-hold-reason">কারণ: {profile.held_reason}</p>
           )}
           <p className="layout-hold-hint">
             অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
@@ -75,14 +73,7 @@ export default async function DashboardLayout({
       label: "ড্যাশবোর্ড",
       roles: ["admin", "accountant", "viewer"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="9" rx="1.5" />
           <rect x="14" y="3" width="7" height="5" rx="1.5" />
           <rect x="14" y="12" width="7" height="9" rx="1.5" />
@@ -95,14 +86,7 @@ export default async function DashboardLayout({
       label: "শিক্ষার্থী",
       roles: ["admin", "accountant"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -115,14 +99,7 @@ export default async function DashboardLayout({
       label: "বেতন আদায়",
       roles: ["admin", "accountant"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="6" width="20" height="12" rx="2" />
           <circle cx="12" cy="12" r="2.5" />
           <path d="M6 12 h .01" />
@@ -135,14 +112,7 @@ export default async function DashboardLayout({
       label: "Paid/Unpaid",
       roles: ["admin", "accountant", "viewer"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
@@ -153,14 +123,7 @@ export default async function DashboardLayout({
       label: "আয়",
       roles: ["admin", "accountant"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 19V5" />
           <path d="M5 12l7-7 7 7" />
         </svg>
@@ -171,14 +134,7 @@ export default async function DashboardLayout({
       label: "ব্যয়",
       roles: ["admin", "accountant"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 5v14" />
           <path d="M19 12l-7 7-7-7" />
         </svg>
@@ -189,14 +145,7 @@ export default async function DashboardLayout({
       label: "রিপোর্ট",
       roles: ["admin", "accountant", "viewer"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 3v18h18" />
           <path d="M7 15l4-4 3 3 5-6" />
         </svg>
@@ -207,14 +156,7 @@ export default async function DashboardLayout({
       label: "ব্যবহারকারী",
       roles: ["admin"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -227,14 +169,7 @@ export default async function DashboardLayout({
       label: "অডিট লগ",
       roles: ["admin"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <path d="M14 2v6h6" />
           <path d="M8 13h8" />
@@ -247,14 +182,7 @@ export default async function DashboardLayout({
       label: "মাস বন্ধ",
       roles: ["admin"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <path d="M16 2v4" />
           <path d="M8 2v4" />
@@ -268,14 +196,7 @@ export default async function DashboardLayout({
       label: "সেটিংস",
       roles: ["admin"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
@@ -286,14 +207,7 @@ export default async function DashboardLayout({
       label: "ডেটা মুছুন",
       roles: ["admin"],
       icon: (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.9"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="3 6 5 6 21 6" />
           <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
           <path d="M10 11v6" />
@@ -308,6 +222,13 @@ export default async function DashboardLayout({
   const primaryLinks = visibleLinks.slice(0, 7);
   const secondaryLinks = visibleLinks.slice(7);
 
+  /* MobileMenu-তে পাঠানোর জন্য serializable version (ReactNode বাদ) */
+  const mobileLinks = visibleLinks.map((l) => ({
+    href: l.href,
+    label: l.label,
+    icon: l.icon,
+  }));
+
   return (
     <div className="layout-root">
       {/* ================= Header (no-print) ================= */}
@@ -317,14 +238,7 @@ export default async function DashboardLayout({
             {/* ---- Logo + Name ---- */}
             <Link href="/dashboard" className="layout-logo">
               <div className="layout-logo-mark">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2 L12 4" />
                   <path d="M12 4 C 8 6, 6 9, 6 13 L 6 21 L 18 21 L 18 13 C 18 9, 16 6, 12 4 Z" />
                   <path d="M10 21 L 10 17 C 10 15.5, 14 15.5, 14 17 L 14 21" />
@@ -367,7 +281,11 @@ export default async function DashboardLayout({
               </div>
 
               <LogoutButton />
-              <MobileMenu navLinks={visibleLinks} fullName={fullName} />
+              <MobileMenu
+                navLinks={mobileLinks}
+                fullName={fullName}
+                role={role}
+              />
             </div>
           </div>
 
@@ -376,14 +294,7 @@ export default async function DashboardLayout({
             <div className="layout-nav-secondary-bar">
               <div className="layout-nav-secondary-inner">
                 <span className="layout-nav-secondary-label">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2 L 4 6 v 6 c 0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10 V 6 Z" />
                   </svg>
                   Admin
@@ -435,8 +346,7 @@ export default async function DashboardLayout({
           align-items: center;
           justify-content: center;
           padding: 1.5rem;
-          font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui,
-            sans-serif;
+          font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
         }
 
         .layout-hold-card {
@@ -544,6 +454,11 @@ export default async function DashboardLayout({
           align-items: center;
           justify-content: center;
           box-shadow: 0 6px 14px -6px rgba(15, 118, 110, 0.5);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .layout-logo:hover .layout-logo-mark {
+          transform: scale(1.05);
+          box-shadow: 0 8px 18px -6px rgba(15, 118, 110, 0.65);
         }
 
         .layout-logo-mark svg {
@@ -566,7 +481,7 @@ export default async function DashboardLayout({
           color: #64748b;
         }
 
-        /* ---------- Primary Nav ---------- */
+        /* ---------- Primary Nav (pill container) ---------- */
         .layout-nav-primary {
           display: none;
           align-items: center;
@@ -575,70 +490,6 @@ export default async function DashboardLayout({
           border: 1px solid #e2e8f0;
           padding: 0.25rem;
           border-radius: 999px;
-        }
-
-        /* ========================================
-           NavLink (both variants)
-           ======================================== */
-        .nav-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          text-decoration: none;
-          font-weight: 500;
-          white-space: nowrap;
-          transition: background-color 0.15s ease, color 0.15s ease,
-            box-shadow 0.15s ease, transform 0.05s ease;
-        }
-
-        .nav-link-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .nav-link-icon svg {
-          width: 16px;
-          height: 16px;
-        }
-
-        /* Primary variant */
-        .nav-link-primary {
-          padding: 0.45rem 0.85rem;
-          border-radius: 999px;
-          font-size: 0.82rem;
-          color: #475569;
-        }
-
-        .nav-link-primary:hover {
-          background: #ffffff;
-          color: #0f172a;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-        }
-
-        .nav-link-primary.nav-link-active {
-          background: #0f766e;
-          color: #ffffff;
-          box-shadow: 0 4px 10px -4px rgba(15, 118, 110, 0.6);
-        }
-
-        /* Secondary variant */
-        .nav-link-secondary {
-          padding: 0.35rem 0.7rem;
-          border-radius: 8px;
-          font-size: 0.78rem;
-          color: #64748b;
-        }
-
-        .nav-link-secondary:hover {
-          background: #ffffff;
-          color: #0f172a;
-        }
-
-        .nav-link-secondary.nav-link-active {
-          background: #ecfdf5;
-          color: #0f766e;
-          box-shadow: inset 0 0 0 1px #a7f3d0;
         }
 
         /* ---------- Right tools ---------- */
@@ -683,7 +534,7 @@ export default async function DashboardLayout({
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: #ccfbf1;
+          background: linear-gradient(135deg, #ccfbf1, #99f6e4);
           color: #0f766e;
           display: flex;
           align-items: center;
@@ -691,6 +542,7 @@ export default async function DashboardLayout({
           font-weight: 700;
           font-size: 0.85rem;
           border: 1px solid #99f6e4;
+          box-shadow: 0 2px 6px -3px rgba(15, 118, 110, 0.35);
         }
 
         /* ---------- Secondary Nav Bar (Admin) ---------- */
@@ -754,10 +606,6 @@ export default async function DashboardLayout({
             padding: 2rem 1.5rem 3rem;
           }
 
-          .layout-logo-text {
-            display: block;
-          }
-
           .layout-user-chip {
             display: flex;
           }
@@ -808,73 +656,59 @@ export default async function DashboardLayout({
         }
 
         /* ========================================
-   Dark Mode (class-based)
-   ======================================== */
-.dark .layout-root {
-  background: #020617;
-  color: #e2e8f0;
-}
+           Dark Mode (class-based)
+           ======================================== */
+        .dark .layout-root {
+          background: #020617;
+          color: #e2e8f0;
+        }
 
-.dark .layout-header {
-  background: rgba(15, 23, 42, 0.85);
-  border-bottom-color: #1e293b;
-}
+        .dark .layout-header {
+          background: rgba(15, 23, 42, 0.85);
+          border-bottom-color: #1e293b;
+        }
 
-.dark .layout-logo-title { color: #f1f5f9; }
-.dark .layout-logo-sub { color: #94a3b8; }
+        .dark .layout-logo-title { color: #f1f5f9; }
+        .dark .layout-logo-sub { color: #94a3b8; }
 
-.dark .layout-nav-primary {
-  background: #0f172a;
-  border-color: #1e293b;
-}
+        .dark .layout-nav-primary {
+          background: #0f172a;
+          border-color: #1e293b;
+        }
 
-.dark .nav-link-primary { color: #cbd5e1; }
-.dark .nav-link-primary:hover { background: #1e293b; color: #fff; }
-.dark .nav-link-primary.nav-link-active {
-  background: #0f766e;
-  color: #fff;
-}
+        .dark .layout-user-chip { border-left-color: #1e293b; }
+        .dark .layout-user-greet { color: #64748b; }
+        .dark .layout-user-name { color: #e2e8f0; }
+        .dark .layout-user-avatar {
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.35), rgba(20, 184, 166, 0.25));
+          color: #5eead4;
+          border-color: rgba(94, 234, 212, 0.3);
+        }
 
-.dark .nav-link-secondary { color: #94a3b8; }
-.dark .nav-link-secondary:hover { background: #1e293b; color: #e2e8f0; }
-.dark .nav-link-secondary.nav-link-active {
-  background: rgba(15, 118, 110, 0.2);
-  color: #5eead4;
-  box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3);
-}
+        .dark .layout-nav-secondary-bar {
+          background: #0b1220;
+          border-top-color: #1e293b;
+        }
 
-.dark .layout-user-chip { border-left-color: #1e293b; }
-.dark .layout-user-greet { color: #64748b; }
-.dark .layout-user-name { color: #e2e8f0; }
-.dark .layout-user-avatar {
-  background: rgba(15, 118, 110, 0.25);
-  color: #5eead4;
-  border-color: rgba(94, 234, 212, 0.3);
-}
+        .dark .layout-nav-secondary-label {
+          color: #5eead4;
+          background: rgba(15, 118, 110, 0.18);
+          border-color: rgba(94, 234, 212, 0.3);
+        }
 
-.dark .layout-nav-secondary-bar {
-  background: #0b1220;
-  border-top-color: #1e293b;
-}
+        .dark .layout-hold-wrapper { background: #020617; }
+        .dark .layout-hold-card {
+          background: #0f172a;
+          border-color: rgba(217, 119, 6, 0.35);
+        }
+        .dark .layout-hold-title { color: #fbbf24; }
+        .dark .layout-hold-text, .dark .layout-hold-hint { color: #94a3b8; }
+        .dark .layout-hold-reason {
+          background: rgba(180, 83, 9, 0.18);
+          color: #fcd34d;
+        }
 
-.dark .layout-nav-secondary-label {
-  color: #5eead4;
-  background: rgba(15, 118, 110, 0.18);
-  border-color: rgba(94, 234, 212, 0.3);
-}
-
-.dark .layout-hold-wrapper { background: #020617; }
-.dark .layout-hold-card {
-  background: #0f172a;
-  border-color: rgba(217, 119, 6, 0.35);
-}
-.dark .layout-hold-title { color: #fbbf24; }
-.dark .layout-hold-text, .dark .layout-hold-hint { color: #94a3b8; }
-.dark .layout-hold-reason {
-  background: rgba(180, 83, 9, 0.18);
-  color: #fcd34d;
-}
-        /* Print: hide header (no-print) */
+        /* Print */
         @media print {
           .no-print {
             display: none !important;
