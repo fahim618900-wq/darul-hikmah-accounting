@@ -184,11 +184,6 @@ export default function StudentView() {
 
       {/* স্ক্রিনে বাটন */}
       <div className="no-print" style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
-  
-  return (
-    <>
-      {/* স্ক্রিনে বাটন */}
-      <div className="no-print" style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
         <div style={{ flex: 1, minWidth: "200px" }}>
           <label style={{ display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" }}>
             প্রস্তুতকারীর নাম (প্রিন্টে দেখাবে)
@@ -313,7 +308,6 @@ export default function StudentView() {
           );
         })}
 
-        {/* সতর্কবার্তা */}
         <div style={{ background: "#fef2f2", padding: "1rem", borderRadius: "6px", border: "1px solid #fecaca", fontSize: "0.8rem", color: "#7f1d1d", lineHeight: 1.6 }}>
           <strong>সতর্কবার্তা:</strong> এই পোর্টালে শুধু নিজের ও ভাই/বোনের তথ্য দেখা যাবে। অন্যের তথ্য দেখার চেষ্টা করলে আপনার অ্যাক্সেস বন্ধ হয়ে যাবে এবং মাদ্রাসা কর্তৃপক্ষ দায়ী থাকবে না।
         </div>
