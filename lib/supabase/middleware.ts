@@ -35,22 +35,65 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const path = request.nextUrl.pathname;
+
+  // ─────────────────────────────────────────
+  // /register চেক — সাইনআপ বন্ধ থাকলে সাদা পেজ
+  // ─────────────────────────────────────────
+  if (path === "/register") {
+    const { data: setting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "signup_enabled")
+      .single();
+
+    if (setting?.value !== "true") {
+      return new NextResponse(
+        "<!DOCTYPE html><html><head><title>404</title></head><body style='margin:0;background:#ffffff'></body></html>",
+        {
+          status: 200,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        }
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // /student চেক — পোর্টাল বন্ধ থাকলে সাদা পেজ
+  // ─────────────────────────────────────────
+  if (path.startsWith("/student")) {
+    const { data: setting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "student_portal_enabled")
+      .single();
+
+    if (setting?.value !== "true") {
+      return new NextResponse(
+        "<!DOCTYPE html><html><head><title>404</title></head><body style='margin:0;background:#ffffff'></body></html>",
+        {
+          status: 200,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        }
+      );
+    }
+  }
+
+  // লগইন না থাকলে সুরক্ষিত পেজে যেতে দেব না
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/register") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !path.startsWith("/login") &&
+    !path.startsWith("/register") &&
+    !path.startsWith("/auth") &&
+    !path.startsWith("/student")
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (
-    user &&
-    (request.nextUrl.pathname === "/login" ||
-      request.nextUrl.pathname === "/register")
-  ) {
+  // লগইন থাকলে login/register-এ যেতে দেব না
+  if (user && (path === "/login" || path === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
