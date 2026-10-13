@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./logout-button";
+import NotificationBell from "./notification-bell";
 
 export default async function DashboardLayout({
   children,
@@ -12,7 +13,7 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, role, is_held, held_reason")
     .eq("id", user?.id)
@@ -55,6 +56,7 @@ export default async function DashboardLayout({
       </div>
     );
   }
+
   const navLinks = [
     { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
     { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
@@ -64,9 +66,9 @@ export default async function DashboardLayout({
     { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
     { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
     { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
-    { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
-    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
     { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
+    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
+    { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
   ];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
@@ -85,7 +87,10 @@ export default async function DashboardLayout({
                   আসসালামু আলাইকুম, {fullName}
                 </p>
               </div>
-              <LogoutButton />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                <NotificationBell userId={user?.id || ""} />
+                <LogoutButton />
+              </div>
             </div>
           </div>
 
