@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,22 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [signupEnabled, setSignupEnabled] = useState(true);
+
+  useEffect(() => {
+    async function checkSignup() {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "signup_enabled")
+        .single();
+
+      setSignupEnabled(data?.value === "true");
+      setChecking(false);
+    }
+    checkSignup();
+  }, []);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -23,9 +39,7 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -38,6 +52,32 @@ export default function RegisterPage() {
 
     setSuccess(true);
     setLoading(false);
+  }
+
+  if (checking) {
+    return (
+      <main className="container" style={{ paddingTop: "3rem", paddingBottom: "3rem", textAlign: "center", color: "#64748b" }}>
+        লোড হচ্ছে...
+      </main>
+    );
+  }
+
+  if (!signupEnabled) {
+    return (
+      <main className="container" style={{ paddingTop: "3rem", paddingBottom: "3rem" }}>
+        <div style={{ maxWidth: "500px", margin: "0 auto", background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+          <h1 style={{ fontSize: "1.5rem", color: "#b91c1c", marginBottom: "1rem" }}>
+            নতুন নিবন্ধন বন্ধ
+          </h1>
+          <p style={{ color: "#475569", marginBottom: "1.5rem" }}>
+            বর্তমানে নতুন অ্যাকাউন্ট তৈরি বন্ধ রয়েছে। অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
+          </p>
+          <Link href="/login" style={{ color: "#0f766e", fontWeight: "500" }}>
+            লগইন পেজে যান
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   if (success) {
