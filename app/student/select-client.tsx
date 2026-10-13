@@ -143,14 +143,30 @@ export default function StudentSelect() {
     );
   }
 
-  if (!portalEnabled) {
+    if (!portalEnabled) {
     return (
-      <div style={{ background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <h2 style={{ fontSize: "1.2rem", color: "#b91c1c", marginBottom: "1rem" }}>
-          পোর্টাল বন্ধ
+      <div style={{ background: "#ffffff", padding: "2.5rem 2rem", borderRadius: "10px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+        <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+          </svg>
+        </div>
+
+        <h2 style={{ fontSize: "1.3rem", color: "#b91c1c", marginBottom: "0.75rem" }}>
+          শিক্ষার্থী পোর্টাল বন্ধ
         </h2>
-        <p style={{ color: "#475569", marginBottom: "1rem" }}>
-          শিক্ষার্থী পোর্টাল বর্তমানে বন্ধ রয়েছে। অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
+
+        <p style={{ color: "#475569", marginBottom: "0.5rem", lineHeight: 1.6 }}>
+          শিক্ষার্থী পোর্টাল বর্তমানে বন্ধ রাখা হয়েছে।
+        </p>
+
+        <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6 }}>
+          অনুগ্রহ করে মাদ্রাসার Admin-এর সাথে যোগাযোগ করুন।
+        </p>
+
+        <p style={{ marginTop: "1.5rem", fontSize: "0.8rem", color: "#94a3b8" }}>
+          দারুল হিকমাহ মডেল মাদ্রাসা — শিক্ষার্থী পোর্টাল
         </p>
       </div>
     );
