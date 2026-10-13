@@ -40,31 +40,35 @@ export default function TransactionsReport({
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(lastOfMonth);
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
-  const [search, setSearch] = useState("");
+  const [receiptSearch, setReceiptSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
+  const [descSearch, setDescSearch] = useState("");
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
       if (t.date < fromDate || t.date > toDate) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          (t.ref_no || "").toLowerCase().includes(q) ||
-          (t.category || "").toLowerCase().includes(q) ||
-          (t.description || "").toLowerCase().includes(q)
-        );
-      }
+      if (receiptSearch && !(t.ref_no || "").toLowerCase().includes(receiptSearch.toLowerCase())) return false;
+      if (categorySearch && !(t.category || "").toLowerCase().includes(categorySearch.toLowerCase())) return false;
+      if (descSearch && !(t.description || "").toLowerCase().includes(descSearch.toLowerCase())) return false;
       return true;
     });
-  }, [transactions, fromDate, toDate, typeFilter, search]);
+  }, [transactions, fromDate, toDate, typeFilter, receiptSearch, categorySearch, descSearch]);
 
   const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
   const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
 
+  function clearFilters() {
+    setReceiptSearch("");
+    setCategorySearch("");
+    setDescSearch("");
+    setTypeFilter("all");
+  }
+
   return (
     <>
       <div className="no-print" style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
           <div>
             <label style={lbl}>শুরুর তারিখ</label>
             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={inp} />
@@ -81,14 +85,49 @@ export default function TransactionsReport({
               <option value="expense">শুধু ব্যয়</option>
             </select>
           </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
           <div>
-            <label style={lbl}>রসিদ / খাত / বিবরণ</label>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="রসিদ নম্বর..." style={inp} />
+            <label style={lbl}>🔍 রসিদ / ভাউচার নম্বর</label>
+            <input
+              type="text"
+              value={receiptSearch}
+              onChange={(e) => setReceiptSearch(e.target.value)}
+              placeholder="R-202610-..."
+              style={{ ...inp, borderColor: receiptSearch ? "#0f766e" : "#cbd5e1" }}
+            />
+          </div>
+          <div>
+            <label style={lbl}>🔍 খাত</label>
+            <input
+              type="text"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              placeholder="বেতন, বিদ্যুৎ..."
+              style={inp}
+            />
+          </div>
+          <div>
+            <label style={lbl}>🔍 বিবরণ</label>
+            <input
+              type="text"
+              value={descSearch}
+              onChange={(e) => setDescSearch(e.target.value)}
+              placeholder="কোনো লেখা..."
+              style={inp}
+            />
           </div>
         </div>
-        <button onClick={() => window.print()} style={{ marginTop: "0.75rem", padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
-          🖨️ Print / PDF
-        </button>
+
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button onClick={() => window.print()} style={{ padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
+            🖨️ Print / PDF
+          </button>
+          <button onClick={clearFilters} style={{ padding: "0.55rem 1.1rem", background: "#ffffff", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem", cursor: "pointer" }}>
+            ফিল্টার মুছুন
+          </button>
+        </div>
       </div>
 
       <div className="print-area">
@@ -105,16 +144,23 @@ export default function TransactionsReport({
             <div><strong>সময়কাল:</strong> {toBangla(fromDate)} — {toBangla(toDate)}</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
+          {(receiptSearch || categorySearch || descSearch) && (
+            <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "0.35rem" }}>
+              {receiptSearch && <span>রসিদ: <strong>{receiptSearch}</strong> </span>}
+              {categorySearch && <span>| খাত: <strong>{categorySearch}</strong> </span>}
+              {descSearch && <span>| বিবরণ: <strong>{descSearch}</strong></span>}
+            </div>
+          )}
         </div>
 
-        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.82rem" }}>
+        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.8rem" }}>
           <thead>
             <tr style={{ background: "#0f766e", color: "#fff" }}>
               <th style={th}>নং</th>
               <th style={th}>তারিখ</th>
               <th style={th}>ধরন</th>
               <th style={th}>খাত</th>
-              <th style={th}>রসিদ/ভাউচার</th>
+              <th style={th}>রসিদ / ভাউচার</th>
               <th style={th}>বিবরণ</th>
               <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
             </tr>
@@ -141,7 +187,7 @@ export default function TransactionsReport({
                     </span>
                   </td>
                   <td style={td}>{t.category || "-"}</td>
-                  <td style={{ ...td, fontSize: "0.75rem" }}>{t.ref_no || "-"}</td>
+                  <td style={{ ...td, fontSize: "0.72rem", fontWeight: "500", color: "#0f766e" }}>{t.ref_no || "-"}</td>
                   <td style={td}>{t.description || "-"}</td>
                   <td style={{ ...td, textAlign: "right", color: t.type === "income" ? "#15803d" : "#b91c1c", fontWeight: "500" }}>
                     ৳ {toBangla(t.amount)}
