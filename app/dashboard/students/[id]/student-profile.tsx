@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 type Student = {
@@ -43,6 +44,11 @@ function toBangla(input: string | number): string {
   return String(input).replace(/[0-9]/g, (d) => map[d]);
 }
 
+function todayBangla(): string {
+  const d = new Date();
+  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
+}
+
 export default function StudentProfile({
   student,
   payments,
@@ -50,21 +56,18 @@ export default function StudentProfile({
   student: Student;
   payments: Payment[];
 }) {
+  const [preparedBy, setPreparedBy] = useState("");
+
   const payable = Number(student.monthly_fee || 0) - Number(student.discount || 0);
   const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
-  // মাসভিত্তিক হিসাব
-  const monthlyMap: Record<string, { paid: number; payments: Payment[] }> = {};
-  payments.forEach((p) => {
-    const key = `${p.year}-${String(p.month).padStart(2, "0")}`;
-    if (!monthlyMap[key]) monthlyMap[key] = { paid: 0, payments: [] };
-    monthlyMap[key].paid += Number(p.amount);
-    monthlyMap[key].payments.push(p);
-  });
+  function handlePrint() {
+    window.print();
+  }
 
   return (
     <>
-      {/* প্রিন্টে লুকানোর জন্য */}
+      {/* স্ক্রিনে ফিল্টার ও বাটন */}
       <div className="no-print">
         <Link
           href="/dashboard/students"
@@ -80,17 +83,58 @@ export default function StudentProfile({
         >
           ← শিক্ষার্থী তালিকায় ফিরে যান
         </Link>
+
+        <div style={{ background: "#ffffff", padding: "0.85rem 1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div style={{ flex: 1, minWidth: "200px" }}>
+            <label style={{ display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" }}>
+              প্রস্তুতকারীর নাম (প্রিন্টে দেখাবে)
+            </label>
+            <input
+              type="text"
+              value={preparedBy}
+              onChange={(e) => setPreparedBy(e.target.value)}
+              placeholder="আপনার নাম"
+              style={{ width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem" }}
+            />
+          </div>
+          <button
+            onClick={handlePrint}
+            style={{ padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}
+          >
+            🖨️ Print / PDF
+          </button>
+        </div>
       </div>
 
       <div className="print-area">
-        {/* হেডার */}
-        <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
+        {/* প্রিন্ট হেডার */}
+        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e", marginBottom: "1rem" }}>
+          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
+            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>
+              দারুল হিকমাহ মডেল মাদ্রাসা
+            </h1>
+            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>
+              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
+            </p>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+            <div><strong>বিষয়:</strong> শিক্ষার্থীর বেতন পরিশোধের ইতিহাস</div>
+            <div><strong>তারিখ:</strong> {todayBangla()}</div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem" }}>
+            <div><strong>শিক্ষার্থী:</strong> {student.name} — {student.class_name}{student.roll ? ` | রোল: ${student.roll}` : ""}</div>
+            <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
+          </div>
+        </div>
+
+        {/* শিক্ষার্থীর তথ্য */}
+        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", marginBottom: "1rem", borderTop: "1px solid #e2e8f0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
             <div>
-              <h1 style={{ fontSize: "1.5rem", color: "#0f766e", marginBottom: "0.35rem" }}>
+              <h2 style={{ fontSize: "1.2rem", color: "#0f766e", marginBottom: "0.35rem" }}>
                 {student.name}
-              </h1>
-              <p style={{ fontSize: "0.9rem", color: "#64748b" }}>
+              </h2>
+              <p style={{ fontSize: "0.85rem", color: "#64748b" }}>
                 {student.class_name}
                 {student.section && ` — শাখা: ${student.section}`}
                 {student.roll && ` | রোল: ${student.roll}`}
@@ -110,41 +154,22 @@ export default function StudentProfile({
               {student.status === "active" ? "সক্রিয়" : "নিষ্ক্রিয়"}
             </span>
           </div>
-        </div>
 
-        {/* তথ্য কার্ড */}
-        <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-          <h2 style={{ fontSize: "1rem", color: "#0f766e", marginBottom: "1rem" }}>
-            শিক্ষার্থীর তথ্য
-          </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.85rem", fontSize: "0.85rem" }}>
             <Info label="অভিভাবকের নাম" value={student.guardian_name || "-"} />
             <Info label="অভিভাবকের ফোন" value={student.guardian_phone || "-"} />
-            <Info label="ভর্তি তারিখ" value={student.admission_date || "-"} />
             <Info label="মাসিক বেতন" value={`৳ ${toBangla(student.monthly_fee)}`} />
             <Info label="ছাড়" value={`৳ ${toBangla(student.discount || 0)}`} />
-            <Info label="প্রদেয়" value={`৳ ${toBangla(payable)}`} highlight />
-            {student.discount_reason && (
-              <Info label="ছাড়ের কারণ" value={student.discount_reason} />
-            )}
-            {student.address && (
-              <Info label="ঠিকানা" value={student.address} />
-            )}
+            <Info label="মাসিক প্রদেয়" value={`৳ ${toBangla(payable)}`} highlight />
+            <Info label="মোট পরিশোধিত" value={`৳ ${toBangla(totalPaid)}`} highlight />
           </div>
         </div>
 
-        {/* সারসংক্ষেপ */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "1rem" }}>
-          <SummaryCard label="মোট পেমেন্ট" value={payments.length} suffix="বার" color="#1e40af" isCount />
-          <SummaryCard label="মোট পরিশোধিত" value={`৳ ${toBangla(totalPaid)}`} color="#15803d" />
-          <SummaryCard label="মাসিক প্রদেয়" value={`৳ ${toBangla(payable)}`} color="#0f766e" />
-        </div>
-
         {/* বেতন ইতিহাস */}
-        <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-          <h2 style={{ fontSize: "1rem", color: "#0f766e", marginBottom: "1rem" }}>
+        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
+          <h3 style={{ fontSize: "1rem", color: "#0f766e", marginBottom: "0.85rem" }}>
             বেতন পরিশোধের ইতিহাস ({toBangla(payments.length)}টি)
-          </h2>
+          </h3>
 
           {payments.length === 0 ? (
             <p style={{ color: "#64748b", fontSize: "0.9rem", padding: "1rem", background: "#f8fafc", borderRadius: "6px", textAlign: "center" }}>
@@ -152,7 +177,7 @@ export default function StudentProfile({
             </p>
           ) : (
             <div style={{ overflowX: "auto", border: "1px solid #e2e8f0", borderRadius: "6px" }}>
-              <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+              <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
                 <thead>
                   <tr style={{ background: "#0f766e", color: "#fff" }}>
                     <th style={th}>নং</th>
@@ -175,7 +200,7 @@ export default function StudentProfile({
                         ৳ {toBangla(p.amount)}
                       </td>
                       <td style={td}>{toBangla(p.payment_date)}</td>
-                      <td style={{ ...td, fontSize: "0.78rem", color: "#0f766e", fontWeight: "500" }}>
+                      <td style={{ ...td, fontSize: "0.75rem", color: "#0f766e", fontWeight: "500" }}>
                         {p.receipt_no || "-"}
                       </td>
                       <td style={td}>
@@ -207,35 +232,11 @@ export default function StudentProfile({
 function Info({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem" }}>{label}</div>
+      <div style={{ fontSize: "0.72rem", color: "#64748b", marginBottom: "0.2rem" }}>{label}</div>
       <div style={{ fontWeight: highlight ? "600" : "500", color: highlight ? "#0f766e" : "#1a1a1a" }}>{value}</div>
     </div>
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  suffix,
-  color,
-  isCount,
-}: {
-  label: string;
-  value: string | number;
-  suffix?: string;
-  color: string;
-  isCount?: boolean;
-}) {
-  return (
-    <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", borderLeft: `4px solid ${color}`, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-      <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.3rem" }}>{label}</div>
-      <div style={{ fontSize: "1.1rem", fontWeight: "600", color }}>
-        {value}
-        {suffix && <span style={{ fontSize: "0.8rem", marginLeft: "0.25rem", color: "#64748b" }}>{suffix}</span>}
-      </div>
-    </div>
-  );
-}
-
-const th: React.CSSProperties = { padding: "0.7rem 0.85rem", textAlign: "left", fontWeight: "600", fontSize: "0.78rem", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { padding: "0.7rem 0.85rem", color: "#1a1a1a" };
+const th: React.CSSProperties = { padding: "0.6rem 0.7rem", textAlign: "left", fontWeight: "600", fontSize: "0.75rem", whiteSpace: "nowrap" };
+const td: React.CSSProperties = { padding: "0.6rem 0.7rem", color: "#1a1a1a" };
