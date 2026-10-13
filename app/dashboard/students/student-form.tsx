@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -22,29 +22,9 @@ type Student = {
 };
 
 const CLASSES = [
-  "প্লে",
-  "নার্সারি",
-  "প্রথম",
-  "দ্বিতীয়",
-  "তৃতীয়",
-  "চতুর্থ",
-  "পঞ্চম",
-  "ষষ্ঠ",
-  "সপ্তম",
-  "অষ্টম",
-  "নবম",
-  "দশম",
-  "নূরানী",
-  "নাযেরা",
-  "হিফয",
+  "প্লে", "নার্সারি", "প্রথম", "দ্বিতীয়", "তৃতীয়", "চতুর্থ", "পঞ্চম",
+  "ষষ্ঠ", "সপ্তম", "অষ্টম", "নবম", "দশম", "নূরানী", "নাযেরা", "হিফয",
 ];
-
-const CloseIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
 
 export default function StudentForm({
   student,
@@ -74,24 +54,6 @@ export default function StudentForm({
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Prevent background scroll while modal is open
-  useEffect(() => {
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, []);
-
-  // Close on Escape key
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   function update(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -126,393 +88,238 @@ export default function StudentForm({
     router.refresh();
   }
 
-  const isEdit = !!student;
-
   return (
-    <div className="sf-backdrop" onClick={() => onClose(false)}>
-      <style>{`
-        .sf-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.55);
-          backdrop-filter: blur(2px);
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          padding: 0;
-          overflow-y: auto;
-          z-index: 50;
-          animation: sf-fade 0.15s ease-out;
-        }
-        @keyframes sf-fade {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        .sf-modal {
-          background: #ffffff;
-          width: 100%;
-          max-width: 640px;
-          min-height: 100vh;
-          padding: 1.15rem 1rem 6rem;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-          animation: sf-slide 0.18s ease-out;
-          position: relative;
-          box-sizing: border-box;
-        }
-        @keyframes sf-slide {
-          from { transform: translateY(12px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        .sf-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 0.75rem;
-          margin-bottom: 1.1rem;
-          padding-bottom: 0.85rem;
-          border-bottom: 1px solid #f1f5f9;
-        }
-        .sf-title {
-          font-size: 1.1rem;
-          color: #0f766e;
-          margin: 0;
-          font-weight: 700;
-          line-height: 1.3;
-        }
-        .sf-subtitle {
-          font-size: 0.75rem;
-          color: #64748b;
-          margin-top: 0.2rem;
-        }
-        .sf-close {
-          background: #f1f5f9;
-          border: none;
-          color: #475569;
-          width: 34px;
-          height: 34px;
-          border-radius: 8px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          flex-shrink: 0;
-          transition: background 0.15s;
-        }
-        .sf-close:hover { background: #e2e8f0; }
-
-        .sf-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0.75rem;
-        }
-        .sf-field label {
-          display: block;
-          margin-bottom: 0.3rem;
-          font-size: 0.78rem;
-          color: #475569;
-          font-weight: 600;
-        }
-        .sf-input {
-          width: 100%;
-          padding: 0.6rem 0.75rem;
-          border: 1px solid #cbd5e1;
-          border-radius: 8px;
-          font-size: 0.9rem;
-          font-family: inherit;
-          background: #ffffff;
-          color: #0f172a;
-          outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s;
-          box-sizing: border-box;
-        }
-        .sf-input:focus {
-          border-color: #0f766e;
-          box-shadow: 0 0 0 3px rgba(15,118,110,0.13);
-        }
-        textarea.sf-input { resize: vertical; min-height: 60px; }
-
-        .sf-section-title {
-          margin-top: 1.15rem;
-          margin-bottom: 0.65rem;
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-        }
-
-        .sf-error {
-          background: #fef2f2;
-          color: #b91c1c;
-          padding: 0.7rem 0.85rem;
-          border-radius: 8px;
-          margin-top: 1rem;
-          font-size: 0.82rem;
-          border: 1px solid #fecaca;
-        }
-
-        .sf-actions {
-          position: sticky;
-          bottom: 0;
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 1.5rem;
-          padding: 0.85rem 0;
-          background: linear-gradient(to top, #ffffff 75%, rgba(255,255,255,0));
-        }
-        .sf-btn {
-          flex: 1;
-          padding: 0.7rem 1rem;
-          border-radius: 8px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.15s, transform 0.08s, opacity 0.15s;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.4rem;
-          line-height: 1;
-        }
-        .sf-btn:active { transform: scale(0.985); }
-        .sf-btn-cancel {
-          background: #ffffff;
-          color: #475569;
-          border: 1px solid #cbd5e1;
-        }
-        .sf-btn-cancel:hover { background: #f8fafc; }
-        .sf-btn-submit {
-          background: #0f766e;
-          color: #ffffff;
-          border: none;
-          flex: 1.5;
-        }
-        .sf-btn-submit:hover { background: #0d5f59; }
-        .sf-btn-submit:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-
-        @media (min-width: 560px) {
-          .sf-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 0.85rem 1rem;
-          }
-          .sf-span-2 { grid-column: 1 / -1; }
-        }
-
-        @media (min-width: 640px) {
-          .sf-backdrop {
-            padding: 2rem 1rem;
-            align-items: flex-start;
-          }
-          .sf-modal {
-            min-height: auto;
-            border-radius: 14px;
-            padding: 1.75rem 1.75rem 1.5rem;
-          }
-          .sf-title { font-size: 1.25rem; }
-          .sf-actions {
-            position: static;
-            background: none;
-            padding: 0;
-            margin-top: 1.5rem;
-            justify-content: flex-end;
-          }
-          .sf-btn { flex: 0 0 auto; }
-          .sf-btn-cancel { padding: 0.65rem 1.25rem; }
-          .sf-btn-submit { padding: 0.65rem 1.5rem; }
-        }
-      `}</style>
-
-      <div className="sf-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="sf-header">
-          <div>
-            <h3 className="sf-title">
-              {isEdit ? "শিক্ষার্থীর তথ্য সম্পাদনা" : "নতুন শিক্ষার্থী যোগ"}
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
+      onClick={() => onClose(false)}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-slate-900 w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+      >
+        {/* হেডার */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {student ? "শিক্ষার্থীর তথ্য সম্পাদনা" : "নতুন শিক্ষার্থী যোগ"}
             </h3>
-            <p className="sf-subtitle">
-              {isEdit ? "তথ্য পরিবর্তন করে আপডেট করুন" : "নিচের তথ্যগুলো পূরণ করুন"}
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              নিচের তথ্যগুলো পূরণ করুন
             </p>
           </div>
-          <button className="sf-close" onClick={() => onClose(false)} aria-label="বন্ধ">
-            <CloseIcon />
+          <button
+            type="button"
+            onClick={() => onClose(false)}
+            className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition shrink-0 ml-2"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="sf-grid">
-            <div className="sf-field sf-span-2">
-              <label>শিক্ষার্থীর নাম *</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => update("name", e.target.value)}
-                required
-                className="sf-input"
-                placeholder="পূর্ণ নাম"
-              />
-            </div>
+        {/* ফর্ম */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="px-5 py-5 space-y-6">
+            {/* ============ সেকশন ১: মৌলিক তথ্য ============ */}
+            <Section title="মৌলিক তথ্য" icon="user">
+              <Field label="শিক্ষার্থীর নাম" required>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => update("name", e.target.value)}
+                  required
+                  placeholder="যেমন: আহমাদ আব্দুল্লাহ"
+                  className={inputClass}
+                />
+              </Field>
 
-            <div className="sf-field">
-              <label>আইডি</label>
-              <input
-                type="text"
-                value={form.student_id}
-                onChange={(e) => update("student_id", e.target.value)}
-                className="sf-input"
-                placeholder="যেমন: STU-001"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="শ্রেণি" required>
+                  <select
+                    value={form.class_name}
+                    onChange={(e) => update("class_name", e.target.value)}
+                    required
+                    className={inputClass}
+                  >
+                    {CLASSES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="শাখা">
+                  <input
+                    type="text"
+                    value={form.section}
+                    onChange={(e) => update("section", e.target.value)}
+                    placeholder="ক, খ"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
 
-            <div className="sf-field">
-              <label>শ্রেণি *</label>
-              <select
-                value={form.class_name}
-                onChange={(e) => update("class_name", e.target.value)}
-                required
-                className="sf-input"
-              >
-                {CLASSES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="রোল নম্বর">
+                  <input
+                    type="text"
+                    value={form.roll}
+                    onChange={(e) => update("roll", e.target.value)}
+                    placeholder="১, ২, ৩..."
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="শিক্ষার্থী আইডি">
+                  <input
+                    type="text"
+                    value={form.student_id}
+                    onChange={(e) => update("student_id", e.target.value)}
+                    placeholder="যেমন: ST-001"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </Section>
 
-            <div className="sf-field">
-              <label>শাখা</label>
-              <input
-                type="text"
-                value={form.section}
-                onChange={(e) => update("section", e.target.value)}
-                className="sf-input"
-                placeholder="যেমন: ক"
-              />
-            </div>
+            {/* ============ সেকশন ২: অভিভাবকের তথ্য ============ */}
+            <Section title="অভিভাবকের তথ্য" icon="family">
+              <Field label="অভিভাবকের নাম">
+                <input
+                  type="text"
+                  value={form.guardian_name}
+                  onChange={(e) => update("guardian_name", e.target.value)}
+                  placeholder="পিতার বা অভিভাবকের নাম"
+                  className={inputClass}
+                />
+              </Field>
 
-            <div className="sf-field">
-              <label>রোল</label>
-              <input
-                type="text"
-                value={form.roll}
-                onChange={(e) => update("roll", e.target.value)}
-                className="sf-input"
-              />
-            </div>
+              <Field label="মোবাইল নম্বর" hint="এই নম্বর দিয়েই শিক্ষার্থী পোর্টালে যাচাই হবে">
+                <input
+                  type="tel"
+                  value={form.guardian_phone}
+                  onChange={(e) => update("guardian_phone", e.target.value)}
+                  placeholder="০১XXXXXXXXX"
+                  className={inputClass}
+                />
+              </Field>
 
-            <div className="sf-field sf-span-2">
-              <label>ভর্তি তারিখ</label>
-              <input
-                type="date"
-                value={form.admission_date}
-                onChange={(e) => update("admission_date", e.target.value)}
-                className="sf-input"
-              />
-            </div>
+              <Field label="ঠিকানা">
+                <textarea
+                  value={form.address}
+                  onChange={(e) => update("address", e.target.value)}
+                  rows={2}
+                  placeholder="গ্রাম, ডাকঘর, উপজেলা"
+                  className={`${inputClass} resize-none`}
+                />
+              </Field>
+            </Section>
+
+            {/* ============ সেকশন ৩: বেতন ও ভর্তি ============ */}
+            <Section title="বেতন ও ভর্তি" icon="money">
+              <Field label="ভর্তি তারিখ">
+                <input
+                  type="date"
+                  value={form.admission_date}
+                  onChange={(e) => update("admission_date", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="মাসিক বেতন (৳)" required>
+                  <input
+                    type="number"
+                    value={form.monthly_fee}
+                    onChange={(e) => update("monthly_fee", e.target.value)}
+                    required
+                    min={0}
+                    placeholder="০"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="ছাড় (৳)">
+                  <input
+                    type="number"
+                    value={form.discount}
+                    onChange={(e) => update("discount", e.target.value)}
+                    min={0}
+                    placeholder="০"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <Field label="ছাড়ের কারণ">
+                <input
+                  type="text"
+                  value={form.discount_reason}
+                  onChange={(e) => update("discount_reason", e.target.value)}
+                  placeholder="যেমন: এতিম, মেধাবী"
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field label="স্ট্যাটাস">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => update("status", "active")}
+                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition border-2 ${
+                      form.status === "active"
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
+                    }`}
+                  >
+                    সক্রিয়
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => update("status", "inactive")}
+                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition border-2 ${
+                      form.status === "inactive"
+                        ? "bg-red-600 text-white border-red-600"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
+                    }`}
+                  >
+                    নিষ্ক্রিয়
+                  </button>
+                </div>
+              </Field>
+            </Section>
+
+            {error && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                {error}
+              </div>
+            )}
           </div>
 
-          <div className="sf-section-title">অভিভাবকের তথ্য</div>
-          <div className="sf-grid">
-            <div className="sf-field">
-              <label>অভিভাবকের নাম</label>
-              <input
-                type="text"
-                value={form.guardian_name}
-                onChange={(e) => update("guardian_name", e.target.value)}
-                className="sf-input"
-              />
-            </div>
-
-            <div className="sf-field">
-              <label>মোবাইল নম্বর</label>
-              <input
-                type="tel"
-                value={form.guardian_phone}
-                onChange={(e) => update("guardian_phone", e.target.value)}
-                className="sf-input"
-                placeholder="01XXXXXXXXX"
-              />
-            </div>
-
-            <div className="sf-field sf-span-2">
-              <label>ঠিকানা</label>
-              <textarea
-                value={form.address}
-                onChange={(e) => update("address", e.target.value)}
-                rows={2}
-                className="sf-input"
-                placeholder="গ্রাম/শহর, উপজেলা, জেলা"
-              />
-            </div>
-          </div>
-
-          <div className="sf-section-title">বেতন ও স্ট্যাটাস</div>
-          <div className="sf-grid">
-            <div className="sf-field">
-              <label>মাসিক বেতন (৳) *</label>
-              <input
-                type="number"
-                value={form.monthly_fee}
-                onChange={(e) => update("monthly_fee", e.target.value)}
-                required
-                min={0}
-                className="sf-input"
-              />
-            </div>
-
-            <div className="sf-field">
-              <label>ছাড় (৳)</label>
-              <input
-                type="number"
-                value={form.discount}
-                onChange={(e) => update("discount", e.target.value)}
-                min={0}
-                className="sf-input"
-              />
-            </div>
-
-            <div className="sf-field sf-span-2">
-              <label>ছাড়ের কারণ</label>
-              <input
-                type="text"
-                value={form.discount_reason}
-                onChange={(e) => update("discount_reason", e.target.value)}
-                className="sf-input"
-                placeholder="যেমন: এতিম, মেধাবী..."
-              />
-            </div>
-
-            <div className="sf-field sf-span-2">
-              <label>স্ট্যাটাস</label>
-              <select
-                value={form.status}
-                onChange={(e) => update("status", e.target.value)}
-                className="sf-input"
-              >
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-              </select>
-            </div>
-          </div>
-
-          {error && <div className="sf-error">{error}</div>}
-
-          <div className="sf-actions">
+          {/* নিচে স্টিকি অ্যাকশন বার */}
+          <div className="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-5 py-4 flex gap-2 shrink-0">
             <button
               type="button"
               onClick={() => onClose(false)}
-              className="sf-btn sf-btn-cancel"
+              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition"
             >
               বাতিল
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="sf-btn sf-btn-submit"
+              className="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md shadow-brand-500/25 transition flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {loading ? "সংরক্ষণ হচ্ছে..." : isEdit ? "আপডেট করুন" : "যোগ করুন"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  সংরক্ষণ...
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {student ? "আপডেট করুন" : "যোগ করুন"}
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -520,3 +327,81 @@ export default function StudentForm({
     </div>
   );
 }
+
+/* ==================== সহায়ক কম্পোনেন্ট ==================== */
+
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: "user" | "family" | "money";
+  children: React.ReactNode;
+}) {
+  const icons = {
+    user: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+    family: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    money: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="6" width="20" height="12" rx="2" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M6 12h.01M18 12h.01" />
+      </svg>
+    ),
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div className="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+          {icons[icon]}
+        </div>
+        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+          {title}
+        </h4>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  hint,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      {children}
+      {hint && (
+        <p className="text-[10px] text-slate-400 mt-1">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition";
