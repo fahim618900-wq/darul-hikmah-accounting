@@ -47,11 +47,6 @@ function toBangla(input: string | number): string {
   return String(input).replace(/[0-9]/g, (d) => map[d]);
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
-}
-
 function todayBangla(): string {
   const d = new Date();
   return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
@@ -163,49 +158,49 @@ export default function FeesStatusClient({
         />
       )}
 
-      {/* ==================== স্ক্রিনে ফিল্টার ও সামারি ==================== */}
-      <div className="no-print max-w-7xl mx-auto px-4 pt-5">
+      {/* ==================== ফিল্টার ও সামারি ==================== */}
+      <div className="no-print max-w-7xl mx-auto px-3 sm:px-4 pt-5">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
             Paid / Unpaid তালিকা
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {MONTHS[month - 1]} {toBangla(year)} — মাসভিত্তিক বেতন অবস্থা
           </p>
         </div>
 
         {/* সারাংশ কার্ড */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
           <SummaryCard label="মোট শিক্ষার্থী" value={toBangla(students.length)} suffix="জন" color="#2563eb" />
           <SummaryCard label="Paid" value={toBangla(paidCount)} suffix="জন" color="#15803d" />
           <SummaryCard label="Partial" value={toBangla(partialCount)} suffix="জন" color="#b45309" />
           <SummaryCard label="Unpaid" value={toBangla(unpaidOnly)} suffix="জন" color="#b91c1c" />
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
           <MoneyCard label="মোট প্রাপ্য" value={totalPayable} color="#1e40af" />
           <MoneyCard label="মোট আদায়" value={totalPaid} color="#15803d" />
           <MoneyCard label="মোট বাকি" value={totalDue} color="#b91c1c" />
         </div>
 
         {/* ফিল্টার */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">মাস</label>
-              <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">মাস</label>
+              <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
                 {MONTHS.map((m, i) => (
                   <option key={i} value={i + 1}>{m}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">বছর</label>
-              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">বছর</label>
+              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">শ্রেণি</label>
-              <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">শ্রেণি</label>
+              <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
                 <option value="">সব</option>
                 {classes.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -213,8 +208,8 @@ export default function FeesStatusClient({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">স্ট্যাটাস</label>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">স্ট্যাটাস</label>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30">
                 <option value="all">All</option>
                 <option value="paid">Paid</option>
                 <option value="unpaid">Unpaid</option>
@@ -222,19 +217,19 @@ export default function FeesStatusClient({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">খুঁজুন</label>
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="নাম / আইডি / রোল" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">খুঁজুন</label>
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="নাম / আইডি / রোল" className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex-1 min-w-[180px]">
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">প্রস্তুতকারীর নাম</label>
-              <input type="text" value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
+              <label className="block text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">প্রস্তুতকারীর নাম</label>
+              <input type="text" value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)} className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
             </div>
             <button
               onClick={handlePrint}
-              className="self-end px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-md shadow-brand-500/25 transition flex items-center gap-2"
+              className="self-end px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-md shadow-brand-500/25 transition flex items-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 6 2 18 2 18 9" />
@@ -248,199 +243,82 @@ export default function FeesStatusClient({
       </div>
 
       {/* ==================== প্রিন্ট হেডার ==================== */}
-      <div className="print-area max-w-7xl mx-auto px-4">
-        <div className="bg-white rounded-2xl px-6 py-5 mb-4 border-b-2 border-brand-600">
+      <div className="print-area max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 sm:py-5 mb-4 border-b-2 border-brand-600">
           <div className="text-center mb-3">
-            <h1 className="text-xl font-bold text-brand-700 mb-1">
+            <h1 className="text-lg sm:text-xl font-bold text-brand-700 mb-1">
               দারুল হিকমাহ মডেল মাদ্রাসা
             </h1>
             <p className="text-xs text-slate-500">
               ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
             </p>
           </div>
-          <div className="flex justify-between flex-wrap gap-2 text-sm mb-1">
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
             <div><strong>বিষয়:</strong> Paid / Unpaid তালিকা ({statusText})</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
-          <div className="flex justify-between flex-wrap gap-2 text-sm">
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
             <div><strong>মাস:</strong> {MONTHS[month - 1]} {toBangla(year)}</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
         </div>
 
-        {/* ==================== মোবাইলে কার্ড লেআউট ==================== */}
-        <div className="md:hidden space-y-3 mb-6">
-          {loading ? (
-            <div className="text-center py-8 text-slate-500">লোড হচ্ছে...</div>
-          ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center text-slate-500">
-              কোনো ফলাফল পাওয়া যায়নি
-            </div>
-          ) : (
-            filtered.map((r, i) => {
-              const sc = statusColor(r.status);
-              return (
-                <div
-                  key={r.student.id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm"
-                >
-                  {/* হেডার: নাম + স্ট্যাটাস */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold text-slate-400">
-                          #{toBangla(i + 1)}
-                        </span>
-                        <h3 className="text-base font-semibold text-slate-900 truncate">
-                          {r.student.name}
-                        </h3>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        <span className="inline-flex items-center gap-1">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                          </svg>
-                          {r.student.class_name}
-                          {r.student.section && ` (${r.student.section})`}
-                        </span>
-                        {r.student.roll && (
-                          <span>রোল: {r.student.roll}</span>
-                        )}
-                        {r.student.student_id && (
-                          <span>আইডি: {r.student.student_id}</span>
-                        )}
-                      </div>
-                    </div>
-                    <span
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0"
-                      style={{ background: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}
-                    >
-                      {statusLabel(r.status)}
-                    </span>
-                  </div>
-
-                  {/* টাকা: প্রাপ্য / জমা / বাকি */}
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-50 rounded-xl p-2.5 text-center">
-                      <div className="text-[10px] text-slate-500 mb-0.5">প্রাপ্য</div>
-                      <div className="text-sm font-semibold text-slate-800">
-                        ৳{toBangla(r.payable)}
-                      </div>
-                    </div>
-                    <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
-                      <div className="text-[10px] text-emerald-700 mb-0.5">জমা</div>
-                      <div className="text-sm font-semibold text-emerald-700">
-                        ৳{toBangla(r.paid)}
-                      </div>
-                    </div>
-                    <div className={`rounded-xl p-2.5 text-center ${r.due > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-                      <div className={`text-[10px] mb-0.5 ${r.due > 0 ? "text-red-700" : "text-slate-500"}`}>
-                        বাকি
-                      </div>
-                      <div className={`text-sm font-semibold ${r.due > 0 ? "text-red-700" : "text-slate-500"}`}>
-                        ৳{toBangla(r.due)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* বিস্তারিত বাটন */}
-                  <button
-                    onClick={() => setDetailStudent(r.student)}
-                    className="w-full py-2 rounded-xl bg-brand-50 text-brand-700 text-sm font-medium hover:bg-brand-100 transition flex items-center justify-center gap-2"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    বিস্তারিত দেখুন
-                  </button>
-                </div>
-              );
-            })
-          )}
-
-          {/* মোট সারাংশ */}
-          {filtered.length > 0 && !loading && (
-            <div className="bg-brand-600 text-white rounded-2xl p-4">
-              <div className="text-xs opacity-90 mb-2">সর্বমোট ({toBangla(filtered.length)} জন)</div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <div className="text-[10px] opacity-80">প্রাপ্য</div>
-                  <div className="text-sm font-bold">৳{toBangla(totalPayable)}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] opacity-80">জমা</div>
-                  <div className="text-sm font-bold">৳{toBangla(totalPaid)}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] opacity-80">বাকি</div>
-                  <div className="text-sm font-bold">৳{toBangla(totalDue)}</div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ==================== ডেস্কটপে টেবিল ==================== */}
-        <div className="hidden md:block bg-white rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+        {/* ==================== Excel-এর মতো টেবিল (মোবাইল ও ডেস্কটপ উভয়ে) ==================== */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
           {loading ? (
             <div className="text-center py-12 text-slate-500">লোড হচ্ছে...</div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-slate-500">কোনো ফলাফল পাওয়া যায়নি</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <div className="overflow-x-auto excel-scroll">
+              <table className="w-full border-collapse excel-table" style={{ minWidth: "700px" }}>
+                <thead className="excel-head">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নং</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">প্রাপ্য</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">জমা</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">বাকি</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">স্ট্যাটাস</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs no-print">অ্যাকশন</th>
+                    <th className="excel-th excel-th-num">নং</th>
+                    <th className="excel-th excel-th-name">নাম</th>
+                    <th className="excel-th">শ্রেণি</th>
+                    <th className="excel-th">রোল</th>
+                    <th className="excel-th excel-th-money">প্রাপ্য</th>
+                    <th className="excel-th excel-th-money">জমা</th>
+                    <th className="excel-th excel-th-money">বাকি</th>
+                    <th className="excel-th excel-th-status">স্ট্যাটাস</th>
+                    <th className="excel-th no-print">অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((r, i) => {
                     const sc = statusColor(r.status);
                     return (
-                      <tr
-                        key={r.student.id}
-                        className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
-                      >
-                        <td className="px-4 py-3 text-slate-500 text-xs">{toBangla(i + 1)}</td>
-                        <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
-                          {r.student.name}
+                      <tr key={r.student.id} className="excel-tr">
+                        <td className="excel-td excel-td-num">{toBangla(i + 1)}</td>
+                        <td className="excel-td excel-td-name">
+                          <div className="font-medium text-slate-900 dark:text-white">{r.student.name}</div>
                           {r.student.student_id && (
-                            <div className="text-xs text-slate-400">আইডি: {r.student.student_id}</div>
+                            <div className="text-[10px] text-slate-400">আইডি: {r.student.student_id}</div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                        <td className="excel-td">
                           {r.student.class_name}
-                          {r.student.section && ` (${r.student.section})`}
+                          {r.student.section && <span className="text-slate-400"> ({r.student.section})</span>}
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{r.student.roll || "-"}</td>
-                        <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">৳{toBangla(r.payable)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-emerald-700">৳{toBangla(r.paid)}</td>
-                        <td className={`px-4 py-3 text-right font-medium ${r.due > 0 ? "text-red-700" : "text-slate-400"}`}>
+                        <td className="excel-td">{r.student.roll || "-"}</td>
+                        <td className="excel-td excel-td-money">৳{toBangla(r.payable)}</td>
+                        <td className="excel-td excel-td-money text-emerald-700 font-medium">৳{toBangla(r.paid)}</td>
+                        <td className={`excel-td excel-td-money ${r.due > 0 ? "text-red-700 font-semibold" : "text-slate-400"}`}>
                           ৳{toBangla(r.due)}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="excel-td excel-td-status">
                           <span
-                            className="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold"
-                            style={{ background: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}
+                            className="excel-badge"
+                            style={{ background: sc.bg, color: sc.text, borderColor: sc.border }}
                           >
                             {statusLabel(r.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center no-print">
+                        <td className="excel-td no-print text-center">
                           <button
                             onClick={() => setDetailStudent(r.student)}
-                            className="px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 text-xs font-medium hover:bg-brand-100 transition"
+                            className="px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 text-[11px] font-medium hover:bg-brand-100 dark:hover:bg-brand-900/50 transition"
                           >
                             বিস্তারিত
                           </button>
@@ -450,13 +328,13 @@ export default function FeesStatusClient({
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-brand-600">
-                    <td colSpan={4} className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
+                  <tr className="excel-tfoot">
+                    <td colSpan={4} className="excel-td text-right font-semibold">
                       সর্বমোট ({toBangla(filtered.length)} জন):
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">৳{toBangla(totalPayable)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-emerald-700">৳{toBangla(totalPaid)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-red-700">৳{toBangla(totalDue)}</td>
+                    <td className="excel-td excel-td-money font-bold">৳{toBangla(totalPayable)}</td>
+                    <td className="excel-td excel-td-money font-bold text-emerald-700">৳{toBangla(totalPaid)}</td>
+                    <td className="excel-td excel-td-money font-bold text-red-700">৳{toBangla(totalDue)}</td>
                     <td colSpan={2}></td>
                   </tr>
                 </tfoot>
@@ -471,11 +349,11 @@ export default function FeesStatusClient({
 
 function SummaryCard({ label, value, suffix, color }: { label: string; value: string; suffix: string; color: string }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: color }}>
-      <div className="text-[11px] text-slate-500 dark:text-slate-400 mb-1">{label}</div>
-      <div className="text-lg font-bold" style={{ color }}>
+    <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: color }}>
+      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mb-1">{label}</div>
+      <div className="text-base sm:text-lg font-bold" style={{ color }}>
         {value}
-        <span className="text-xs font-normal text-slate-500 ml-1">{suffix}</span>
+        <span className="text-[10px] sm:text-xs font-normal text-slate-500 ml-1">{suffix}</span>
       </div>
     </div>
   );
@@ -483,9 +361,9 @@ function SummaryCard({ label, value, suffix, color }: { label: string; value: st
 
 function MoneyCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: color }}>
-      <div className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 truncate">{label}</div>
-      <div className="text-base font-bold" style={{ color }}>
+    <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 sm:p-3 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: color }}>
+      <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mb-1 truncate">{label}</div>
+      <div className="text-sm sm:text-base font-bold" style={{ color }}>
         ৳{toBangla(value)}
       </div>
     </div>
