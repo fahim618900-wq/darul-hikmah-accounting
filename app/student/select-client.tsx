@@ -19,6 +19,8 @@ const CLASSES = [
 export default function StudentSelect() {
   const supabase = createClient();
 
+  const [checking, setChecking] = useState(true);
+  const [portalEnabled, setPortalEnabled] = useState(true);
   const [step, setStep] = useState<"select" | "warning" | "verify">("select");
   const [classFilter, setClassFilter] = useState("");
   const [students, setStudents] = useState<PublicStudent[]>([]);
@@ -28,11 +30,39 @@ export default function StudentSelect() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase.from("student_public").select("*").order("roll");
-      setStudents(data || []);
+    async function init() {
+      // পোর্টাল চালু আছে কি না চেক
+      const { data: setting } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "student_portal_enabled")
+        .single();
+
+      const enabled = setting?.value === "true";
+      setPortalEnabled(enabled);
+
+      // যদি আগে সিলেক্ট করা থাকে, সরাসরি view-তে যাই
+      const savedIds = localStorage.getItem("student_portal_ids");
+      if (enabled && savedIds) {
+        const ids = JSON.parse(savedIds);
+        if (Array.isArray(ids) && ids.length > 0) {
+          window.location.href = "/student/view";
+          return;
+        }
+      }
+
+      // শিক্ষার্থী তালিকা লোড করি
+      if (enabled) {
+        const { data } = await supabase
+          .from("student_public")
+          .select("*")
+          .order("roll");
+        setStudents(data || []);
+      }
+
+      setChecking(false);
     }
-    load();
+    init();
   }, []);
 
   const filteredStudents = classFilter
@@ -71,7 +101,6 @@ export default function StudentSelect() {
     setLoading(true);
     setError("");
 
-    // প্রতিটি সিলেক্ট করা শিক্ষার্থীর অভিভাবকের ফোন যাচাই
     const { data, error: err } = await supabase
       .from("students")
       .select("id, guardian_phone")
@@ -83,7 +112,6 @@ export default function StudentSelect() {
       return;
     }
 
-    // যাচাই: যে কোনো একজন শিক্ষার্থীর ফোনের শেষ ৪ ডিজিট মিললেই হবে
     const matched = data?.some((s) => {
       const phone = (s.guardian_phone || "").replace(/\D/g, "");
       return phone.endsWith(phoneLast4);
@@ -95,7 +123,6 @@ export default function StudentSelect() {
       return;
     }
 
-    // সফল — ব্রাউজারে সেভ করি
     localStorage.setItem(
       "student_portal_ids",
       JSON.stringify(selected.map((s) => s.id))
@@ -108,7 +135,27 @@ export default function StudentSelect() {
     window.location.href = "/student/view";
   }
 
-  // ধাপ ১: নাম নির্বাচন
+  if (checking) {
+    return (
+      <div style={{ background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", color: "#64748b" }}>
+        লোড হচ্ছে...
+      </div>
+    );
+  }
+
+  if (!portalEnabled) {
+    return (
+      <div style={{ background: "#ffffff", padding: "2rem", borderRadius: "8px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+        <h2 style={{ fontSize: "1.2rem", color: "#b91c1c", marginBottom: "1rem" }}>
+          পোর্টাল বন্ধ
+        </h2>
+        <p style={{ color: "#475569", marginBottom: "1rem" }}>
+          শিক্ষার্থী পোর্টাল বর্তমানে বন্ধ রয়েছে। অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
+        </p>
+      </div>
+    );
+  }
+
   if (step === "select") {
     return (
       <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
@@ -198,7 +245,6 @@ export default function StudentSelect() {
     );
   }
 
-  // ধাপ ২: কঠোর সতর্কবার্তা
   if (step === "warning") {
     return (
       <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "2px solid #fecaca" }}>
@@ -261,7 +307,6 @@ export default function StudentSelect() {
     );
   }
 
-  // ধাপ ৩: ফোন যাচাই
   return (
     <div style={{ background: "#ffffff", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
       <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem", color: "#0f766e" }}>
