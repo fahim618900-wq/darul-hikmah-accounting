@@ -82,3 +82,174 @@
 .print-only-inline {
   display: none;
 }
+/* Excel-এর মতো টেবিল */
+.excel-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.excel-head {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.dark .excel-head {
+  background: #1e293b;
+}
+
+.excel-th {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.dark .excel-th {
+  color: #cbd5e1;
+  border-right-color: #334155;
+  border-bottom-color: #475569;
+}
+
+.excel-th:last-child {
+  border-right: none;
+}
+
+.excel-th-num {
+  width: 50px;
+  text-align: center;
+}
+
+.excel-th-name {
+  min-width: 140px;
+}
+
+.excel-th-money {
+  text-align: right;
+}
+
+.excel-th-status {
+  text-align: center;
+  width: 90px;
+}
+
+.excel-tr {
+  transition: background 0.15s;
+}
+
+.excel-tr:hover {
+  background: #f8fafc;
+}
+
+.dark .excel-tr:hover {
+  background: #1e293b;
+}
+
+.excel-tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.dark .excel-tr:nth-child(even) {
+  background: #0f172a;
+}
+
+.excel-td {
+  padding: 0.55rem 0.75rem;
+  color: #1a1a1a;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.dark .excel-td {
+  color: #e2e8f0;
+  border-right-color: #1e293b;
+  border-bottom-color: #1e293b;
+}
+
+.excel-td:last-child {
+  border-right: none;
+}
+
+.excel-td-num {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.excel-td-name {
+  white-space: normal;
+  min-width: 140px;
+}
+
+.excel-td-money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.excel-td-status {
+  text-align: center;
+}
+
+.excel-tfoot {
+  background: #f1f5f9;
+  border-top: 2px solid #0f766e;
+}
+
+.dark .excel-tfoot {
+  background: #1e293b;
+  border-top-color: #0d9488;
+}
+
+.excel-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-width: 1px;
+  border-style: solid;
+  white-space: nowrap;
+}
+
+/* Excel scroll — মোবাইলে সুন্দর স্ক্রল */
+.excel-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.excel-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.excel-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.dark .excel-scroll::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* মোবাইলে ছোট ফন্ট, তবে পড়তে পারার মতো */
+@media (max-width: 640px) {
+  .excel-table {
+    font-size: 0.72rem;
+  }
+  .excel-th,
+  .excel-td {
+    padding: 0.45rem 0.5rem;
+  }
+  .excel-td-name {
+    min-width: 120px;
+  }
+  .excel-badge {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.4rem;
+  }
+}
