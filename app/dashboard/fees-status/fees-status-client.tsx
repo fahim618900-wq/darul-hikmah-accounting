@@ -295,19 +295,7 @@ export default function FeesStatusClient({
         )}
       </div>
 
-      <style jsx global>{`
-        @media print {
-          @page { size: A4 landscape; margin: 10mm; }
-          body { background: #ffffff !important; }
-          .no-print { display: none !important; }
-          .print-area { padding: 0 !important; max-width: 100% !important; }
-          .print-table { font-size: 11px !important; }
-          .print-table th { padding: 6px 5px !important; background: #0f766e !important; color: #ffffff !important; }
-          .print-table td { padding: 6px 5px !important; }
-          .print-table { border: 1px solid #333 !important; }
-          .print-table th, .print-table td { border: 1px solid #999 !important; }
-        }
-      `}</style>
+    
     </>
   );
 }
