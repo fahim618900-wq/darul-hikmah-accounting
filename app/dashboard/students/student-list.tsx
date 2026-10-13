@@ -28,30 +28,12 @@ const CLASSES = [
   "ষষ্ঠ", "সপ্তম", "অষ্টম", "নবম", "দশম", "নূরানী", "নাযেরা", "হিফয",
 ];
 
-const COLUMN_OPTIONS: { key: string; label: string }[] = [
-  { key: "student_id", label: "আইডি" },
-  { key: "name", label: "নাম" },
-  { key: "class_name", label: "শ্রেণি" },
-  { key: "roll", label: "রোল" },
-  { key: "guardian_name", label: "অভিভাবকের নাম" },
-  { key: "guardian_phone", label: "অভিভাবকের ফোন" },
-  { key: "address", label: "ঠিকানা" },
-  { key: "monthly_fee", label: "মাসিক বেতন" },
-  { key: "discount", label: "ছাড়" },
-  { key: "status", label: "স্ট্যাটাস" },
-];
-
 function toBangla(input: string | number): string {
   const map: Record<string, string> = {
     "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪",
     "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯",
   };
   return String(input).replace(/[0-9]/g, (d) => map[d]);
-}
-
-function todayBangla(): string {
-  const d = new Date();
-  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
 }
 
 export default function StudentList({
@@ -71,11 +53,6 @@ export default function StudentList({
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [loading, setLoading] = useState<number | null>(null);
-  const [showPrintOptions, setShowPrintOptions] = useState(false);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    COLUMN_OPTIONS.map((c) => c.key)
-  );
-  const [preparedBy, setPreparedBy] = useState(userName);
 
   const filtered = students.filter((s) => {
     if (classFilter && s.class_name !== classFilter) return false;
@@ -132,237 +109,300 @@ export default function StudentList({
     if (refresh) router.refresh();
   }
 
-  function toggleColumn(key: string) {
-    setSelectedColumns((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
-  }
-
-  function handlePrint() {
-    window.print();
-  }
-
-  function formatValue(s: Student, key: string): string {
-    switch (key) {
-      case "student_id": return s.student_id || "-";
-      case "name": return s.name;
-      case "class_name": return s.class_name + (s.section ? ` (${s.section})` : "");
-      case "roll": return s.roll || "-";
-      case "guardian_name": return s.guardian_name || "-";
-      case "guardian_phone": return s.guardian_phone || "-";
-      case "address": return s.address || "-";
-      case "monthly_fee": return `৳ ${toBangla(s.monthly_fee)}`;
-      case "discount": return `৳ ${toBangla(s.discount || 0)}`;
-      case "status": return s.status === "active" ? "সক্রিয়" : "নিষ্ক্রিয়";
-      default: return "-";
-    }
-  }
-
-  const visibleColumns = COLUMN_OPTIONS.filter((c) => selectedColumns.includes(c.key));
+  const activeCount = students.filter((s) => s.status === "active").length;
+  const inactiveCount = students.filter((s) => s.status === "inactive").length;
 
   return (
     <>
       {showForm && <StudentForm student={editing} onClose={handleFormClose} />}
 
-      {/* স্ক্রিনে ফিল্টার */}
-      <div className="no-print" style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="নাম, আইডি, রোল বা ফোন দিয়ে খুঁজুন..."
-          style={{ flex: 1, minWidth: "200px", padding: "0.65rem 0.9rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.95rem" }}
-        />
-        <select
-          value={classFilter}
-          onChange={(e) => setClassFilter(e.target.value)}
-          style={{ padding: "0.65rem 0.9rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.95rem", minWidth: "140px", background: "#ffffff" }}
-        >
-          <option value="">সব শ্রেণি</option>
-          {CLASSES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as any)}
-          style={{ padding: "0.65rem 0.9rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.95rem", minWidth: "130px", background: "#ffffff" }}
-        >
-          <option value="all">সব স্ট্যাটাস</option>
-          <option value="active">সক্রিয়</option>
-          <option value="inactive">নিষ্ক্রিয়</option>
-        </select>
-        <button
-          onClick={() => setShowPrintOptions(!showPrintOptions)}
-          style={{ padding: "0.65rem 1rem", background: "#ffffff", color: "#0f766e", border: "1px solid #0f766e", borderRadius: "6px", fontSize: "0.9rem", fontWeight: "500" }}
-        >
-          🖨️ Print / PDF
-        </button>
-        <button
-          onClick={handleAddNew}
-          style={{ padding: "0.65rem 1.25rem", background: "#0f766e", color: "#ffffff", border: "none", borderRadius: "6px", fontSize: "0.95rem", fontWeight: "500" }}
-        >
-          + নতুন শিক্ষার্থী
-        </button>
-      </div>
-
-      {/* প্রিন্ট অপশন */}
-      {showPrintOptions && (
-        <div className="no-print" style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "4px solid #0f766e" }}>
-          <div style={{ marginBottom: "0.75rem", fontSize: "0.9rem", color: "#475569", fontWeight: "500" }}>
-            কোন কোন কলাম প্রিন্টে দেখাতে চান?
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-            {COLUMN_OPTIONS.map((c) => (
-              <label
-                key={c.key}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.35rem 0.7rem",
-                  background: selectedColumns.includes(c.key) ? "#f0fdf4" : "#f8fafc",
-                  border: selectedColumns.includes(c.key) ? "1px solid #0f766e" : "1px solid #e2e8f0",
-                  borderRadius: "6px",
-                  fontSize: "0.82rem",
-                  cursor: "pointer",
-                  color: selectedColumns.includes(c.key) ? "#0f766e" : "#475569",
-                  fontWeight: selectedColumns.includes(c.key) ? "500" : "400",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedColumns.includes(c.key)}
-                  onChange={() => toggleColumn(c.key)}
-                  style={{ accentColor: "#0f766e" }}
-                />
-                {c.label}
-              </label>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div>
-              <label style={{ display: "block", marginBottom: "0.3rem", fontSize: "0.8rem", color: "#475569", fontWeight: "500" }}>
-                প্রস্তুতকারীর নাম
-              </label>
-              <input
-                type="text"
-                value={preparedBy}
-                onChange={(e) => setPreparedBy(e.target.value)}
-                style={{ width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem" }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button
-              onClick={handlePrint}
-              style={{ padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500" }}
-            >
-              🖨️ Print / PDF করুন
-            </button>
-            <button
-              onClick={() => setShowPrintOptions(false)}
-              style={{ padding: "0.55rem 1.1rem", background: "#ffffff", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem" }}
-            >
-              বাতিল
-            </button>
-          </div>
-        </div>
-      )}
-
-      {classFilter && (
-        <div className="no-print" style={{ marginBottom: "1rem", fontSize: "0.9rem", color: "#475569" }}>
-          <strong>{classFilter}</strong> শ্রেণিতে <strong>{filtered.length}</strong> জন শিক্ষার্থী
-        </div>
-      )}
-
-      {/* প্রিন্ট হেডার */}
-      <div className="print-area">
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
-          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>
-              দারুল হিকমাহ মডেল মাদ্রাসা
-            </h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>
-              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
+      <div className="no-print max-w-7xl mx-auto px-3 sm:px-4 pt-4">
+        {/* শিরোনাম */}
+        <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+          <div>
+            <h2 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white mb-0.5">
+              শিক্ষার্থী ব্যবস্থাপনা
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              মোট {toBangla(students.length)} জন শিক্ষার্থী
             </p>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
-            <div>
-              <strong>বিষয়:</strong> শিক্ষার্থী তালিকা
-              {classFilter && ` — ${classFilter} শ্রেণি`}
-              {statusFilter === "active" && " (সক্রিয়)"}
-              {statusFilter === "inactive" && " (নিষ্ক্রিয়)"}
-            </div>
-            <div><strong>তারিখ:</strong> {todayBangla()}</div>
+          <button
+            onClick={handleAddNew}
+            className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium shadow-md shadow-brand-500/25 transition flex items-center gap-1.5 shrink-0"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            নতুন
+          </button>
+        </div>
+
+        {/* সারাংশ */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#2563eb" }}>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">মোট</div>
+            <div className="text-base font-bold text-brand-600">{toBangla(students.length)}</div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem" }}>
-            <div><strong>মোট শিক্ষার্থী:</strong> {toBangla(filtered.length)} জন</div>
-            <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#15803d" }}>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">সক্রিয়</div>
+            <div className="text-base font-bold text-emerald-600">{toBangla(activeCount)}</div>
+          </div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#b91c1c" }}>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">নিষ্ক্রিয়</div>
+            <div className="text-base font-bold text-red-600">{toBangla(inactiveCount)}</div>
           </div>
         </div>
 
-        {/* তালিকা */}
+        {/* ফিল্টার */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="mb-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="নাম, আইডি, রোল বা ফোন দিয়ে খুঁজুন..."
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            >
+              <option value="">সব শ্রেণি</option>
+              {CLASSES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            >
+              <option value="all">সব স্ট্যাটাস</option>
+              <option value="active">সক্রিয়</option>
+              <option value="inactive">নিষ্ক্রিয়</option>
+            </select>
+          </div>
+        </div>
+
+        {classFilter && (
+          <div className="mb-3 text-xs text-slate-500 dark:text-slate-400 text-center">
+            <strong>{classFilter}</strong> শ্রেণিতে <strong>{toBangla(filtered.length)}</strong> জন
+          </div>
+        )}
+      </div>
+
+      {/* ============ মোবাইল: কার্ড ============ */}
+      <div className="md:hidden max-w-7xl mx-auto px-3 sm:px-4 space-y-2.5 mb-6">
         {filtered.length === 0 ? (
-          <div style={{ background: "#ffffff", padding: "2rem", textAlign: "center", color: "#64748b" }}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 text-sm border border-slate-200 dark:border-slate-800">
             {students.length === 0
-              ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি।"
-              : "কোনো ফলাফল পাওয়া যায়নি।"}
+              ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি"
+              : "কোনো ফলাফল পাওয়া যায়নি"}
           </div>
         ) : (
-          <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.82rem" }}>
-            <thead>
-              <tr style={{ background: "#0f766e", color: "#ffffff" }}>
-                <th style={th}>নং</th>
-                {visibleColumns.map((c) => (
-                  <th key={c.key} style={th}>{c.label}</th>
-                ))}
-                <th className="no-print" style={th}>অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s, i) => (
-                <tr key={s.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  <td style={td}>{toBangla(i + 1)}</td>
-                  {visibleColumns.map((c) => (
-                    <td key={c.key} style={c.key === "name" ? { ...td, fontWeight: "500" } : td}>
-                      {c.key === "name" ? (
-                        <Link
-                          href={`/dashboard/students/${s.id}`}
-                          className="no-print"
-                          style={{ color: "#0f766e", textDecoration: "none" }}
-                        >
-                          {s.name}
-                        </Link>
-                      ) : (
-                        formatValue(s, c.key)
-                      )}
-                      {c.key === "name" && (
-                        <span style={{ display: "none" }} className="print-only-inline">
-                          {s.name}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                  <td className="no-print" style={td}>
-                    <div style={{ display: "flex", gap: "0.4rem" }}>
-                      <button onClick={() => handleEdit(s)} style={btnEdit}>সম্পাদনা</button>
-                      <button onClick={() => handleDelete(s)} disabled={loading === s.id} style={btnDelete}>
-                        {loading === s.id ? "..." : "ডিলিট"}
-                      </button>
+          filtered.map((s, i) => {
+            const isActive = s.status === "active";
+            const accent = isActive ? "#15803d" : "#b91c1c";
+            const bg = isActive ? "#f0fdf4" : "#fef2f2";
+            const badge = isActive ? "#dcfce7" : "#fee2e2";
+
+            return (
+              <div
+                key={s.id}
+                className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm"
+                style={{ borderLeftWidth: "4px", borderLeftColor: accent }}
+              >
+                {/* হেডার */}
+                <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: bg }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-semibold text-slate-400">
+                        {toBangla(i + 1)}.
+                      </span>
+                      <Link
+                        href={`/dashboard/students/${s.id}`}
+                        className="text-[15px] font-semibold text-slate-900 truncate hover:text-brand-600 transition"
+                      >
+                        {s.name}
+                      </Link>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
+                      <span className="font-medium">{s.class_name}</span>
+                      {s.section && <span>• {s.section}</span>}
+                      {s.roll && <span>• রোল {s.roll}</span>}
+                    </div>
+                  </div>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
+                    style={{ background: badge, color: accent }}
+                  >
+                    {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                  </span>
+                </div>
+
+                {/* তথ্য */}
+                <div className="px-4 py-3 grid grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="text-center">
+                    <div className="text-[10px] text-slate-400 mb-0.5">আইডি</div>
+                    <div className="text-[12px] font-semibold text-slate-700 dark:text-slate-300 truncate">
+                      {s.student_id || "-"}
+                    </div>
+                  </div>
+                  <div className="text-center border-x border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] text-slate-400 mb-0.5">মাসিক বেতন</div>
+                    <div className="text-[12px] font-bold text-emerald-600">
+                      ৳{toBangla(s.monthly_fee)}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-slate-400 mb-0.5">ছাড়</div>
+                    <div className="text-[12px] font-semibold text-amber-600">
+                      ৳{toBangla(s.discount || 0)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* অভিভাবক */}
+                {s.guardian_name && (
+                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
+                    <span className="text-slate-400">অভিভাবক:</span>{" "}
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{s.guardian_name}</span>
+                    {s.guardian_phone && (
+                      <span className="ml-2 text-slate-500">({s.guardian_phone})</span>
+                    )}
+                  </div>
+                )}
+
+                {/* অ্যাকশন বাটন */}
+                <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800">
+                  <Link
+                    href={`/dashboard/students/${s.id}`}
+                    className="py-2.5 text-[12px] font-medium text-brand-700 hover:bg-brand-50 transition flex items-center justify-center gap-1"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    দেখুন
+                  </Link>
+                  <button
+                    onClick={() => handleEdit(s)}
+                    className="py-2.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    সম্পাদনা
+                  </button>
+                  <button
+                    onClick={() => handleDelete(s)}
+                    disabled={loading === s.id}
+                    className="py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 transition flex items-center justify-center gap-1 disabled:opacity-50"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6M14 11v6" />
+                    </svg>
+                    {loading === s.id ? "..." : "ডিলিট"}
+                  </button>
+                </div>
+              </div>
+            );
+          })
         )}
+      </div>
+
+      {/* ============ ডেস্কটপ: টেবিল ============ */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4 mb-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              {students.length === 0
+                ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি। উপরে '+ নতুন' বাটনে ক্লিক করুন।"
+                : "কোনো ফলাফল পাওয়া যায়নি।"}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">আইডি</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">অভিভাবক</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">মাসিক বেতন</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">ছাড়</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">স্ট্যাটাস</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((s) => {
+                    const isActive = s.status === "active";
+                    const badge = isActive
+                      ? { bg: "#dcfce7", text: "#15803d" }
+                      : { bg: "#fee2e2", text: "#b91c1c" };
+                    return (
+                      <tr key={s.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td className="px-4 py-3 text-slate-500 text-xs">{s.student_id || "-"}</td>
+                        <td className="px-4 py-3 font-medium">
+                          <Link href={`/dashboard/students/${s.id}`} className="text-slate-900 dark:text-white hover:text-brand-600 transition">
+                            {s.name}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {s.class_name}
+                          {s.section && ` (${s.section})`}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{s.roll || "-"}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs">
+                          {s.guardian_name || "-"}
+                          {s.guardian_phone && (
+                            <div className="text-[10px] text-slate-400">{s.guardian_phone}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">৳{toBangla(s.monthly_fee)}</td>
+                        <td className="px-4 py-3 text-right text-amber-600">৳{toBangla(s.discount || 0)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: badge.bg, color: badge.text }}>
+                            {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-center gap-1.5">
+                            <button
+                              onClick={() => handleEdit(s)}
+                              className="px-2.5 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 text-xs font-medium hover:bg-brand-100 transition"
+                            >
+                              সম্পাদনা
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s)}
+                              disabled={loading === s.id}
+                              className="px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-100 transition disabled:opacity-50"
+                            >
+                              {loading === s.id ? "..." : "ডিলিট"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
 }
-
-const th: React.CSSProperties = { padding: "0.65rem 0.7rem", textAlign: "left", fontWeight: "600", fontSize: "0.75rem", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { padding: "0.65rem 0.7rem", color: "#1a1a1a" };
-const btnEdit: React.CSSProperties = { padding: "0.3rem 0.6rem", background: "#ffffff", color: "#0f766e", border: "1px solid #0f766e", borderRadius: "4px", fontSize: "0.78rem" };
-const btnDelete: React.CSSProperties = { padding: "0.3rem 0.6rem", background: "#ffffff", color: "#b91c1c", border: "1px solid #fecaca", borderRadius: "4px", fontSize: "0.78rem" };
