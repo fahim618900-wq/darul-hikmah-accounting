@@ -37,9 +37,9 @@ type Row = {
   paid: number;
   due: number;
   status: Status;
-  payments: Payment[];
   lastPaymentDate: string | null;
   lastReceiptNo: string | null;
+  payments: Payment[];
 };
 
 const MONTHS = [
@@ -49,14 +49,20 @@ const MONTHS = [
 ];
 
 const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "সব শিক্ষার্থী" },
-  { id: "paid", label: "Paid তালিকা" },
-  { id: "unpaid", label: "Unpaid তালিকা" },
-  { id: "partial", label: "Partial তালিকা" },
+  { id: "all", label: "All" },
+  { id: "paid", label: "Paid" },
+  { id: "unpaid", label: "Unpaid" },
+  { id: "partial", label: "Partial" },
 ];
 
-const money = (value: number) =>
-  `৳ ${value.toLocaleString("bn-BD")}`;
+const money = (n: number) =>
+  `৳ ${n.toLocaleString("bn-BD")}`;
+
+function today() {
+  return new Date().toLocaleDateString("en-GB", {
+    timeZone: "Asia/Dhaka",
+  });
+}
 
 export default function FeesStatusClient({
   students,
@@ -73,9 +79,12 @@ export default function FeesStatusClient({
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [preparedBy, setPreparedBy] = useState("");
+  const [reportDate, setReportDate] = useState(today());
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [detailStudent, setDetailStudent] =
     useState<Student | null>(null);
 
@@ -98,7 +107,7 @@ export default function FeesStatusClient({
 
       if (queryError) {
         setPayments([]);
-        setError("পেমেন্টের তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।");
+        setError("পেমেন্টের তথ্য পাওয়া যায়নি। আবার চেষ্টা করুন।");
       } else {
         setPayments((data || []) as Payment[]);
       }
@@ -111,16 +120,16 @@ export default function FeesStatusClient({
     return () => {
       cancelled = true;
     };
-  }, [supabase, month, year]);
+  }, [supabase, month, year, reloadKey]);
 
   const classes = useMemo(
-    () => Array.from(new Set(students.map((s) => s.class_name))),
+    () => [...new Set(students.map((s) => s.class_name))],
     [students]
   );
 
   const rows: Row[] = useMemo(() => {
     return students.map((student) => {
-      const studentPayments = payments
+      const history = payments
         .filter((p) => p.student_id === student.id)
         .sort((a, b) =>
           b.payment_date.localeCompare(a.payment_date)
@@ -132,12 +141,11 @@ export default function FeesStatusClient({
           Number(student.discount || 0)
       );
 
-      const paid = studentPayments.reduce(
-        (sum, payment) => sum + Number(payment.amount || 0),
+      const paid = history.reduce(
+        (sum, p) => sum + Number(p.amount || 0),
         0
       );
 
-      // বকেয়া কখনো ঋণাত্মক হবে না।
       const due = Math.max(0, payable - paid);
 
       let status: Status;
@@ -156,9 +164,9 @@ export default function FeesStatusClient({
         paid,
         due,
         status,
-        payments: studentPayments,
-        lastPaymentDate: studentPayments[0]?.payment_date || null,
-        lastReceiptNo: studentPayments[0]?.receipt_no || null,
+        lastPaymentDate: history[0]?.payment_date || null,
+        lastReceiptNo: history[0]?.receipt_no || null,
+        payments: history,
       };
     });
   }, [students, payments]);
@@ -173,106 +181,76 @@ export default function FeesStatusClient({
     [rows]
   );
 
-  const totals = useMemo(
-    () => ({
-      payable: rows.reduce((sum, r) => sum + r.payable, 0),
-      paid: rows.reduce((sum, r) => sum + r.paid, 0),
-      due: rows.reduce((sum, r) => sum + r.due, 0),
-    }),
-    [rows]
-  );
-
   const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const q = search.trim().toLowerCase();
 
     return rows.filter((r) => {
-      if (
-        classFilter &&
-        r.student.class_name !== classFilter
-      ) {
+      if (classFilter && r.student.class_name !== classFilter) {
         return false;
       }
 
-      if (
-        statusFilter === "paid" &&
-        r.status !== "paid"
-      ) {
+      if (statusFilter === "paid" && r.status !== "paid") {
         return false;
       }
 
-      if (
-        statusFilter === "unpaid" &&
-        r.status === "paid"
-      ) {
+      // Unpaid তালিকায় সম্পূর্ণ বকেয়া ও আংশিক বকেয়া দুটিই থাকবে।
+      if (statusFilter === "unpaid" && r.status === "paid") {
         return false;
       }
 
-      if (
-        statusFilter === "partial" &&
-        r.status !== "partial"
-      ) {
+      if (statusFilter === "partial" && r.status !== "partial") {
         return false;
       }
 
-      if (query) {
-        const match = [
+      if (q) {
+        const found = [
           r.student.name,
           r.student.student_id || "",
           r.student.roll || "",
-        ].some((value) =>
-          value.toLowerCase().includes(query)
-        );
+        ].some((value) => value.toLowerCase().includes(q));
 
-        if (!match) return false;
+        if (!found) return false;
       }
 
-      // তারিখের ফিল্টার পেমেন্ট থাকা শিক্ষার্থীর
-      // সর্বশেষ জমার তারিখ যাচাই করে।
-      // জমা না দেওয়া শিক্ষার্থীকে তারিখের কারণে বাদ দেওয়া হবে না।
-      if (r.lastPaymentDate) {
-        if (dateFrom && r.lastPaymentDate < dateFrom) {
-          return false;
-        }
+      // তারিখ ফিল্টার: সর্বশেষ জমার তারিখ।
+      if (dateFrom && (!r.lastPaymentDate ||
+          r.lastPaymentDate < dateFrom)) return false;
 
-        if (dateTo && r.lastPaymentDate > dateTo) {
-          return false;
-        }
-      }
+      if (dateTo && (!r.lastPaymentDate ||
+          r.lastPaymentDate > dateTo)) return false;
 
       return true;
     });
-  }, [
-    rows,
-    classFilter,
-    statusFilter,
-    search,
-    dateFrom,
-    dateTo,
-  ]);
+  }, [rows, classFilter, statusFilter, search, dateFrom, dateTo]);
 
-  const filterLabel =
-    FILTERS.find((f) => f.id === statusFilter)?.label ||
-    "সব শিক্ষার্থী";
+  const totals = useMemo(
+    () => ({
+      payable: filtered.reduce((s, r) => s + r.payable, 0),
+      paid: filtered.reduce((s, r) => s + r.paid, 0),
+      due: filtered.reduce((s, r) => s + r.due, 0),
+    }),
+    [filtered]
+  );
 
-  function handlePrint() {
+  const selectedLabel =
+    FILTERS.find((f) => f.id === statusFilter)?.label || "All";
+
+  function printReport() {
+    setReportDate(today());
     window.print();
   }
 
   return (
     <>
+      {/* অ্যাপের ফিল্টার ও নিয়ন্ত্রণ */}
       <section className="no-print" style={panel}>
         <div style={summaryGrid}>
           <Summary label="মোট শিক্ষার্থী" value={counts.all} />
-          <Summary label="Paid" value={counts.paid} color="#15803d" />
-          <Summary label="Unpaid" value={counts.unpaid} color="#b91c1c" />
-          <Summary label="Partial" value={counts.partial} color="#b45309" />
-          <Summary label="মোট প্রাপ্য" value={totals.payable} />
-          <Summary label="মোট আদায়" value={totals.paid} color="#15803d" />
-          <Summary label="মোট বকেয়া" value={totals.due} color="#b91c1c" />
+          <Summary label="Paid" value={counts.paid} />
+          <Summary label="Unpaid" value={counts.unpaid} />
+          <Summary label="Partial" value={counts.partial} />
         </div>
-      </section>
 
-      <section className="no-print" style={panel}>
         <div style={filtersGrid}>
           <Field label="মাস">
             <select
@@ -315,7 +293,7 @@ export default function FeesStatusClient({
             </select>
           </Field>
 
-          <Field label="শিক্ষার্থী খুঁজুন">
+          <Field label="খুঁজুন">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -341,152 +319,197 @@ export default function FeesStatusClient({
               style={input}
             />
           </Field>
-        </div>
-      </section>
 
-      <section className="no-print" style={panel}>
-        <h3 style={sectionTitle}>আলাদা তালিকা</h3>
-
-        <div style={tabList}>
-          {FILTERS.map((filter) => {
-            const active = statusFilter === filter.id;
-
-            return (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => setStatusFilter(filter.id)}
-                aria-pressed={active}
-                style={{
-                  ...tabButton,
-                  background: active ? "#0f766e" : "#ffffff",
-                  color: active ? "#ffffff" : "#334155",
-                  borderColor: active ? "#0f766e" : "#cbd5e1",
-                }}
-              >
-                {filter.label}
-                <span style={countBadge}>{counts[filter.id]}</span>
-              </button>
-            );
-          })}
+          <Field label="প্রস্তুতকারীর নাম">
+            <input
+              value={preparedBy}
+              onChange={(e) => setPreparedBy(e.target.value)}
+              placeholder="আপনার নাম"
+              style={input}
+            />
+          </Field>
         </div>
 
-        <div style={listHeader}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: "1rem" }}>
-              {filterLabel}
-            </h3>
-            <p style={muted}>
-              {MONTHS[month - 1]} {year} · {filtered.length} জন
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handlePrint}
-            style={printButton}
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+        <div style={tabs}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setStatusFilter(f.id)}
+              aria-pressed={statusFilter === f.id}
+              style={{
+                ...tab,
+                background: statusFilter === f.id ? "#0f766e" : "#fff",
+                color: statusFilter === f.id ? "#fff" : "#334155",
+                borderColor: statusFilter === f.id ? "#0f766e" : "#cbd5e1",
+              }}
             >
-              <path d="M6 9V2h12v7" />
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-              <path d="M6 14h12v8H6z" />
-            </svg>
-            PDF / Print
-          </button>
+              {f.label} ({counts[f.id]})
+            </button>
+          ))}
         </div>
-      </section>
 
-      <div className="print-only" style={{ display: "none" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 4 }}>
-          দারুল হিকমাহ মডেল মাদ্রাসা
-        </h2>
-        <p style={{ textAlign: "center", margin: "0 0 8px" }}>
-          ফুলপুর, ময়মনসিংহ
-        </p>
-        <h3 style={{ textAlign: "center" }}>
-          {MONTHS[month - 1]} {year} — {filterLabel}
-        </h3>
-      </div>
+        <button
+          type="button"
+          onClick={printReport}
+          style={printButton}
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 9V2h12v7" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <path d="M6 14h12v8H6z" />
+          </svg>
+          PDF / Print
+        </button>
+      </section>
 
       {loading ? (
-        <div style={messageBox}>পেমেন্টের তথ্য লোড হচ্ছে...</div>
+        <div style={message}>লোড হচ্ছে...</div>
       ) : error ? (
-        <div role="alert" style={{ ...messageBox, color: "#b91c1c" }}>
+        <div style={message} role="alert">
           {error}
           <button
             type="button"
-            style={smallButton}
-            onClick={() => {
-              setMonth((m) => m === 12 ? 11 : m + 1);
-              setTimeout(() => setMonth((m) => m === 12 ? 1 : m), 0);
-            }}
+            style={retryButton}
+            onClick={() => setReloadKey((key) => key + 1)}
           >
             আবার চেষ্টা করুন
           </button>
         </div>
-      ) : filtered.length === 0 ? (
-        <div style={messageBox}>
-          এই তালিকায় কোনো শিক্ষার্থী পাওয়া যায়নি।
-        </div>
       ) : (
-        <section className="student-list">
-          {filtered.map((r) => (
-            <article key={r.student.id} style={studentCard}>
-              <div style={studentHeading}>
-                <div style={{ minWidth: 0 }}>
-                  <h3 style={studentName}>{r.student.name}</h3>
-                  <p style={muted}>
-                    আইডি: {r.student.student_id || "—"}
-                    {" · "}রোল: {r.student.roll || "—"}
-                  </p>
-                  <p style={muted}>
-                    {r.student.class_name}
-                    {r.student.section ? ` · ${r.student.section}` : ""}
-                  </p>
+        <>
+          {/* এই অংশ অ্যাপ ও প্রিন্ট উভয় জায়গায় টেবিল হিসেবে থাকবে */}
+          <section className="report-sheet">
+            <header className="report-heading">
+              <h1>দারুল হিকমাহ মডেল মাদরাসা</h1>
+              <p>
+                বিষয় : {selectedLabel} তালিকা
+              </p>
+              <p>
+                মাস ও বছর: {MONTHS[month - 1]} {year}
+              </p>
+              <p className="report-meta">
+                <span>তারিখ: {reportDate}</span>
+                <span>প্রস্তুতকারীর নাম: {preparedBy || "________________"}</span>
+              </p>
+              <div className="report-rule" />
+            </header>
+
+            <div className="table-scroll">
+              <table className="excel-table">
+                <thead>
+                  <tr>
+                    <th>নং</th>
+                    <th>শিক্ষার্থী আইডি</th>
+                    <th>শিক্ষার্থীর নাম</th>
+                    <th>শ্রেণি</th>
+                    <th>শাখা</th>
+                    <th>রোল</th>
+                    <th>নির্ধারিত ফি</th>
+                    <th>জমা</th>
+                    <th>বকেয়া</th>
+                    <th>স্ট্যাটাস</th>
+                    <th>শেষ জমার তারিখ</th>
+                    <th>রসিদ নম্বর</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filtered.map((r, index) => (
+                    <tr key={r.student.id}>
+                      <td>{(index + 1).toLocaleString("bn-BD")}</td>
+                      <td>{r.student.student_id || "—"}</td>
+                      <td className="student-name-cell">
+                        {r.student.name}
+                      </td>
+                      <td>{r.student.class_name}</td>
+                      <td>{r.student.section || "—"}</td>
+                      <td>{r.student.roll || "—"}</td>
+                      <td className="number-cell">{money(r.payable)}</td>
+                      <td className="number-cell">{money(r.paid)}</td>
+                      <td className="number-cell">{money(r.due)}</td>
+                      <td>
+                        {r.status === "paid"
+                          ? "Paid"
+                          : r.status === "unpaid"
+                          ? "Unpaid"
+                          : "Partial"}
+                      </td>
+                      <td>{r.lastPaymentDate || "—"}</td>
+                      <td>{r.lastReceiptNo || "—"}</td>
+                    </tr>
+                  ))}
+
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={12} style={{ textAlign: "center" }}>
+                        কোনো তথ্য পাওয়া যায়নি।
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+
+                <tfoot>
+                  <tr>
+                    <th colSpan={6}>মোট ({filtered.length} জন)</th>
+                    <th>{money(totals.payable)}</th>
+                    <th>{money(totals.paid)}</th>
+                    <th>{money(totals.due)}</th>
+                    <th colSpan={3}></th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <footer className="report-footer">
+              <span>মোট শিক্ষার্থী: {filtered.length.toLocaleString("bn-BD")} জন</span>
+              <span>মোট প্রাপ্য: {money(totals.payable)}</span>
+              <span>মোট আদায়: {money(totals.paid)}</span>
+              <span>মোট বকেয়া: {money(totals.due)}</span>
+            </footer>
+
+            <div className="report-signatures">
+              <span>প্রস্তুতকারীর স্বাক্ষর: ______________</span>
+              <span>অনুমোদনকারীর স্বাক্ষর: ______________</span>
+            </div>
+          </section>
+
+          {/* শুধু অ্যাপে বিস্তারিত বাটন */}
+          <section className="no-print" style={{ marginTop: 12 }}>
+            <h3 style={{ fontSize: "0.95rem" }}>
+              শিক্ষার্থীর বিস্তারিত
+            </h3>
+            <div style={detailList}>
+              {filtered.map((r) => (
+                <div key={r.student.id} style={detailRow}>
+                  <div style={{ minWidth: 0 }}>
+                    <strong>{r.student.name}</strong>
+                    <div style={muted}>
+                      {r.student.class_name} · রোল {r.student.roll || "—"}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    style={smallButton}
+                    onClick={() => setDetailStudent(r.student)}
+                  >
+                    বিস্তারিত
+                  </button>
                 </div>
-
-                <span style={statusStyle(r.status)}>
-                  {r.status === "paid"
-                    ? "Paid"
-                    : r.status === "unpaid"
-                    ? "Unpaid"
-                    : "Partial"}
-                </span>
-              </div>
-
-              <div style={amountGrid}>
-                <Amount label="নির্ধারিত ফি" value={r.payable} />
-                <Amount label="জমা" value={r.paid} color="#15803d" />
-                <Amount label="বকেয়া" value={r.due} color={r.due > 0 ? "#b91c1c" : "#475569"} />
-              </div>
-
-              <div style={paymentInfo}>
-                <span>শেষ জমা: {r.lastPaymentDate || "জমা নেই"}</span>
-                <span>রসিদ: {r.lastReceiptNo || "—"}</span>
-              </div>
-
-              <div className="no-print" style={{ marginTop: 10 }}>
-                <button
-                  type="button"
-                  style={smallButton}
-                  onClick={() => setDetailStudent(r.student)}
-                >
-                  পেমেন্টের বিস্তারিত
-                </button>
-              </div>
-            </article>
-          ))}
-        </section>
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       {detailStudent && (
@@ -502,34 +525,196 @@ export default function FeesStatusClient({
       )}
 
       <style jsx global>{`
+        .report-sheet {
+          background: #fff;
+          color: #111;
+          border: 1px solid #d1d5db;
+          padding: 14px;
+          border-radius: 5px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .report-heading {
+          text-align: center;
+          font-family: inherit;
+        }
+
+        .report-heading h1 {
+          font-size: 21px;
+          margin: 0 0 5px;
+          font-weight: 700;
+        }
+
+        .report-heading p {
+          margin: 3px 0;
+          font-size: 12px;
+        }
+
+        .report-meta {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 9px !important;
+          text-align: left;
+        }
+
+        .report-rule {
+          height: 1px;
+          background: #6b7280;
+          margin: 9px 0 13px;
+        }
+
+        .table-scroll {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        .excel-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 11px;
+          background: #fff;
+        }
+
+        .excel-table th,
+        .excel-table td {
+          border: 1px solid #9ca3af;
+          padding: 7px 5px;
+          text-align: left;
+          vertical-align: middle;
+          overflow-wrap: anywhere;
+        }
+
+        .excel-table thead th {
+          background: #e5e7eb;
+          color: #111827;
+          font-weight: 700;
+          text-align: center;
+        }
+
+        .excel-table tbody tr:nth-child(even) {
+          background: #f9fafb;
+        }
+
+        .excel-table .student-name-cell {
+          font-weight: 500;
+          min-width: 90px;
+        }
+
+        .excel-table .number-cell {
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .excel-table tfoot th {
+          background: #f3f4f6;
+          font-weight: 700;
+        }
+
+        .report-footer {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 18px;
+          padding-top: 10px;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .report-signatures {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 18px;
+          margin-top: 40px;
+          font-size: 11px;
+        }
+
         @media print {
           @page {
-            size: A4 portrait;
-            margin: 12mm;
+            size: A4 landscape;
+            margin: 8mm;
           }
 
+          html,
           body {
             background: #fff !important;
-            color: #111 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
-          .no-print {
-            display: none !important;
+          body * {
+            visibility: hidden;
           }
 
-          .print-only {
-            display: block !important;
+          .report-sheet,
+          .report-sheet * {
+            visibility: visible;
           }
 
-          .student-list {
-            display: block !important;
+          .report-sheet {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: none;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
           }
 
-          .student-list article {
-            box-shadow: none !important;
+          .report-heading h1 {
+            font-size: 19px;
+          }
+
+          .report-heading p,
+          .report-meta,
+          .report-footer,
+          .report-signatures {
+            font-size: 10px !important;
+          }
+
+          .table-scroll {
+            overflow: visible;
+          }
+
+          .excel-table {
+            width: 100%;
+            table-layout: auto;
+            font-size: 8px;
+          }
+
+          .excel-table th,
+          .excel-table td {
+            padding: 4px 3px;
+            overflow-wrap: anywhere;
+          }
+
+          .excel-table thead {
+            display: table-header-group;
+          }
+
+          .excel-table tfoot {
+            display: table-row-group;
+          }
+
+          .excel-table tr {
             break-inside: avoid;
-            border: 1px solid #bbb !important;
-            margin-bottom: 8px !important;
+          }
+
+          .report-signatures {
+            margin-top: 25px;
+          }
+
+          .report-sheet,
+          .excel-table,
+          .excel-table tr {
+            break-inside: auto;
           }
         }
       `}</style>
@@ -545,8 +730,10 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label style={{ display: "block", fontSize: "0.8rem", color: "#475569" }}>
-      <span style={{ display: "block", marginBottom: 5 }}>{label}</span>
+    <label style={{ fontSize: "0.8rem", color: "#475569" }}>
+      <span style={{ display: "block", marginBottom: 5 }}>
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -555,213 +742,135 @@ function Field({
 function Summary({
   label,
   value,
-  color = "#1e293b",
 }: {
   label: string;
   value: number;
-  color?: string;
 }) {
   return (
-    <div style={{ ...summaryCard, borderTop: `3px solid ${color}` }}>
-      <div style={muted}>{label}</div>
-      <strong style={{ fontSize: "1.1rem", color }}>
-        {label.includes("শিক্ষার্থী") || ["Paid", "Unpaid", "Partial"].includes(label)
-          ? value.toLocaleString("bn-BD")
-          : money(value)}
-      </strong>
+    <div style={summaryCard}>
+      <span style={muted}>{label}</span>
+      <strong>{value.toLocaleString("bn-BD")} জন</strong>
     </div>
   );
-}
-
-function Amount({
-  label,
-  value,
-  color = "#334155",
-}: {
-  label: string;
-  value: number;
-  color?: string;
-}) {
-  return (
-    <div style={{ minWidth: 0 }}>
-      <div style={muted}>{label}</div>
-      <strong style={{ color, fontSize: "0.92rem" }}>
-        {money(value)}
-      </strong>
-    </div>
-  );
-}
-
-function statusStyle(status: Status): CSSProperties {
-  const colors = {
-    paid: { color: "#166534", background: "#dcfce7" },
-    unpaid: { color: "#991b1b", background: "#fee2e2" },
-    partial: { color: "#92400e", background: "#fef3c7" },
-  };
-
-  return {
-    ...colors[status],
-    borderRadius: 5,
-    padding: "4px 8px",
-    fontSize: "0.76rem",
-    fontWeight: 600,
-    whiteSpace: "nowrap",
-  };
 }
 
 const panel: CSSProperties = {
   background: "#fff",
-  padding: "14px",
-  borderRadius: 10,
+  padding: 13,
   border: "1px solid #e2e8f0",
+  borderRadius: 8,
   marginBottom: 12,
 };
 
 const summaryGrid: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(125px, 1fr))",
-  gap: 9,
+  gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))",
+  gap: 8,
+  marginBottom: 14,
 };
 
 const summaryCard: CSSProperties = {
-  padding: "10px",
-  background: "#f8fafc",
-  borderRadius: 7,
   display: "grid",
   gap: 5,
+  padding: 10,
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  borderRadius: 6,
+  fontSize: "0.85rem",
 };
 
 const filtersGrid: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
-  gap: 12,
+  gridTemplateColumns: "repeat(auto-fit,minmax(135px,1fr))",
+  gap: 11,
 };
 
 const input: CSSProperties = {
-  boxSizing: "border-box",
   width: "100%",
-  minWidth: 0,
-  padding: "8px 9px",
+  boxSizing: "border-box",
+  padding: "7px 8px",
   border: "1px solid #cbd5e1",
-  borderRadius: 6,
+  borderRadius: 5,
   background: "#fff",
-  fontSize: "0.85rem",
+  fontSize: "0.82rem",
 };
 
-const sectionTitle: CSSProperties = {
-  margin: "0 0 12px",
-  fontSize: "1rem",
-};
-
-const tabList: CSSProperties = {
+const tabs: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
   gap: 6,
-  marginBottom: 16,
+  marginTop: 13,
 };
 
-const tabButton: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 7,
-  padding: "7px 9px",
+const tab: CSSProperties = {
+  padding: "6px 10px",
   border: "1px solid",
-  borderRadius: 6,
+  borderRadius: 5,
   fontSize: "0.78rem",
   cursor: "pointer",
-};
-
-const countBadge: CSSProperties = {
-  fontSize: "0.72rem",
-  fontWeight: 600,
-};
-
-const listHeader: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 10,
-  borderTop: "1px solid #e2e8f0",
-  paddingTop: 12,
 };
 
 const printButton: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  justifyContent: "center",
   gap: 6,
-  padding: "7px 10px",
-  border: 0,
-  borderRadius: 6,
+  padding: "7px 11px",
+  marginTop: 12,
   background: "#0f766e",
   color: "#fff",
+  border: 0,
+  borderRadius: 5,
   fontSize: "0.8rem",
   cursor: "pointer",
 };
 
-const studentCard: CSSProperties = {
+const message: CSSProperties = {
+  background: "#fff",
+  padding: 20,
+  borderRadius: 7,
+  textAlign: "center",
+  color: "#475569",
+};
+
+const retryButton: CSSProperties = {
+  display: "block",
+  margin: "12px auto 0",
+  padding: "6px 10px",
+  background: "#fff",
+  border: "1px solid #cbd5e1",
+  borderRadius: 5,
+  fontSize: "0.8rem",
+};
+
+const detailList: CSSProperties = {
   background: "#fff",
   border: "1px solid #e2e8f0",
-  borderRadius: 9,
-  padding: 13,
-  marginBottom: 9,
-  boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+  borderRadius: 7,
+  padding: "0 10px",
 };
 
-const studentHeading: CSSProperties = {
+const detailRow: CSSProperties = {
   display: "flex",
-  alignItems: "flex-start",
+  alignItems: "center",
   justifyContent: "space-between",
   gap: 10,
-};
-
-const studentName: CSSProperties = {
-  margin: "0 0 5px",
-  fontSize: "0.98rem",
-  fontWeight: 600,
-  color: "#0f172a",
+  padding: "10px 0",
+  borderBottom: "1px solid #f1f5f9",
+  fontSize: "0.84rem",
 };
 
 const muted: CSSProperties = {
   margin: "3px 0",
-  fontSize: "0.77rem",
   color: "#64748b",
-};
-
-const amountGrid: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: 8,
-  padding: "12px 0",
-  marginTop: 9,
-  borderTop: "1px solid #f1f5f9",
-  borderBottom: "1px solid #f1f5f9",
-};
-
-const paymentInfo: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "6px 16px",
-  fontSize: "0.75rem",
-  color: "#64748b",
-};
-
-const messageBox: CSSProperties = {
-  padding: 22,
-  background: "#fff",
-  border: "1px solid #e2e8f0",
-  borderRadius: 9,
-  textAlign: "center",
-  color: "#64748b",
+  fontSize: "0.76rem",
 };
 
 const smallButton: CSSProperties = {
-  padding: "6px 9px",
+  padding: "5px 8px",
   border: "1px solid #0f766e",
   borderRadius: 5,
   background: "#fff",
   color: "#0f766e",
-  fontSize: "0.78rem",
+  fontSize: "0.76rem",
   cursor: "pointer",
 };
