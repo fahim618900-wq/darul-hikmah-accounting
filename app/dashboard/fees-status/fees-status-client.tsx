@@ -164,12 +164,14 @@ export default function FeesStatusClient({
   return (
     <>
       {detailStudent && (
-        <StudentDetailModal
-          student={detailStudent}
-          payments={payments.filter((p) => p.student_id === detailStudent.id)}
-          onClose={() => setDetailStudent(null)}
-        />
-      )}
+  <StudentDetailModal
+    student={detailStudent}
+    payments={payments.filter((p) => p.student_id === detailStudent.id)}
+    month={month}
+    year={year}
+    onClose={() => setDetailStudent(null)}
+  />
+)}
 
       {/* স্ক্রিনে ফিল্টার ও নিয়ন্ত্রণ */}
       <div className="no-print">
