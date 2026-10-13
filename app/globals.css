@@ -73,3 +73,16 @@ button {
     border: 1px solid #999 !important;
   }
 }
+/* নাম প্রিন্টে দেখানোর জন্য */
+.print-only-inline {
+  display: none;
+}
+
+@media print {
+  .print-only-inline {
+    display: inline !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
