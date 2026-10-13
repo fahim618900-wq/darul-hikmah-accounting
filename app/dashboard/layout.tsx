@@ -4,6 +4,7 @@ import LogoutButton from "./logout-button";
 import NotificationBell from "./notification-bell";
 import ThemeToggle from "./theme-toggle";
 import MobileMenu from "./mobile-menu";
+import NavLink from "./nav-link";
 
 export default async function DashboardLayout({
   children,
@@ -29,29 +30,37 @@ export default async function DashboardLayout({
     return <>{children}</>;
   }
 
+  /* ============ Hold অবস্থা ============ */
   if (isHeld) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <div className="layout-hold-wrapper">
+        <div className="layout-hold-card">
+          <div className="layout-hold-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-amber-700 mb-3">
+          <h2 className="layout-hold-title">
             আপনার অ্যাকাউন্ট Hold করা হয়েছে
           </h2>
-          <p className="text-slate-600 mb-2">
+          <p className="layout-hold-text">
             আপনার অ্যাকাউন্ট সাময়িকভাবে বন্ধ রাখা হয়েছে।
           </p>
           {profile?.held_reason && (
-            <p className="text-slate-500 text-sm mb-4">
+            <p className="layout-hold-reason">
               কারণ: {profile.held_reason}
             </p>
           )}
-          <p className="text-slate-500 text-sm">
+          <p className="layout-hold-hint">
             অনুগ্রহ করে Admin-এর সাথে যোগাযোগ করুন।
           </p>
         </div>
@@ -59,99 +68,865 @@ export default async function DashboardLayout({
     );
   }
 
+  /* ============ নেভিগেশন লিংক ============ */
   const navLinks = [
-    { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
-    { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
-    { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
-    { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
-    { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
-    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
-    { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
+    {
+      href: "/dashboard",
+      label: "ড্যাশবোর্ড",
+      roles: ["admin", "accountant", "viewer"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="9" rx="1.5" />
+          <rect x="14" y="3" width="7" height="5" rx="1.5" />
+          <rect x="14" y="12" width="7" height="9" rx="1.5" />
+          <rect x="3" y="16" width="7" height="5" rx="1.5" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/students",
+      label: "শিক্ষার্থী",
+      roles: ["admin", "accountant"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/fees",
+      label: "বেতন আদায়",
+      roles: ["admin", "accountant"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+          <circle cx="12" cy="12" r="2.5" />
+          <path d="M6 12 h .01" />
+          <path d="M18 12 h .01" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/fees-status",
+      label: "Paid/Unpaid",
+      roles: ["admin", "accountant", "viewer"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/income",
+      label: "আয়",
+      roles: ["admin", "accountant"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 19V5" />
+          <path d="M5 12l7-7 7 7" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/expenses",
+      label: "ব্যয়",
+      roles: ["admin", "accountant"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 5v14" />
+          <path d="M19 12l-7 7-7-7" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dashboard/reports",
+      label: "রিপোর্ট",
+      roles: ["admin", "accountant", "viewer"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-4 3 3 5-6" />
+        </svg>
+      ),
+    },
+    {
+      href: "/admin/users",
+      label: "ব্যবহারকারী",
+      roles: ["admin"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+    {
+      href: "/admin/audit-logs",
+      label: "অডিট লগ",
+      roles: ["admin"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M8 13h8" />
+          <path d="M8 17h5" />
+        </svg>
+      ),
+    },
+    {
+      href: "/admin/closed-months",
+      label: "মাস বন্ধ",
+      roles: ["admin"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4" />
+          <path d="M8 2v4" />
+          <path d="M3 10h18" />
+          <path d="M9 16l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      href: "/admin/settings",
+      label: "সেটিংস",
+      roles: ["admin"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      ),
+    },
+    {
+      href: "/admin/clear-data",
+      label: "ডেটা মুছুন",
+      roles: ["admin"],
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+        </svg>
+      ),
+    },
   ];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
+  const primaryLinks = visibleLinks.slice(0, 7);
+  const secondaryLinks = visibleLinks.slice(7);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="layout-root">
+      {/* ================= Header (no-print) ================= */}
       <div className="no-print">
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Logo */}
-              <Link href="/dashboard" className="flex items-center gap-3 shrink-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-700 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
+        <header className="layout-header">
+          <div className="layout-header-inner">
+            {/* ---- Logo + Name ---- */}
+            <Link href="/dashboard" className="layout-logo">
+              <div className="layout-logo-mark">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2 L12 4" />
+                  <path d="M12 4 C 8 6, 6 9, 6 13 L 6 21 L 18 21 L 18 13 C 18 9, 16 6, 12 4 Z" />
+                  <path d="M10 21 L 10 17 C 10 15.5, 14 15.5, 14 17 L 14 21" />
+                  <path d="M3 21 L 21 21" />
+                </svg>
+              </div>
+              <div className="layout-logo-text">
+                <div className="layout-logo-title">দারুল হিকমাহ</div>
+                <div className="layout-logo-sub">মডেল মাদ্রাসা</div>
+              </div>
+            </Link>
+
+            {/* ---- Desktop Primary Nav ---- */}
+            <nav className="layout-nav-primary" aria-label="প্রধান মেনু">
+              {primaryLinks.map((link) => (
+                <NavLink
+                  key={link.href}
+                  href={link.href}
+                  label={link.label}
+                  icon={link.icon}
+                  variant="primary"
+                  exact={link.href === "/dashboard"}
+                />
+              ))}
+            </nav>
+
+            {/* ---- Right side tools ---- */}
+            <div className="layout-tools">
+              <ThemeToggle />
+              <NotificationBell userId={user?.id || ""} />
+
+              <div className="layout-user-chip">
+                <div className="layout-user-info">
+                  <div className="layout-user-greet">আসসালামু আলাইকুম</div>
+                  <div className="layout-user-name">{fullName}</div>
+                </div>
+                <div className="layout-user-avatar">
+                  {fullName.charAt(0).toUpperCase()}
+                </div>
+              </div>
+
+              <LogoutButton />
+              <MobileMenu navLinks={visibleLinks} fullName={fullName} />
+            </div>
+          </div>
+
+          {/* ---- Desktop Secondary Nav (Admin links) ---- */}
+          {secondaryLinks.length > 0 && (
+            <div className="layout-nav-secondary-bar">
+              <div className="layout-nav-secondary-inner">
+                <span className="layout-nav-secondary-label">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 2 L 4 6 v 6 c 0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10 V 6 Z" />
                   </svg>
-                </div>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
-                    দারুল হিকমাহ
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
-                    মডেল মাদ্রাসা
-                  </div>
-                </div>
-              </Link>
-
-              {/* Desktop Nav */}
-              <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
-                {visibleLinks.slice(0, 7).map((link) => (
-                  <Link
+                  Admin
+                </span>
+                {secondaryLinks.map((link) => (
+                  <NavLink
                     key={link.href}
                     href={link.href}
-                    className="px-4 py-2 rounded-full text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-
-              {/* Right Side */}
-              <div className="flex items-center gap-2 shrink-0">
-                <ThemeToggle />
-                <NotificationBell userId={user?.id || ""} />
-                <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">
-                  <div className="text-right leading-tight hidden lg:block">
-                    <div className="text-xs text-slate-400 dark:text-slate-500">আসসালামু আলাইকুম</div>
-                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{fullName}</div>
-                  </div>
-                  <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 flex items-center justify-center font-semibold text-sm">
-                    {fullName.charAt(0)}
-                  </div>
-                </div>
-                <LogoutButton />
-                <MobileMenu navLinks={visibleLinks} fullName={fullName} />
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary Nav (all admin links) */}
-          <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 hidden lg:block">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-1 overflow-x-auto py-2">
-                {visibleLinks.slice(7).map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition whitespace-nowrap"
-                  >
-                    {link.label}
-                  </Link>
+                    label={link.label}
+                    variant="secondary"
+                    exact={false}
+                  />
                 ))}
               </div>
             </div>
-          </div>
+          )}
         </header>
       </div>
 
-      {children}
+      {/* ================= Main content ================= */}
+      <main className="layout-main">{children}</main>
+
+      {/* ================= Global styles ================= */}
+      <style jsx global>{`
+        /* ========================================
+           Layout Root
+           ======================================== */
+        .layout-root {
+          min-height: 100vh;
+          background: #f8fafc;
+          color: #0f172a;
+          font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui,
+            -apple-system, "Segoe UI", sans-serif;
+        }
+
+        .layout-main {
+          padding: 1.5rem 1rem 3rem;
+          max-width: 1280px;
+          margin: 0 auto;
+        }
+
+        /* ========================================
+           Hold Screen
+           ======================================== */
+        .layout-hold-wrapper {
+          min-height: 100vh;
+          background: #f8fafc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem;
+          font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui,
+            sans-serif;
+        }
+
+        .layout-hold-card {
+          max-width: 460px;
+          width: 100%;
+          background: #ffffff;
+          border: 1px solid #fde68a;
+          border-radius: 18px;
+          padding: 2.25rem 1.75rem;
+          text-align: center;
+          box-shadow: 0 10px 30px -18px rgba(217, 119, 6, 0.35);
+        }
+
+        .layout-hold-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fcd34d;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 1.25rem;
+        }
+
+        .layout-hold-icon svg {
+          width: 30px;
+          height: 30px;
+        }
+
+        .layout-hold-title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #b45309;
+          margin: 0 0 0.75rem;
+        }
+
+        .layout-hold-text {
+          color: #475569;
+          font-size: 0.95rem;
+          margin: 0 0 0.5rem;
+          line-height: 1.6;
+        }
+
+        .layout-hold-reason {
+          color: #64748b;
+          font-size: 0.875rem;
+          margin: 0 0 0.75rem;
+          line-height: 1.6;
+          background: #fef9c3;
+          padding: 0.6rem 0.85rem;
+          border-radius: 8px;
+          display: inline-block;
+        }
+
+        .layout-hold-hint {
+          color: #64748b;
+          font-size: 0.875rem;
+          margin: 0;
+          line-height: 1.6;
+        }
+
+        /* ========================================
+           Header
+           ======================================== */
+        .layout-header {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: saturate(180%) blur(12px);
+          -webkit-backdrop-filter: saturate(180%) blur(12px);
+          border-bottom: 1px solid #e2e8f0;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+        }
+
+        .layout-header-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 1rem;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+        }
+
+        /* ---------- Logo ---------- */
+        .layout-logo {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          text-decoration: none;
+          flex-shrink: 0;
+        }
+
+        .layout-logo-mark {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 14px -6px rgba(15, 118, 110, 0.5);
+        }
+
+        .layout-logo-mark svg {
+          width: 22px;
+          height: 22px;
+        }
+
+        .layout-logo-text {
+          line-height: 1.15;
+        }
+
+        .layout-logo-title {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .layout-logo-sub {
+          font-size: 0.7rem;
+          color: #64748b;
+        }
+
+        /* ---------- Primary Nav ---------- */
+        .layout-nav-primary {
+          display: none;
+          align-items: center;
+          gap: 0.25rem;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          padding: 0.25rem;
+          border-radius: 999px;
+        }
+
+        /* ========================================
+           NavLink (both variants)
+           ======================================== */
+        .nav-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          text-decoration: none;
+          font-weight: 500;
+          white-space: nowrap;
+          transition: background-color 0.15s ease, color 0.15s ease,
+            box-shadow 0.15s ease, transform 0.05s ease;
+        }
+
+        .nav-link-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .nav-link-icon svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        /* Primary variant */
+        .nav-link-primary {
+          padding: 0.45rem 0.85rem;
+          border-radius: 999px;
+          font-size: 0.82rem;
+          color: #475569;
+        }
+
+        .nav-link-primary:hover {
+          background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        }
+
+        .nav-link-primary.nav-link-active {
+          background: #0f766e;
+          color: #ffffff;
+          box-shadow: 0 4px 10px -4px rgba(15, 118, 110, 0.6);
+        }
+
+        /* Secondary variant */
+        .nav-link-secondary {
+          padding: 0.35rem 0.7rem;
+          border-radius: 8px;
+          font-size: 0.78rem;
+          color: #64748b;
+        }
+
+        .nav-link-secondary:hover {
+          background: #ffffff;
+          color: #0f172a;
+        }
+
+        .nav-link-secondary.nav-link-active {
+          background: #ecfdf5;
+          color: #0f766e;
+          box-shadow: inset 0 0 0 1px #a7f3d0;
+        }
+
+        /* ---------- Right tools ---------- */
+        .layout-tools {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        .layout-user-chip {
+          display: none;
+          align-items: center;
+          gap: 0.65rem;
+          padding-left: 0.75rem;
+          margin-left: 0.35rem;
+          border-left: 1px solid #e2e8f0;
+        }
+
+        .layout-user-info {
+          display: none;
+          text-align: right;
+          line-height: 1.15;
+        }
+
+        .layout-user-greet {
+          font-size: 0.68rem;
+          color: #94a3b8;
+        }
+
+        .layout-user-name {
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: #0f172a;
+          max-width: 140px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .layout-user-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #ccfbf1;
+          color: #0f766e;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.85rem;
+          border: 1px solid #99f6e4;
+        }
+
+        /* ---------- Secondary Nav Bar (Admin) ---------- */
+        .layout-nav-secondary-bar {
+          display: none;
+          background: #f8fafc;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .layout-nav-secondary-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0.5rem 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          overflow-x: auto;
+          scrollbar-width: thin;
+        }
+
+        .layout-nav-secondary-inner::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        .layout-nav-secondary-inner::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+
+        .layout-nav-secondary-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #0f766e;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          padding: 0.3rem 0.6rem;
+          border-radius: 6px;
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          flex-shrink: 0;
+          margin-right: 0.35rem;
+        }
+
+        .layout-nav-secondary-label svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        /* ========================================
+           Responsive
+           ======================================== */
+        @media (min-width: 640px) {
+          .layout-header-inner {
+            padding: 0 1.5rem;
+          }
+
+          .layout-main {
+            padding: 2rem 1.5rem 3rem;
+          }
+
+          .layout-logo-text {
+            display: block;
+          }
+
+          .layout-user-chip {
+            display: flex;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .layout-user-info {
+            display: block;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .layout-header-inner {
+            height: 68px;
+            padding: 0 2rem;
+          }
+
+          .layout-nav-primary {
+            display: inline-flex;
+          }
+
+          .layout-nav-secondary-bar {
+            display: block;
+          }
+
+          .layout-logo-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+          }
+
+          .layout-logo-mark svg {
+            width: 24px;
+            height: 24px;
+          }
+
+          .layout-logo-title {
+            font-size: 0.95rem;
+          }
+
+          .layout-logo-sub {
+            font-size: 0.72rem;
+          }
+
+          .layout-main {
+            padding: 2.25rem 2rem 4rem;
+          }
+        }
+
+        /* ========================================
+           Dark Mode
+           ======================================== */
+        @media (prefers-color-scheme: dark) {
+          /* theme-toggle ক্লাস-ভিত্তিক dark mode ব্যবহার করলে
+             এই সিলেক্টরগুলো .dark .layout-... হবে। এখানে
+             system preference এর জন্য রাখা হলো। */
+
+          .layout-root {
+            background: #020617;
+            color: #e2e8f0;
+          }
+
+          .layout-header {
+            background: rgba(15, 23, 42, 0.85);
+            border-bottom-color: #1e293b;
+          }
+
+          .layout-logo-title {
+            color: #f1f5f9;
+          }
+
+          .layout-logo-sub {
+            color: #94a3b8;
+          }
+
+          .layout-nav-primary {
+            background: #0f172a;
+            border-color: #1e293b;
+          }
+
+          .nav-link-primary {
+            color: #cbd5e1;
+          }
+
+          .nav-link-primary:hover {
+            background: #1e293b;
+            color: #ffffff;
+          }
+
+          .nav-link-primary.nav-link-active {
+            background: #0f766e;
+            color: #ffffff;
+          }
+
+          .nav-link-secondary {
+            color: #94a3b8;
+          }
+
+          .nav-link-secondary:hover {
+            background: #1e293b;
+            color: #e2e8f0;
+          }
+
+          .nav-link-secondary.nav-link-active {
+            background: rgba(15, 118, 110, 0.2);
+            color: #5eead4;
+            box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3);
+          }
+
+          .layout-user-chip {
+            border-left-color: #1e293b;
+          }
+
+          .layout-user-greet {
+            color: #64748b;
+          }
+
+          .layout-user-name {
+            color: #e2e8f0;
+          }
+
+          .layout-user-avatar {
+            background: rgba(15, 118, 110, 0.25);
+            color: #5eead4;
+            border-color: rgba(94, 234, 212, 0.3);
+          }
+
+          .layout-nav-secondary-bar {
+            background: #0b1220;
+            border-top-color: #1e293b;
+          }
+
+          .layout-nav-secondary-label {
+            color: #5eead4;
+            background: rgba(15, 118, 110, 0.18);
+            border-color: rgba(94, 234, 212, 0.3);
+          }
+
+          .layout-hold-wrapper {
+            background: #020617;
+          }
+
+          .layout-hold-card {
+            background: #0f172a;
+            border-color: rgba(217, 119, 6, 0.35);
+          }
+
+          .layout-hold-title {
+            color: #fbbf24;
+          }
+
+          .layout-hold-text,
+          .layout-hold-hint {
+            color: #94a3b8;
+          }
+
+          .layout-hold-reason {
+            background: rgba(180, 83, 9, 0.18);
+            color: #fcd34d;
+          }
+        }
+
+        /* Print: hide header (no-print) */
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
