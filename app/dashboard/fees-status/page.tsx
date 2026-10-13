@@ -5,11 +5,11 @@ export default async function FeesStatusPage() {
   const supabase = await createClient();
 
   const { data: students } = await supabase
-    .from("students")
-    .select("id, name, class_name, roll, section, monthly_fee, discount, status")
-    .eq("status", "active")
-    .order("class_name")
-    .order("roll");
+  .from("students")
+  .select("id, student_id, name, class_name, roll, section, monthly_fee, discount, status")
+  .eq("status", "active")
+  .order("class_name")
+  .order("roll");
 
   return (
     <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
