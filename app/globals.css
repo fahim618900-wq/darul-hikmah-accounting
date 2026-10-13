@@ -86,3 +86,34 @@ button {
     display: none !important;
   }
 }
+/* রসিদ প্রিন্ট */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body.receipt-printing .no-print {
+    display: none !important;
+  }
+
+  body.receipt-printing .print-only {
+    display: block !important;
+  }
+
+  body.receipt-printing > *:not(.print-only) {
+    display: none !important;
+  }
+
+  .receipt-container {
+    page-break-inside: avoid;
+  }
+
+  .receipt-container h1 {
+    font-size: 18px !important;
+  }
+}
