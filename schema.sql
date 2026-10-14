@@ -92,6 +92,20 @@ $$;
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."is_month_closed"("p_month" integer, "p_year" integer) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+  select exists(
+    select 1 from closed_months
+    where month = p_month and year = p_year
+  );
+$$;
+
+
+ALTER FUNCTION "public"."is_month_closed"("p_month" integer, "p_year" integer) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."log_audit"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -103,8 +117,9 @@ declare
   v_action text;
   v_record_id text;
   v_desc text;
+  v_new jsonb;
+  v_old jsonb;
 begin
-  -- বর্তমান ব্যবহারকারী চেক করি
   v_user_id := auth.uid();
   v_user_email := coalesce(
     (select email from auth.users where id = v_user_id),
@@ -114,30 +129,49 @@ begin
 
   if (TG_OP = 'INSERT') then
     v_action := 'insert';
-    v_record_id := coalesce(new.id::text, '');
+    v_new := to_jsonb(new);
+    v_old := null;
+    -- id থাকলে সেটা নাও, নাহলে key নাও, নাহলে খালি
+    v_record_id := coalesce(
+      v_new->>'id',
+      v_new->>'key',
+      ''
+    );
     v_desc := 'নতুন রেকর্ড যোগ করা হয়েছে';
-    insert into audit_logs (user_id, user_email, user_role, action, table_name, record_id, new_data, description)
-    values (v_user_id, v_user_email, v_user_role, v_action, TG_TABLE_NAME, v_record_id, to_jsonb(new), v_desc);
-    return new;
-
   elsif (TG_OP = 'UPDATE') then
     v_action := 'update';
-    v_record_id := coalesce(new.id::text, '');
+    v_new := to_jsonb(new);
+    v_old := to_jsonb(old);
+    v_record_id := coalesce(
+      v_new->>'id',
+      v_new->>'key',
+      ''
+    );
     v_desc := 'রেকর্ড পরিবর্তন করা হয়েছে';
-    insert into audit_logs (user_id, user_email, user_role, action, table_name, record_id, old_data, new_data, description)
-    values (v_user_id, v_user_email, v_user_role, v_action, TG_TABLE_NAME, v_record_id, to_jsonb(old), to_jsonb(new), v_desc);
-    return new;
-
   elsif (TG_OP = 'DELETE') then
     v_action := 'delete';
-    v_record_id := coalesce(old.id::text, '');
+    v_new := null;
+    v_old := to_jsonb(old);
+    v_record_id := coalesce(
+      v_old->>'id',
+      v_old->>'key',
+      ''
+    );
     v_desc := 'রেকর্ড ডিলিট করা হয়েছে';
-    insert into audit_logs (user_id, user_email, user_role, action, table_name, record_id, old_data, description)
-    values (v_user_id, v_user_email, v_user_role, v_action, TG_TABLE_NAME, v_record_id, to_jsonb(old), v_desc);
-    return old;
   end if;
 
-  return null;
+  insert into audit_logs (
+    user_id, user_email, user_role, action,
+    table_name, record_id, old_data, new_data, description
+  ) values (
+    v_user_id, v_user_email, v_user_role, v_action,
+    TG_TABLE_NAME, v_record_id, v_old, v_new, v_desc
+  );
+
+  if (TG_OP = 'DELETE') then
+    return old;
+  end if;
+  return new;
 end;
 $$;
 
@@ -320,6 +354,36 @@ ALTER SEQUENCE "public"."audit_logs_id_seq" OWNER TO "postgres";
 
 
 ALTER SEQUENCE "public"."audit_logs_id_seq" OWNED BY "public"."audit_logs"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."closed_months" (
+    "id" bigint NOT NULL,
+    "month" integer NOT NULL,
+    "year" integer NOT NULL,
+    "closed_by" "uuid",
+    "closed_by_name" "text",
+    "closed_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "note" "text",
+    CONSTRAINT "closed_months_month_check" CHECK ((("month" >= 1) AND ("month" <= 12)))
+);
+
+
+ALTER TABLE "public"."closed_months" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."closed_months_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."closed_months_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."closed_months_id_seq" OWNED BY "public"."closed_months"."id";
 
 
 
@@ -595,6 +659,39 @@ ALTER SEQUENCE "public"."notification_reads_id_seq" OWNED BY "public"."notificat
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."print_templates" (
+    "id" bigint NOT NULL,
+    "name" "text" NOT NULL,
+    "class_name" "text",
+    "columns" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "show_qr" boolean DEFAULT true,
+    "show_photo" boolean DEFAULT false,
+    "orientation" "text" DEFAULT 'portrait'::"text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "print_templates_orientation_check" CHECK (("orientation" = ANY (ARRAY['portrait'::"text", 'landscape'::"text"])))
+);
+
+
+ALTER TABLE "public"."print_templates" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."print_templates_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."print_templates_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."print_templates_id_seq" OWNED BY "public"."print_templates"."id";
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
     "full_name" "text" NOT NULL,
@@ -628,6 +725,7 @@ CREATE TABLE IF NOT EXISTS "public"."students" (
     "discount_reason" "text",
     "is_deleted" boolean DEFAULT false,
     "deleted_at" timestamp with time zone,
+    "photo_url" "text",
     CONSTRAINT "students_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'inactive'::"text"])))
 );
 
@@ -700,6 +798,10 @@ ALTER TABLE ONLY "public"."audit_logs" ALTER COLUMN "id" SET DEFAULT "nextval"('
 
 
 
+ALTER TABLE ONLY "public"."closed_months" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."closed_months_id_seq"'::"regclass");
+
+
+
 ALTER TABLE ONLY "public"."expense_categories" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."expense_categories_id_seq"'::"regclass");
 
 
@@ -732,6 +834,10 @@ ALTER TABLE ONLY "public"."notification_reads" ALTER COLUMN "id" SET DEFAULT "ne
 
 
 
+ALTER TABLE ONLY "public"."print_templates" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."print_templates_id_seq"'::"regclass");
+
+
+
 ALTER TABLE ONLY "public"."students" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."students_id_seq"'::"regclass");
 
 
@@ -743,6 +849,16 @@ ALTER TABLE ONLY "public"."app_settings"
 
 ALTER TABLE ONLY "public"."audit_logs"
     ADD CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."closed_months"
+    ADD CONSTRAINT "closed_months_month_year_key" UNIQUE ("month", "year");
+
+
+
+ALTER TABLE ONLY "public"."closed_months"
+    ADD CONSTRAINT "closed_months_pkey" PRIMARY KEY ("id");
 
 
 
@@ -801,6 +917,11 @@ ALTER TABLE ONLY "public"."notification_reads"
 
 
 
+ALTER TABLE ONLY "public"."print_templates"
+    ADD CONSTRAINT "print_templates_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
 
@@ -816,7 +937,7 @@ ALTER TABLE ONLY "public"."students"
 
 
 
-CREATE UNIQUE INDEX "fee_payments_unique_idx" ON "public"."fee_payments" USING "btree" ("student_id", "month", "year") WHERE ("is_deleted" = false);
+CREATE UNIQUE INDEX "fee_payments_unique_idx_v2" ON "public"."fee_payments" USING "btree" ("student_id", "month", "year", "amount", "payment_date") WHERE ("is_deleted" = false);
 
 
 
@@ -829,6 +950,10 @@ CREATE INDEX "idx_audit_logs_table" ON "public"."audit_logs" USING "btree" ("tab
 
 
 CREATE INDEX "idx_audit_logs_user" ON "public"."audit_logs" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_closed_months" ON "public"."closed_months" USING "btree" ("year", "month");
 
 
 
@@ -873,6 +998,11 @@ CREATE OR REPLACE TRIGGER "prevent_closed_month_income" BEFORE INSERT OR DELETE 
 
 
 CREATE OR REPLACE TRIGGER "prevent_closed_month_payment" BEFORE INSERT OR DELETE OR UPDATE ON "public"."fee_payments" FOR EACH ROW EXECUTE FUNCTION "public"."prevent_closed_month_payment"();
+
+
+
+ALTER TABLE ONLY "public"."closed_months"
+    ADD CONSTRAINT "closed_months_closed_by_fkey" FOREIGN KEY ("closed_by") REFERENCES "auth"."users"("id");
 
 
 
@@ -926,6 +1056,11 @@ ALTER TABLE ONLY "public"."notification_reads"
 
 
 
+ALTER TABLE ONLY "public"."print_templates"
+    ADD CONSTRAINT "print_templates_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
@@ -952,6 +1087,14 @@ CREATE POLICY "admin delete students" ON "public"."students" FOR DELETE TO "auth
 
 
 CREATE POLICY "admin insert app_settings" ON "public"."app_settings" FOR INSERT TO "authenticated" WITH CHECK (("public"."get_my_role"() = 'admin'::"text"));
+
+
+
+CREATE POLICY "admin manage closed_months" ON "public"."closed_months" TO "authenticated" USING (("public"."get_my_role"() = 'admin'::"text")) WITH CHECK (("public"."get_my_role"() = 'admin'::"text"));
+
+
+
+CREATE POLICY "admin manage print_templates" ON "public"."print_templates" TO "authenticated" USING (("public"."get_my_role"() = 'admin'::"text")) WITH CHECK (("public"."get_my_role"() = 'admin'::"text"));
 
 
 
@@ -1021,6 +1164,9 @@ ALTER TABLE "public"."app_settings" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."audit_logs" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."closed_months" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."expense_categories" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1069,6 +1215,9 @@ ALTER TABLE "public"."monthly_fees" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."notification_reads" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."print_templates" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1077,6 +1226,14 @@ CREATE POLICY "public read app_settings" ON "public"."app_settings" FOR SELECT T
 
 
 CREATE POLICY "public read student basic info" ON "public"."students" FOR SELECT TO "anon" USING (true);
+
+
+
+CREATE POLICY "read closed_months" ON "public"."closed_months" FOR SELECT TO "authenticated" USING (true);
+
+
+
+CREATE POLICY "read print_templates" ON "public"."print_templates" FOR SELECT TO "authenticated" USING (true);
 
 
 
@@ -1280,6 +1437,12 @@ GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."is_month_closed"("p_month" integer, "p_year" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."is_month_closed"("p_month" integer, "p_year" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_month_closed"("p_month" integer, "p_year" integer) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."log_audit"() TO "anon";
 GRANT ALL ON FUNCTION "public"."log_audit"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."log_audit"() TO "service_role";
@@ -1340,6 +1503,18 @@ GRANT ALL ON TABLE "public"."audit_logs" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."audit_logs_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."audit_logs_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."audit_logs_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."closed_months" TO "anon";
+GRANT ALL ON TABLE "public"."closed_months" TO "authenticated";
+GRANT ALL ON TABLE "public"."closed_months" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."closed_months_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."closed_months_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."closed_months_id_seq" TO "service_role";
 
 
 
@@ -1448,6 +1623,18 @@ GRANT ALL ON TABLE "public"."notification_reads" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."notification_reads_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."notification_reads_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."notification_reads_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."print_templates" TO "anon";
+GRANT ALL ON TABLE "public"."print_templates" TO "authenticated";
+GRANT ALL ON TABLE "public"."print_templates" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."print_templates_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."print_templates_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."print_templates_id_seq" TO "service_role";
 
 
 
