@@ -20,6 +20,9 @@ type Student = {
   discount_reason: string | null;
   status: string;
   photo_url?: string | null;
+  gender?: string | null;
+  blood_group?: string | null;
+  emergency_contact?: string | null;
 };
 
 const CLASSES = [
