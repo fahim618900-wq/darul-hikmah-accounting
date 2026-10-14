@@ -24,26 +24,21 @@ export default async function DashboardPage() {
     .select("id, monthly_fee, discount, class_name, status")
     .eq("status", "active");
 
-  // চলতি বছরের সব পেমেন্ট
-  const { data: payments } = await supabase
+  // সব পেমেন্ট (সর্বশেষ ১০০০)
+  const { data: allPayments } = await supabase
     .from("fee_payments")
     .select("student_id, amount, month, year, payment_date")
-    .eq("year", currentYear);
+    .order("payment_date", { ascending: false })
+    .limit(1000);
 
-  // চলতি মাসের আয়
-  const monthStart = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
-  const monthEnd = new Date(currentYear, currentMonth, 0)
-    .toISOString()
-    .split("T")[0];
-
-  const { data: incomesRaw } = await supabase
+  // সব আয় (সর্বশেষ ৫০০)
+  const { data: allIncomesRaw } = await supabase
     .from("incomes")
     .select("amount, entry_date, category_id, income_categories(name)")
-    .gte("entry_date", monthStart)
-    .lte("entry_date", monthEnd);
+    .order("entry_date", { ascending: false })
+    .limit(500);
 
-  // Supabase relational data normalize
-  const incomes = (incomesRaw || []).map((i: any) => ({
+  const allIncomes = (allIncomesRaw || []).map((i: any) => ({
     amount: i.amount,
     entry_date: i.entry_date,
     category_id: i.category_id,
@@ -52,19 +47,28 @@ export default async function DashboardPage() {
       : i.income_categories,
   }));
 
-  // চলতি মাসের ব্যয়
-  const { data: expenses } = await supabase
+  // সব ব্যয় (সর্বশেষ ৫০০)
+  const { data: allExpenses } = await supabase
     .from("expenses")
-    .select("amount, entry_date")
-    .gte("entry_date", monthStart)
-    .lte("entry_date", monthEnd);
+    .select("amount, entry_date, category_id, expense_categories(name)")
+    .order("entry_date", { ascending: false })
+    .limit(500);
+
+  const expensesNormalized = (allExpenses || []).map((e: any) => ({
+    amount: e.amount,
+    entry_date: e.entry_date,
+    category_id: e.category_id,
+    expense_categories: Array.isArray(e.expense_categories)
+      ? e.expense_categories[0] || null
+      : e.expense_categories,
+  }));
 
   return (
     <DashboardClient
       students={students || []}
-      payments={payments || []}
-      incomes={incomes}
-      expenses={expenses || []}
+      payments={allPayments || []}
+      incomes={allIncomes}
+      expenses={expensesNormalized}
       userName={profile?.full_name || user?.email || "ব্যবহারকারী"}
       currentMonth={currentMonth}
       currentYear={currentYear}
