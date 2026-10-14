@@ -35,7 +35,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
       const currentMonth = now.getMonth() + 1;
       const currentYear = now.getFullYear();
       const monthStart = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
-      const monthEnd = new Date(currentYear, currentMonth, 0).toISOString().split("T")[0];
+      const monthEnd = new Date(currentYear, currentMonth, 0)
+        .toISOString()
+        .split("T")[0];
       const today = now.toISOString().split("T")[0];
 
       const list: Notification[] = [];
@@ -102,7 +104,10 @@ export default function NotificationBell({ userId }: { userId: string }) {
         .select("amount")
         .eq("payment_date", today);
 
-      const todayTotal = (todayPayments || []).reduce((s, p) => s + Number(p.amount), 0);
+      const todayTotal = (todayPayments || []).reduce(
+        (s, p) => s + Number(p.amount),
+        0
+      );
       if (todayTotal > 0) {
         list.push({
           key: `today-${today}`,
@@ -197,45 +202,27 @@ export default function NotificationBell({ userId }: { userId: string }) {
   if (loading) return null;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        style={{
-          position: "relative",
-          background: "rgba(255,255,255,0.15)",
-          border: "1px solid rgba(255,255,255,0.25)",
-          borderRadius: "8px",
-          padding: "0.5rem 0.7rem",
-          color: "#ffffff",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.4rem",
-        }}
+        aria-label="নোটিফিকেশন"
+        className="relative w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
         {unreadCount > 0 && (
-          <span
-            style={{
-              position: "absolute",
-              top: "-6px",
-              right: "-6px",
-              background: "#dc2626",
-              color: "#ffffff",
-              fontSize: "0.7rem",
-              fontWeight: "700",
-              minWidth: "20px",
-              height: "20px",
-              borderRadius: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0 5px",
-            }}
-          >
+          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 border-2 border-white dark:border-slate-900">
             {toBangla(unreadCount)}
           </span>
         )}
@@ -245,39 +232,26 @@ export default function NotificationBell({ userId }: { userId: string }) {
         <>
           <div
             onClick={() => setOpen(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 40 }}
+            className="fixed inset-0 z-40"
           />
-          <div
-            style={{
-              position: "absolute",
-              top: "calc(100% + 8px)",
-              right: 0,
-              width: "340px",
-              maxWidth: "calc(100vw - 2rem)",
-              background: "#ffffff",
-              borderRadius: "10px",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-              zIndex: 50,
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ padding: "0.85rem 1rem", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontWeight: "600", color: "#0f766e", fontSize: "0.95rem" }}>
+          <div className="absolute top-[calc(100%+8px)] right-0 w-[340px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div className="font-semibold text-brand-600 dark:text-brand-400 text-sm">
                 নোটিফিকেশন
               </div>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  style={{ background: "transparent", border: "none", color: "#0f766e", fontSize: "0.78rem", cursor: "pointer", fontWeight: "500" }}
+                  className="text-brand-600 dark:text-brand-400 text-[11px] font-medium hover:underline"
                 >
                   সব পড়া হয়েছে
                 </button>
               )}
             </div>
 
-            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            <div className="max-h-[400px] overflow-y-auto">
               {notifications.length === 0 ? (
-                <div style={{ padding: "2rem 1rem", textAlign: "center", color: "#64748b", fontSize: "0.88rem" }}>
+                <div className="py-8 px-4 text-center text-slate-500 text-sm">
                   কোনো নোটিফিকেশন নেই
                 </div>
               ) : (
@@ -287,35 +261,31 @@ export default function NotificationBell({ userId }: { userId: string }) {
                     <button
                       key={n.key}
                       onClick={() => handleClick(n)}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "0.85rem 1rem",
-                        borderBottom: "1px solid #f1f5f9",
-                        background: isRead ? "#ffffff" : "#f0fdf4",
-                        borderLeft: `3px solid ${n.color}`,
-                        cursor: "pointer",
-                        border: "none",
-                        borderBottomWidth: "1px",
-                        borderBottomStyle: "solid",
-                        borderBottomColor: "#f1f5f9",
-                        borderLeftWidth: "3px",
-                        borderLeftStyle: "solid",
-                        borderLeftColor: n.color,
-                      }}
+                      className={`block w-full text-left px-4 py-3 border-b border-slate-100 dark:border-slate-800 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                        isRead ? "bg-white dark:bg-slate-900" : "bg-emerald-50/50 dark:bg-emerald-900/10"
+                      }`}
+                      style={{ borderLeftWidth: "3px", borderLeftStyle: "solid", borderLeftColor: n.color }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "0.88rem", fontWeight: isRead ? "400" : "500", color: "#1a1a1a", marginBottom: "0.2rem" }}>
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-[13px] mb-1 ${
+                              isRead
+                                ? "font-normal text-slate-700 dark:text-slate-300"
+                                : "font-semibold text-slate-900 dark:text-white"
+                            }`}
+                          >
                             {n.title}
                           </div>
-                          <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
                             {n.description}
                           </div>
                         </div>
                         {!isRead && (
-                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: n.color, flexShrink: 0, marginTop: "0.35rem" }} />
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0 mt-1.5"
+                            style={{ background: n.color }}
+                          />
                         )}
                       </div>
                     </button>
