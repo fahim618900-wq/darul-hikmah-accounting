@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,6 +28,39 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [readKeys, setReadKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // বাইরে ক্লিক করলে বন্ধ করি
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    // setTimeout দিয়ে যোগ করি — যাতে বর্তমান ক্লিক ইভেন্টটি ধরতে না পারে
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
 
   useEffect(() => {
     async function load() {
@@ -153,7 +186,6 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
       setNotifications(list);
 
-      // পড়া হয়েছে কিনা চেক করি
       const { data: reads } = await supabase
         .from("notification_reads")
         .select("notification_key")
@@ -202,7 +234,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
   if (loading) return null;
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
         aria-label="নোটিফিকেশন"
@@ -229,72 +261,72 @@ export default function NotificationBell({ userId }: { userId: string }) {
       </button>
 
       {open && (
-        <>
-          <div
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40"
-          />
-          <div className="absolute top-[calc(100%+8px)] right-0 w-[340px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <div className="font-semibold text-brand-600 dark:text-brand-400 text-sm">
-                নোটিফিকেশন
-              </div>
-              {unreadCount > 0 && (
-                <button
-                  onClick={markAllAsRead}
-                  className="text-brand-600 dark:text-brand-400 text-[11px] font-medium hover:underline"
-                >
-                  সব পড়া হয়েছে
-                </button>
-              )}
+        <div className="absolute top-[calc(100%+8px)] right-0 w-[340px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div className="font-semibold text-brand-600 dark:text-brand-400 text-sm">
+              নোটিফিকেশন
             </div>
-
-            <div className="max-h-[400px] overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="py-8 px-4 text-center text-slate-500 text-sm">
-                  কোনো নোটিফিকেশন নেই
-                </div>
-              ) : (
-                notifications.map((n) => {
-                  const isRead = readKeys.has(n.key);
-                  return (
-                    <button
-                      key={n.key}
-                      onClick={() => handleClick(n)}
-                      className={`block w-full text-left px-4 py-3 border-b border-slate-100 dark:border-slate-800 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
-                        isRead ? "bg-white dark:bg-slate-900" : "bg-emerald-50/50 dark:bg-emerald-900/10"
-                      }`}
-                      style={{ borderLeftWidth: "3px", borderLeftStyle: "solid", borderLeftColor: n.color }}
-                    >
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className={`text-[13px] mb-1 ${
-                              isRead
-                                ? "font-normal text-slate-700 dark:text-slate-300"
-                                : "font-semibold text-slate-900 dark:text-white"
-                            }`}
-                          >
-                            {n.title}
-                          </div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                            {n.description}
-                          </div>
-                        </div>
-                        {!isRead && (
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0 mt-1.5"
-                            style={{ background: n.color }}
-                          />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-brand-600 dark:text-brand-400 text-[11px] font-medium hover:underline"
+              >
+                সব পড়া হয়েছে
+              </button>
+            )}
           </div>
-        </>
+
+          <div className="max-h-[400px] overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="py-8 px-4 text-center text-slate-500 text-sm">
+                কোনো নোটিফিকেশন নেই
+              </div>
+            ) : (
+              notifications.map((n) => {
+                const isRead = readKeys.has(n.key);
+                return (
+                  <button
+                    key={n.key}
+                    onClick={() => handleClick(n)}
+                    className={`block w-full text-left px-4 py-3 border-b border-slate-100 dark:border-slate-800 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                      isRead
+                        ? "bg-white dark:bg-slate-900"
+                        : "bg-emerald-50/50 dark:bg-emerald-900/10"
+                    }`}
+                    style={{
+                      borderLeftWidth: "3px",
+                      borderLeftStyle: "solid",
+                      borderLeftColor: n.color,
+                    }}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={`text-[13px] mb-1 ${
+                            isRead
+                              ? "font-normal text-slate-700 dark:text-slate-300"
+                              : "font-semibold text-slate-900 dark:text-white"
+                          }`}
+                        >
+                          {n.title}
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                          {n.description}
+                        </div>
+                      </div>
+                      {!isRead && (
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0 mt-1.5"
+                          style={{ background: n.color }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
