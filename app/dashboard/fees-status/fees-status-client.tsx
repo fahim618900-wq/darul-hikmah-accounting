@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StudentDetailModal from "./student-detail-modal";
 
@@ -73,9 +73,9 @@ function statusLabel(s: "paid" | "unpaid" | "partial"): string {
 }
 
 function statusColor(s: "paid" | "unpaid" | "partial") {
-  if (s === "paid") return { bg: "#dcfce7", text: "#15803d" };
-  if (s === "unpaid") return { bg: "#fee2e2", text: "#b91c1c" };
-  return { bg: "#fef3c7", text: "#b45309" };
+  if (s === "paid") return { bg: "#dcfce7", text: "#15803d", border: "#86efac" };
+  if (s === "unpaid") return { bg: "#fee2e2", text: "#b91c1c", border: "#fca5a5" };
+  return { bg: "#fef3c7", text: "#b45309", border: "#fcd34d" };
 }
 
 type FilterMode = "month" | "range";
@@ -83,29 +83,39 @@ type FilterMode = "month" | "range";
 export default function FeesStatusClient({
   students,
   userName,
+  highlight = "",
+  initialMonth,
+  initialYear,
 }: {
   students: Student[];
   userName: string;
+  highlight?: string;
+  initialMonth?: number;
+  initialYear?: number;
 }) {
   const supabase = createClient();
+  const topRef = useRef<HTMLDivElement>(null);
 
   const now = new Date();
 
-  // ফিল্টার
   const [filterMode, setFilterMode] = useState<FilterMode>("month");
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(initialMonth || now.getMonth() + 1);
+  const [year, setYear] = useState(initialYear || now.getFullYear());
   const [fromDate, setFromDate] = useState(firstOfMonthISO());
   const [toDate, setToDate] = useState(lastOfMonthISO());
   const [classFilter, setClassFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid" | "partial">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid" | "partial">(
+    highlight === "due" ? "unpaid" : "all"
+  );
   const [search, setSearch] = useState("");
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [preparedBy, setPreparedBy] = useState(userName);
 
-  // পেমেন্ট লোড — দুই মোডে
+  // হাইলাইট তারিখ
+  const highlightToday = highlight === "today";
+
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -129,9 +139,16 @@ export default function FeesStatusClient({
     load();
   }, [filterMode, month, year, fromDate, toDate]);
 
+  // হাইলাইটে স্ক্রল করি
+  useEffect(() => {
+    if (highlight && topRef.current) {
+      topRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [highlight]);
+
   const classes = Array.from(new Set(students.map((s) => s.class_name)));
 
-  // ছাত্রভিত্তিক হিসাব
+  // প্রাপ্য হিসাব
   const rows: Row[] = useMemo(() => {
     return students.map((s) => {
       const sp = payments.filter((p) => p.student_id === s.id);
@@ -139,7 +156,8 @@ export default function FeesStatusClient({
       const payable =
         filterMode === "month"
           ? Number(s.monthly_fee || 0) - Number(s.discount || 0)
-          : (Number(s.monthly_fee || 0) - Number(s.discount || 0)) * Math.max(1, countMonths(fromDate, toDate));
+          : (Number(s.monthly_fee || 0) - Number(s.discount || 0)) *
+            Math.max(1, countMonths(fromDate, toDate));
       const due = payable - paid;
 
       let status: "paid" | "unpaid" | "partial";
@@ -172,6 +190,17 @@ export default function FeesStatusClient({
     }
     return true;
   });
+
+  // হাইলাইট করা আইডি (today এর জন্য)
+  const todayPaymentIds = useMemo(() => {
+    if (!highlightToday) return new Set<number>();
+    const today = new Date().toISOString().split("T")[0];
+    const ids = new Set<number>();
+    payments
+      .filter((p) => p.payment_date === today)
+      .forEach((p) => ids.add(p.student_id));
+    return ids;
+  }, [highlightToday, payments]);
 
   const paidCount = rows.filter((r) => r.status === "paid").length;
   const partialCount = rows.filter((r) => r.status === "partial").length;
@@ -207,7 +236,7 @@ export default function FeesStatusClient({
       )}
 
       {/* ==================== স্ক্রিন কন্ট্রোল ==================== */}
-      <div className="no-print max-w-7xl mx-auto px-3 sm:px-4 pt-4">
+      <div ref={topRef} className="no-print max-w-7xl mx-auto px-3 sm:px-4 pt-4">
         <div className="mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
             Paid / Unpaid তালিকা
@@ -217,7 +246,33 @@ export default function FeesStatusClient({
           </p>
         </div>
 
-        {/* সারাংশ — ৪টি কার্ড */}
+        {/* হাইলাইট বার্তা */}
+        {highlight === "due" && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+              বাকি থাকা শিক্ষার্থীরা দেখানো হচ্ছে — {toBangla(filtered.length)} জন
+            </span>
+          </div>
+        )}
+
+        {highlightToday && (
+          <div className="mb-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+              আজ বেতন দিয়েছে — {toBangla(todayPaymentIds.size)} জন
+            </span>
+          </div>
+        )}
+
+        {/* সারাংশ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
           <SummaryCard label="মোট শিক্ষার্থী" value={toBangla(students.length)} color="#2563eb" />
           <SummaryCard label="Paid" value={toBangla(paidCount)} color="#15803d" />
@@ -225,7 +280,6 @@ export default function FeesStatusClient({
           <SummaryCard label="Unpaid" value={toBangla(unpaidOnly)} color="#b91c1c" />
         </div>
 
-        {/* টাকার সারাংশ */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
           <MoneyCard label="প্রাপ্য" value={totalPayable} color="#1e40af" />
           <MoneyCard label="আদায়" value={totalPaid} color="#15803d" />
@@ -234,7 +288,6 @@ export default function FeesStatusClient({
 
         {/* ফিল্টার */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-          {/* ফিল্টার মোড ট্যাব */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-4">
             <button
               onClick={() => setFilterMode("month")}
@@ -371,7 +424,7 @@ export default function FeesStatusClient({
               দারুল হিকমাহ মডেল মাদ্রাসা
             </h1>
             <p className="text-xs text-slate-500">
-              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়নসিংহ
+              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
             </p>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
@@ -384,7 +437,7 @@ export default function FeesStatusClient({
           </div>
         </div>
 
-        {/* ============ মোবাইল: কার্ড ============ */}
+        {/* মোবাইল: কার্ড */}
         <div className="md:hidden space-y-2.5 mb-6">
           {loading ? (
             <div className="text-center py-8 text-slate-500 text-sm">লোড হচ্ছে...</div>
@@ -395,10 +448,16 @@ export default function FeesStatusClient({
           ) : (
             filtered.map((r, i) => {
               const sc = statusColor(r.status);
+              const isHighlighted = highlightToday && todayPaymentIds.has(r.student.id);
+
               return (
                 <div
                   key={r.student.id}
-                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
+                  className={`bg-white rounded-2xl overflow-hidden border shadow-sm transition-all ${
+                    isHighlighted
+                      ? "border-emerald-400 ring-2 ring-emerald-300"
+                      : "border-slate-200"
+                  }`}
                   style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
                 >
                   <div className="p-4">
@@ -411,6 +470,11 @@ export default function FeesStatusClient({
                           <h3 className="text-[15px] font-semibold text-slate-900 truncate">
                             {r.student.name}
                           </h3>
+                          {isHighlighted && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">
+                              আজ
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
                           <span className="font-medium">{r.student.class_name}</span>
@@ -467,7 +531,7 @@ export default function FeesStatusClient({
           )}
         </div>
 
-        {/* ============ ডেস্কটপ: টেবিল ============ */}
+        {/* ডেস্কটপ: টেবিল */}
         <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
           {loading ? (
             <div className="text-center py-12 text-slate-500">লোড হচ্ছে...</div>
@@ -492,8 +556,14 @@ export default function FeesStatusClient({
                 <tbody>
                   {filtered.map((r, i) => {
                     const sc = statusColor(r.status);
+                    const isHighlighted = highlightToday && todayPaymentIds.has(r.student.id);
                     return (
-                      <tr key={r.student.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <tr
+                        key={r.student.id}
+                        className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
+                          isHighlighted ? "bg-emerald-50 dark:bg-emerald-900/20" : ""
+                        }`}
+                      >
                         <td className="px-4 py-3 text-slate-500 text-xs">{toBangla(i + 1)}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
                           {r.student.name}
@@ -547,7 +617,7 @@ export default function FeesStatusClient({
           )}
         </div>
 
-        {/* ============ প্রিন্ট-অনলি: শ্রেণিভিত্তিক সারসংক্ষেপ ============ */}
+        {/* প্রিন্ট-অনলি: শ্রেণিভিত্তিক সারসংক্ষেপ */}
         <div className="print-summary hidden print:block mt-6">
           <h3 className="text-sm font-bold text-slate-800 mb-2 text-center">
             শ্রেণিভিত্তিক সারসংক্ষেপ
