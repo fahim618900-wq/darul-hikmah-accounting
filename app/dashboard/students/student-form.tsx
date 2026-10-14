@@ -41,24 +41,24 @@ export default function StudentForm({
   const supabase = createClient();
 
   const [form, setForm] = useState({
-  student_id: student?.student_id || "",
-  name: student?.name || "",
-  class_name: student?.class_name || "প্রথম",
-  section: student?.section || "",
-  roll: student?.roll || "",
-  guardian_name: student?.guardian_name || "",
-  guardian_phone: student?.guardian_phone || "",
-  address: student?.address || "",
-  admission_date: student?.admission_date || new Date().toISOString().split("T")[0],
-  monthly_fee: student?.monthly_fee || 0,
-  discount: student?.discount || 0,
-  discount_reason: student?.discount_reason || "",
-  status: student?.status || "active",
-  photo_url: student?.photo_url || "",
-  gender: student?.gender || "",
-  blood_group: student?.blood_group || "",
-  emergency_contact: student?.emergency_contact || "",
-});
+    student_id: student?.student_id || "",
+    name: student?.name || "",
+    class_name: student?.class_name || "প্রথম",
+    section: student?.section || "",
+    roll: student?.roll || "",
+    guardian_name: student?.guardian_name || "",
+    guardian_phone: student?.guardian_phone || "",
+    address: student?.address || "",
+    admission_date: student?.admission_date || new Date().toISOString().split("T")[0],
+    monthly_fee: student?.monthly_fee || 0,
+    discount: student?.discount || 0,
+    discount_reason: student?.discount_reason || "",
+    status: student?.status || "active",
+    photo_url: student?.photo_url || "",
+    gender: student?.gender || "",
+    blood_group: student?.blood_group || "",
+    emergency_contact: student?.emergency_contact || "",
+  });
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,13 +73,11 @@ export default function StudentForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // ফাইল সাইজ চেক (২MB)
     if (file.size > 2 * 1024 * 1024) {
       setError("ছবির সাইজ ২MB এর কম হতে হবে");
       return;
     }
 
-    // টাইপ চেক
     if (!file.type.startsWith("image/")) {
       setError("শুধু ছবি ফাইল আপলোড করুন");
       return;
@@ -105,7 +103,6 @@ export default function StudentForm({
         return;
       }
 
-      // Public URL তৈরি
       const { data: urlData } = supabase.storage
         .from("student-photos")
         .getPublicUrl(data.path);
@@ -122,7 +119,6 @@ export default function StudentForm({
   async function removePhoto() {
     if (!confirm("ছবি মুছে ফেলতে চান?")) return;
 
-    // Storage থেকে ডিলিট
     if (form.photo_url && form.photo_url.includes("student-photos")) {
       try {
         const path = form.photo_url.split("student-photos/")[1];
@@ -143,11 +139,20 @@ export default function StudentForm({
     setError("");
     setLoading(true);
 
+    if (!form.gender) {
+      setError("লিঙ্গ নির্বাচন করুন");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...form,
       monthly_fee: Number(form.monthly_fee) || 0,
       discount: Number(form.discount) || 0,
       photo_url: form.photo_url || null,
+      gender: form.gender || null,
+      blood_group: form.blood_group || null,
+      emergency_contact: form.emergency_contact || null,
     };
 
     let result;
@@ -294,75 +299,16 @@ export default function StudentForm({
                 </Field>
               </div>
 
-                <div className="grid grid-cols-2 gap-3">
-    <Field label="রোল নম্বর">
-      <input
-        type="text"
-        value={form.roll}
-        onChange={(e) => update("roll", e.target.value)}
-        placeholder="১, ২, ৩..."
-        className={inputClass}
-      />
-    </Field>
-    <Field label="শিক্ষার্থী আইডি">
-      <input
-        type="text"
-        value={form.student_id}
-        onChange={(e) => update("student_id", e.target.value)}
-        placeholder="যেমন: ST-001"
-        className={inputClass}
-      />
-    </Field>
-  </div>
-
-  <Field label="লিঙ্গ *">
-    <div className="grid grid-cols-3 gap-2">
-      <button
-        type="button"
-        onClick={() => update("gender", "male")}
-        className={`py-2.5 rounded-xl text-sm font-medium transition border-2 flex items-center justify-center gap-1.5 ${
-          form.gender === "male"
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
-        }`}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="10" cy="14" r="5" />
-          <line x1="19" y1="5" x2="13.6" y2="10.4" />
-          <polyline points="19 12 19 5 12 5" />
-        </svg>
-        ছেলে
-      </button>
-      <button
-        type="button"
-        onClick={() => update("gender", "female")}
-        className={`py-2.5 rounded-xl text-sm font-medium transition border-2 flex items-center justify-center gap-1.5 ${
-          form.gender === "female"
-            ? "bg-pink-600 text-white border-pink-600"
-            : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
-        }`}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="9" r="5" />
-          <line x1="12" y1="14" x2="12" y2="22" />
-          <line x1="9" y1="19" x2="15" y2="19" />
-        </svg>
-        মেয়ে
-      </button>
-      <button
-        type="button"
-        onClick={() => update("gender", "other")}
-        className={`py-2.5 rounded-xl text-sm font-medium transition border-2 ${
-          form.gender === "other"
-            ? "bg-slate-600 text-white border-slate-600"
-            : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
-        }`}
-      >
-        অন্যান্য
-      </button>
-    </div>
-  </Field>
-     
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="রোল নম্বর">
+                  <input
+                    type="text"
+                    value={form.roll}
+                    onChange={(e) => update("roll", e.target.value)}
+                    placeholder="১, ২, ৩..."
+                    className={inputClass}
+                  />
+                </Field>
                 <Field label="শিক্ষার্থী আইডি">
                   <input
                     type="text"
@@ -373,6 +319,54 @@ export default function StudentForm({
                   />
                 </Field>
               </div>
+
+              <Field label="লিঙ্গ *">
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => update("gender", "male")}
+                    className={`py-2.5 rounded-xl text-sm font-medium transition border-2 flex items-center justify-center gap-1.5 ${
+                      form.gender === "male"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
+                    }`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="10" cy="14" r="5" />
+                      <line x1="19" y1="5" x2="13.6" y2="10.4" />
+                      <polyline points="19 12 19 5 12 5" />
+                    </svg>
+                    ছেলে
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => update("gender", "female")}
+                    className={`py-2.5 rounded-xl text-sm font-medium transition border-2 flex items-center justify-center gap-1.5 ${
+                      form.gender === "female"
+                        ? "bg-pink-600 text-white border-pink-600"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
+                    }`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="9" r="5" />
+                      <line x1="12" y1="14" x2="12" y2="22" />
+                      <line x1="9" y1="19" x2="15" y2="19" />
+                    </svg>
+                    মেয়ে
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => update("gender", "other")}
+                    className={`py-2.5 rounded-xl text-sm font-medium transition border-2 ${
+                      form.gender === "other"
+                        ? "bg-slate-600 text-white border-slate-600"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:border-slate-300"
+                    }`}
+                  >
+                    অন্যান্য
+                  </button>
+                </div>
+              </Field>
             </Section>
 
             {/* ============ সেকশন ২: অভিভাবকের তথ্য ============ */}
@@ -397,45 +391,45 @@ export default function StudentForm({
                 />
               </Field>
 
-                <Field label="ঠিকানা">
-    <textarea
-      value={form.address}
-      onChange={(e) => update("address", e.target.value)}
-      rows={2}
-      placeholder="গ্রাম, ডাকঘর, উপজেলা"
-      className={`${inputClass} resize-none`}
-    />
-  </Field>
+              <Field label="ঠিকানা">
+                <textarea
+                  value={form.address}
+                  onChange={(e) => update("address", e.target.value)}
+                  rows={2}
+                  placeholder="গ্রাম, ডাকঘর, উপজেলা"
+                  className={`${inputClass} resize-none`}
+                />
+              </Field>
 
-  <div className="grid grid-cols-2 gap-3">
-    <Field label="রক্তের গ্রুপ">
-      <select
-        value={form.blood_group}
-        onChange={(e) => update("blood_group", e.target.value)}
-        className={inputClass}
-      >
-        <option value="">-- নির্বাচন --</option>
-        <option value="A+">A+</option>
-        <option value="A-">A-</option>
-        <option value="B+">B+</option>
-        <option value="B-">B-</option>
-        <option value="AB+">AB+</option>
-        <option value="AB-">AB-</option>
-        <option value="O+">O+</option>
-        <option value="O-">O-</option>
-      </select>
-    </Field>
-    <Field label="জরুরি যোগাযোগ">
-      <input
-        type="tel"
-        value={form.emergency_contact}
-        onChange={(e) => update("emergency_contact", e.target.value)}
-        placeholder="অন্য নম্বর"
-        className={inputClass}
-      />
-    </Field>
-  </div>
-</Section>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="রক্তের গ্রুপ">
+                  <select
+                    value={form.blood_group}
+                    onChange={(e) => update("blood_group", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">-- নির্বাচন --</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </Field>
+                <Field label="জরুরি যোগাযোগ">
+                  <input
+                    type="tel"
+                    value={form.emergency_contact}
+                    onChange={(e) => update("emergency_contact", e.target.value)}
+                    placeholder="অন্য নম্বর"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </Section>
 
             {/* ============ সেকশন ৩: বেতন ও ভর্তি ============ */}
             <Section title="বেতন ও ভর্তি" icon="money">
