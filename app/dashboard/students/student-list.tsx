@@ -40,12 +40,35 @@ function toBangla(input: string | number): string {
 export default function StudentList({
   initialStudents,
   userName,
+  highlight = "",
+  highlightMonth,
+  highlightYear,
 }: {
   initialStudents: Student[];
   userName: string;
+  highlight?: string;
+  highlightMonth?: number;
+  highlightYear?: number;
 }) {
   const router = useRouter();
   const supabase = createClient();
+
+  // হাইলাইট করা আইডি সেট
+  const highlightIds = new Set<number>();
+
+  if (highlight === "new" && highlightMonth && highlightYear) {
+    initialStudents.forEach((s) => {
+      if (!s.admission_date) return;
+      const d = new Date(s.admission_date);
+      if (d.getMonth() + 1 === highlightMonth && d.getFullYear() === highlightYear) {
+        highlightIds.add(s.id);
+      }
+    });
+  } else if (highlight === "discount") {
+    initialStudents.forEach((s) => {
+      if (Number(s.discount) > 0) highlightIds.add(s.id);
+    });
+  }
 
   const [students, setStudents] = useState<Student[]>(initialStudents);
   const [search, setSearch] = useState("");
@@ -67,6 +90,13 @@ export default function StudentList({
       (s.roll || "").toLowerCase().includes(q) ||
       (s.guardian_phone || "").includes(q)
     );
+  });
+
+  // হাইলাইট করা শিক্ষার্থীরা উপরে দেখাব
+  const sorted = [...filtered].sort((a, b) => {
+    const aH = highlightIds.has(a.id) ? 1 : 0;
+    const bH = highlightIds.has(b.id) ? 1 : 0;
+    return bH - aH;
   });
 
   async function handleDelete(student: Student) {
@@ -153,6 +183,32 @@ export default function StudentList({
           </div>
         </div>
 
+        {/* হাইলাইট বার্তা */}
+        {highlight === "new" && (
+          <div className="mb-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+              নতুন ভর্তি হওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
+            </span>
+          </div>
+        )}
+
+        {highlight === "discount" && (
+          <div className="mb-4 p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/40 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span className="text-sm text-purple-700 dark:text-purple-400 font-medium">
+              ছাড় পাওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
+            </span>
+          </div>
+        )}
+
         {/* সারাংশ */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#2563eb" }}>
@@ -212,27 +268,30 @@ export default function StudentList({
 
       {/* ============ মোবাইল: কার্ড ============ */}
       <div className="md:hidden max-w-7xl mx-auto px-3 sm:px-4 space-y-2.5 mb-6">
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 text-sm border border-slate-200 dark:border-slate-800">
             {students.length === 0
               ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি"
               : "কোনো ফলাফল পাওয়া যায়নি"}
           </div>
         ) : (
-          filtered.map((s, i) => {
+          sorted.map((s, i) => {
             const isActive = s.status === "active";
             const accent = isActive ? "#15803d" : "#b91c1c";
             const bg = isActive ? "#f0fdf4" : "#fef2f2";
             const badge = isActive ? "#dcfce7" : "#fee2e2";
+            const isH = highlightIds.has(s.id);
 
             return (
               <div
                 key={s.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm"
-                style={{ borderLeftWidth: "4px", borderLeftColor: accent }}
+                className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border shadow-sm transition-all ${
+                  isH ? "border-yellow-400 ring-2 ring-yellow-300" : "border-slate-200 dark:border-slate-800"
+                }`}
+                style={{ borderLeftWidth: "4px", borderLeftColor: isH ? "#eab308" : accent }}
               >
                 {/* হেডার */}
-                <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: bg }}>
+                <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: isH ? "#fef3c7" : bg }}>
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white shadow-sm">
                       {s.photo_url ? (
@@ -254,6 +313,11 @@ export default function StudentList({
                         >
                           {s.name}
                         </Link>
+                        {isH && (
+                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-200 text-yellow-800">
+                            {highlight === "new" ? "নতুন" : "ছাড়"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
                         <span className="font-medium">{s.class_name}</span>
@@ -348,7 +412,7 @@ export default function StudentList({
       {/* ============ ডেস্কটপ: টেবিল ============ */}
       <div className="hidden md:block max-w-7xl mx-auto px-4 mb-6">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          {filtered.length === 0 ? (
+          {sorted.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               {students.length === 0
                 ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি। উপরে '+ নতুন' বাটনে ক্লিক করুন।"
@@ -371,13 +435,19 @@ export default function StudentList({
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((s) => {
+                  {sorted.map((s) => {
                     const isActive = s.status === "active";
                     const badge = isActive
                       ? { bg: "#dcfce7", text: "#15803d" }
                       : { bg: "#fee2e2", text: "#b91c1c" };
+                    const isH = highlightIds.has(s.id);
                     return (
-                      <tr key={s.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <tr
+                        key={s.id}
+                        className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
+                          isH ? "bg-yellow-50 dark:bg-yellow-900/20" : ""
+                        }`}
+                      >
                         <td className="px-4 py-3 text-slate-500 text-xs">{s.student_id || "-"}</td>
                         <td className="px-4 py-3 font-medium">
                           <div className="flex items-center gap-3">
@@ -393,6 +463,11 @@ export default function StudentList({
                             <Link href={`/dashboard/students/${s.id}`} className="text-slate-900 dark:text-white hover:text-brand-600 transition">
                               {s.name}
                             </Link>
+                            {isH && (
+                              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-200 text-yellow-800">
+                                {highlight === "new" ? "নতুন" : "ছাড়"}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
