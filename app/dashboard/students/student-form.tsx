@@ -19,6 +19,7 @@ type Student = {
   discount: number;
   discount_reason: string | null;
   status: string;
+  photo_url?: string | null;
 };
 
 const CLASSES = [
@@ -50,13 +51,85 @@ export default function StudentForm({
     discount: student?.discount || 0,
     discount_reason: student?.discount_reason || "",
     status: student?.status || "active",
+    photo_url: student?.photo_url || "",
   });
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(student?.photo_url || "");
 
   function update(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // ফাইল সাইজ চেক (২MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("ছবির সাইজ ২MB এর কম হতে হবে");
+      return;
+    }
+
+    // টাইপ চেক
+    if (!file.type.startsWith("image/")) {
+      setError("শুধু ছবি ফাইল আপলোড করুন");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from("student-photos")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        setError("ছবি আপলোডে সমস্যা: " + uploadError.message);
+        setUploading(false);
+        return;
+      }
+
+      // Public URL তৈরি
+      const { data: urlData } = supabase.storage
+        .from("student-photos")
+        .getPublicUrl(data.path);
+
+      setForm((prev) => ({ ...prev, photo_url: urlData.publicUrl }));
+      setPhotoPreview(urlData.publicUrl);
+    } catch (err: any) {
+      setError("ছবি আপলোডে সমস্যা: " + (err?.message || "অজানা ত্রুটি"));
+    }
+
+    setUploading(false);
+  }
+
+  async function removePhoto() {
+    if (!confirm("ছবি মুছে ফেলতে চান?")) return;
+
+    // Storage থেকে ডিলিট
+    if (form.photo_url && form.photo_url.includes("student-photos")) {
+      try {
+        const path = form.photo_url.split("student-photos/")[1];
+        if (path) {
+          await supabase.storage.from("student-photos").remove([path]);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    setForm((prev) => ({ ...prev, photo_url: "" }));
+    setPhotoPreview("");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -68,6 +141,7 @@ export default function StudentForm({
       ...form,
       monthly_fee: Number(form.monthly_fee) || 0,
       discount: Number(form.discount) || 0,
+      photo_url: form.photo_url || null,
     };
 
     let result;
@@ -121,6 +195,62 @@ export default function StudentForm({
         {/* ফর্ম */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           <div className="px-5 py-5 space-y-6">
+            {/* ============ ছবি ============ */}
+            <Section title="শিক্ষার্থীর ছবি" icon="photo">
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border-2 border-dashed border-slate-300 dark:border-slate-700">
+                  {photoPreview ? (
+                    <img
+                      src={photoPreview}
+                      alt="ছবি"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <label className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium shadow-sm transition cursor-pointer flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      {uploading ? "আপলোড..." : photoPreview ? "পরিবর্তন" : "ছবি আপলোড"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                    {photoPreview && (
+                      <button
+                        type="button"
+                        onClick={removePhoto}
+                        className="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-100 transition flex items-center gap-1.5"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        </svg>
+                        মুছুন
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    JPG, PNG — সর্বোচ্চ ২MB। বর্গাকার ছবি ভালো দেখায়।
+                  </p>
+                </div>
+              </div>
+            </Section>
+
             {/* ============ সেকশন ১: মৌলিক তথ্য ============ */}
             <Section title="মৌলিক তথ্য" icon="user">
               <Field label="শিক্ষার্থীর নাম" required>
@@ -304,7 +434,7 @@ export default function StudentForm({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md shadow-brand-500/25 transition flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading ? (
@@ -336,7 +466,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon: "user" | "family" | "money";
+  icon: "user" | "family" | "money" | "photo";
   children: React.ReactNode;
 }) {
   const icons = {
@@ -359,6 +489,13 @@ function Section({
         <rect x="2" y="6" width="20" height="12" rx="2" />
         <circle cx="12" cy="12" r="2" />
         <path d="M6 12h.01M18 12h.01" />
+      </svg>
+    ),
+    photo: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
       </svg>
     ),
   };
