@@ -21,6 +21,7 @@ type Student = {
   discount: number;
   discount_reason: string | null;
   status: string;
+  photo_url: string | null;
 };
 
 const CLASSES = [
@@ -232,32 +233,33 @@ export default function StudentList({
               >
                 {/* হেডার */}
                 <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: bg }}>
-  <div className="flex items-start gap-3 flex-1 min-w-0">
-    <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white shadow-sm">
-      {(s as any).photo_url ? (
-        <img src={(s as any).photo_url} alt={s.name} className="w-full h-full object-cover" />
-      ) : (
-        <span className="text-slate-400 font-bold text-sm">
-          {s.name.charAt(0)}
-        </span>
-      )}
-    </div>
-    <div className="flex-1 min-w-0">
-    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-semibold text-slate-400">
-                        {toBangla(i + 1)}.
-                      </span>
-                      <Link
-                        href={`/dashboard/students/${s.id}`}
-                        className="text-[15px] font-semibold text-slate-900 truncate hover:text-brand-600 transition"
-                      >
-                        {s.name}
-                      </Link>
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white shadow-sm">
+                      {s.photo_url ? (
+                        <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-slate-400 font-bold text-sm">
+                          {s.name.charAt(0)}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
-                      <span className="font-medium">{s.class_name}</span>
-                      {s.section && <span>• {s.section}</span>}
-                      {s.roll && <span>• রোল {s.roll}</span>}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          {toBangla(i + 1)}.
+                        </span>
+                        <Link
+                          href={`/dashboard/students/${s.id}`}
+                          className="text-[15px] font-semibold text-slate-900 truncate hover:text-brand-600 transition"
+                        >
+                          {s.name}
+                        </Link>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
+                        <span className="font-medium">{s.class_name}</span>
+                        {s.section && <span>• {s.section}</span>}
+                        {s.roll && <span>• রোল {s.roll}</span>}
+                      </div>
                     </div>
                   </div>
                   <span
@@ -378,9 +380,20 @@ export default function StudentList({
                       <tr key={s.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                         <td className="px-4 py-3 text-slate-500 text-xs">{s.student_id || "-"}</td>
                         <td className="px-4 py-3 font-medium">
-                          <Link href={`/dashboard/students/${s.id}`} className="text-slate-900 dark:text-white hover:text-brand-600 transition">
-                            {s.name}
-                          </Link>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                              {s.photo_url ? (
+                                <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-slate-400 font-bold text-xs">
+                                  {s.name.charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <Link href={`/dashboard/students/${s.id}`} className="text-slate-900 dark:text-white hover:text-brand-600 transition">
+                              {s.name}
+                            </Link>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                           {s.class_name}
