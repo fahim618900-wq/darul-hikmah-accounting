@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -63,6 +63,7 @@ export default function UserApprovalList({
   const [roleFilter, setRoleFilter] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   // হাইলাইট করা আইডি সেট
   const highlightIds = new Set<string>();
@@ -71,6 +72,14 @@ export default function UserApprovalList({
       if (p.is_held) highlightIds.add(p.id);
     });
   }
+
+  useEffect(() => {
+    if (highlightIds.size > 0 && highlightRef.current) {
+      setTimeout(() => {
+        highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, []);
 
   const filtered = useMemo(() => {
     return profiles.filter((p) => {
@@ -86,12 +95,13 @@ export default function UserApprovalList({
     });
   }, [profiles, search, roleFilter]);
 
-  // হাইলাইট উপরে
   const sorted = [...filtered].sort((a, b) => {
     const aH = highlightIds.has(a.id) ? 1 : 0;
     const bH = highlightIds.has(b.id) ? 1 : 0;
     return bH - aH;
   });
+
+  const firstHighlightIndex = sorted.findIndex((p) => highlightIds.has(p.id));
 
   const pendingCount = profiles.filter((p) => p.role === "pending").length;
   const adminCount = profiles.filter((p) => p.role === "admin").length;
@@ -246,15 +256,17 @@ export default function UserApprovalList({
         <>
           {/* মোবাইল: কার্ড */}
           <div className="md:hidden space-y-2.5">
-            {sorted.map((p) => {
+            {sorted.map((p, idx) => {
               const rc = roleColor(p.role);
               const isMe = p.id === currentUserId;
               const isHeld = p.is_held;
               const isH = highlightIds.has(p.id);
+              const isFirstHighlight = isH && idx === firstHighlightIndex;
 
               return (
                 <div
                   key={p.id}
+                  ref={isFirstHighlight ? highlightRef : null}
                   className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border shadow-sm transition-all ${
                     isH ? "border-amber-400 ring-2 ring-amber-300" : "border-slate-200 dark:border-slate-800"
                   }`}
@@ -371,15 +383,17 @@ export default function UserApprovalList({
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((p) => {
+                  {sorted.map((p, idx) => {
                     const rc = roleColor(p.role);
                     const isMe = p.id === currentUserId;
                     const isHeld = p.is_held;
                     const isH = highlightIds.has(p.id);
+                    const isFirstHighlight = isH && idx === firstHighlightIndex;
 
                     return (
                       <tr
                         key={p.id}
+                        ref={isFirstHighlight ? (highlightRef as any) : null}
                         className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
                           isH ? "bg-amber-50 dark:bg-amber-900/20" : ""
                         }`}
