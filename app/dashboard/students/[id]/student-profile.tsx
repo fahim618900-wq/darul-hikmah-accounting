@@ -18,6 +18,7 @@ type Student = {
   discount: number;
   discount_reason: string | null;
   status: string;
+  photo_url: string | null;
 };
 
 type Payment = {
@@ -106,7 +107,6 @@ export default function StudentProfile({
           শিক্ষার্থী তালিকায় ফিরে যান
         </Link>
 
-        {/* প্রিন্ট কন্ট্রোল বার */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[180px]">
             <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -136,7 +136,7 @@ export default function StudentProfile({
 
       {/* ============ প্রিন্ট এরিয়া ============ */}
       <div className="print-area">
-        {/* প্রিন্ট হেডার (শুধু প্রিন্টে দেখাবে) */}
+        {/* প্রিন্ট হেডার */}
         <div className="print-header hidden print:block">
           <div className="text-center mb-3">
             <h1 className="text-xl font-bold text-brand-700 mb-1">
@@ -145,9 +145,7 @@ export default function StudentProfile({
             <p className="text-xs text-slate-600">
               ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
             </p>
-            <p className="text-xs text-slate-500">
-              মোবাইল: ০১৯৭০-৫১৭৫৬৬
-            </p>
+            <p className="text-xs text-slate-500">মোবাইল: ০১৯৭০-৫১৭৫৬৬</p>
           </div>
           <div className="border-t-2 border-brand-600 mb-3" />
           <div className="text-center mb-3">
@@ -160,18 +158,13 @@ export default function StudentProfile({
               <strong>শিক্ষার্থী:</strong> {student.name} | <strong>শ্রেণি:</strong> {student.class_name}
               {student.roll && ` | রোল: ${student.roll}`}
             </div>
-            <div>
-              <strong>তারিখ:</strong> {todayBangla()}
-            </div>
+            <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs mb-3">
-            <div>
-              <strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}
-            </div>
+            <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
         </div>
 
-        {/* ============ মূল কনটেন্ট ============ */}
         <div className="max-w-5xl mx-auto px-3 sm:px-4">
           {/* হেডার কার্ড */}
           <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-purple-700 rounded-3xl p-5 sm:p-6 mb-4 text-white shadow-xl relative overflow-hidden print:hidden">
@@ -180,8 +173,12 @@ export default function StudentProfile({
 
             <div className="relative flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-start gap-4 flex-1 min-w-0">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-xl sm:text-2xl shrink-0 border border-white/30">
-                  {student.name.charAt(0)}
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-xl sm:text-2xl shrink-0 border-2 border-white/40 overflow-hidden">
+                  {student.photo_url ? (
+                    <img src={student.photo_url} alt={student.name} className="w-full h-full object-cover" />
+                  ) : (
+                    student.name.charAt(0)
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-xl sm:text-2xl font-bold mb-1 truncate">
@@ -243,7 +240,7 @@ export default function StudentProfile({
             </button>
           </div>
 
-          {/* ============ স্ক্রিনে ট্যাব কনটেন্ট ============ */}
+          {/* স্ক্রিনে ট্যাব কনটেন্ট */}
           <div className="print:hidden">
             {tab === "overview" ? (
               <div className="space-y-4">
@@ -413,42 +410,57 @@ export default function StudentProfile({
             )}
           </div>
 
-          {/* ============ প্রিন্টে শুধু পেমেন্ট টেবিল ============ */}
-          <div className="hidden print:block">
+          {/* প্রিন্টে পেমেন্ট টেবিল */}
+          <div className="hidden print:block mt-4">
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px", borderBottom: "1px solid #0f766e", paddingBottom: "8px" }}>
+              {student.photo_url && (
+                <img
+                  src={student.photo_url}
+                  alt={student.name}
+                  style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px", border: "1px solid #999" }}
+                />
+              )}
+              <div style={{ fontSize: "11px" }}>
+                <div><strong>শিক্ষার্থী:</strong> {student.name}</div>
+                <div><strong>শ্রেণি:</strong> {student.class_name} {student.section && `(${student.section})`} | <strong>রোল:</strong> {student.roll || "-"}</div>
+                <div><strong>অভিভাবক:</strong> {student.guardian_name || "-"} | <strong>মোবাইল:</strong> {student.guardian_phone || "-"}</div>
+              </div>
+            </div>
+
             {payments.length === 0 ? (
-              <p className="text-center text-sm text-slate-500 py-6">কোনো পেমেন্ট নেই</p>
+              <p style={{ textAlign: "center", fontSize: "11px", color: "#64748b", padding: "12px" }}>কোনো পেমেন্ট নেই</p>
             ) : (
-              <table className="w-full border-collapse text-xs">
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
                 <thead>
-                  <tr className="bg-brand-600 text-white">
-                    <th className="border border-slate-300 px-2 py-2 text-left">নং</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">মাস</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">বছর</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">পরিশোধের তারিখ</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">রসিদ নম্বর</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">পদ্ধতি</th>
-                    <th className="border border-slate-300 px-2 py-2 text-right">পরিমাণ</th>
+                  <tr style={{ background: "#0f766e", color: "#ffffff" }}>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>নং</th>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>মাস</th>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>বছর</th>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>পরিশোধের তারিখ</th>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>রসিদ নম্বর</th>
+                    <th style={{ border: "1px solid #999", padding: "5px" }}>পদ্ধতি</th>
+                    <th style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>পরিমাণ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {payments.map((p, i) => (
                     <tr key={p.id}>
-                      <td className="border border-slate-300 px-2 py-1.5">{toBangla(i + 1)}</td>
-                      <td className="border border-slate-300 px-2 py-1.5">{MONTHS[p.month - 1]}</td>
-                      <td className="border border-slate-300 px-2 py-1.5">{toBangla(p.year)}</td>
-                      <td className="border border-slate-300 px-2 py-1.5">{formatDate(p.payment_date)}</td>
-                      <td className="border border-slate-300 px-2 py-1.5 font-mono text-[10px]">{p.receipt_no || "-"}</td>
-                      <td className="border border-slate-300 px-2 py-1.5">{paymentMethodLabel(p.payment_method)}</td>
-                      <td className="border border-slate-300 px-2 py-1.5 text-right font-semibold">৳ {toBangla(p.amount)}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px" }}>{toBangla(i + 1)}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px" }}>{MONTHS[p.month - 1]}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px" }}>{toBangla(p.year)}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px" }}>{formatDate(p.payment_date)}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px", fontSize: "9px" }}>{p.receipt_no || "-"}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px" }}>{paymentMethodLabel(p.payment_method)}</td>
+                      <td style={{ border: "1px solid #999", padding: "4px", textAlign: "right" }}>৳ {toBangla(p.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-slate-100">
-                    <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">
+                  <tr style={{ background: "#f1f5f9", fontWeight: "bold" }}>
+                    <td colSpan={6} style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>
                       সর্বমোট:
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right font-bold text-brand-700">
+                    <td style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>
                       ৳ {toBangla(totalPaid)}
                     </td>
                   </tr>
@@ -456,21 +468,16 @@ export default function StudentProfile({
               </table>
             )}
 
-            {/* স্বাক্ষর */}
-            <div className="flex justify-between mt-16 pt-2">
-              <div className="text-center">
-                <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">
-                  শিক্ষার্থী / অভিভাবকের স্বাক্ষর
-                </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px", fontSize: "11px" }}>
+              <div style={{ textAlign: "center", minWidth: "150px" }}>
+                <div style={{ borderTop: "1px solid #475569", paddingTop: "4px" }}>অভিভাবকের স্বাক্ষর</div>
               </div>
-              <div className="text-center">
-                <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">
-                  {preparedBy || "প্রস্তুতকারীর স্বাক্ষর"}
-                </div>
+              <div style={{ textAlign: "center", minWidth: "150px" }}>
+                <div style={{ borderTop: "1px solid #475569", paddingTop: "4px" }}>{preparedBy || "প্রস্তুতকারীর স্বাক্ষর"}</div>
               </div>
             </div>
 
-            <div className="text-center text-[10px] text-slate-500 mt-8">
+            <div style={{ textAlign: "center", fontSize: "9px", color: "#94a3b8", marginTop: "20px" }}>
               এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
             </div>
           </div>
