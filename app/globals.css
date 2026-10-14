@@ -2,13 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts থেকে Inter ও Noto Sans Bengali */
+/* Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap");
 
 @layer base {
   html {
-    font-family: "Inter", "Noto Sans Bengali", system-ui, -apple-system,
-      sans-serif;
+    font-family: "Inter", "Noto Sans Bengali", system-ui, -apple-system, sans-serif;
   }
   body {
     @apply bg-slate-50 text-slate-800 antialiased;
@@ -29,60 +28,112 @@
   }
 }
 
-/* পুরনো প্রিন্ট স্টাইল */
+/* ============================================
+   প্রিন্ট স্টাইল
+   ============================================ */
 @media print {
   @page {
     size: A4 landscape;
     margin: 10mm;
   }
 
+  html,
   body {
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    height: auto !important;
   }
 
-  .no-print {
+  /* সব no-print এলিমেন্ট লুকাও */
+  .no-print,
+  .no-print * {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 
-  .container {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  /* শুধু print-area দেখাও */
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
   }
 
   .print-area {
-    padding: 0 !important;
-    max-width: 100% !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #ffffff !important;
   }
 
-  .print-table {
-    font-size: 11px !important;
-    border: 1px solid #333 !important;
+  /* print-only এলিমেন্ট দেখাও */
+  .print\:block {
+    display: block !important;
   }
 
-  .print-table th {
-    padding: 6px 5px !important;
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* ছায়া/বর্ডার ছাড়া */
+  .print-area {
+    box-shadow: none !important;
+  }
+
+  /* টেবিল প্রিন্টে */
+  .print-area table {
+    font-size: 10px !important;
+    border-collapse: collapse !important;
+  }
+
+  .print-area th,
+  .print-area td {
+    padding: 4px 6px !important;
+    border: 1px solid #999 !important;
+  }
+
+  .print-area th {
     background: #0f766e !important;
     color: #ffffff !important;
-    border: 1px solid #999 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  .print-table td {
-    padding: 6px 5px !important;
-    border: 1px solid #999 !important;
+  /* page break নিয়ন্ত্রণ */
+  .print-area tr {
+    page-break-inside: avoid;
   }
 
+  .print-area thead {
+    display: table-header-group;
+  }
+
+  /* লিংক URL প্রিন্টে না দেখাও */
+  a[href]:after {
+    content: "";
+  }
+}
+
+/* ============================================
+   নন-প্রিন্ট বেস
+   ============================================ */
+.print-only-inline {
+  display: none;
+}
+
+@media print {
   .print-only-inline {
     display: inline !important;
   }
 }
 
-.print-only-inline {
-  display: none;
-}
-/* Excel-এর মতো টেবিল */
+/* Excel-এর মতো টেবিল (Fees Status) */
 .excel-table {
   border-collapse: collapse;
   font-size: 0.8rem;
@@ -120,42 +171,12 @@
   border-right: none;
 }
 
-.excel-th-num {
-  width: 50px;
-  text-align: center;
-}
-
-.excel-th-name {
-  min-width: 140px;
-}
-
-.excel-th-money {
-  text-align: right;
-}
-
-.excel-th-status {
-  text-align: center;
-  width: 90px;
-}
-
-.excel-tr {
-  transition: background 0.15s;
-}
-
 .excel-tr:hover {
   background: #f8fafc;
 }
 
 .dark .excel-tr:hover {
   background: #1e293b;
-}
-
-.excel-tr:nth-child(even) {
-  background: #fafbfc;
-}
-
-.dark .excel-tr:nth-child(even) {
-  background: #0f172a;
 }
 
 .excel-td {
@@ -174,26 +195,6 @@
 
 .excel-td:last-child {
   border-right: none;
-}
-
-.excel-td-num {
-  text-align: center;
-  color: #64748b;
-  font-size: 0.75rem;
-}
-
-.excel-td-name {
-  white-space: normal;
-  min-width: 140px;
-}
-
-.excel-td-money {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.excel-td-status {
-  text-align: center;
 }
 
 .excel-tfoot {
@@ -217,7 +218,6 @@
   white-space: nowrap;
 }
 
-/* Excel scroll — মোবাইলে সুন্দর স্ক্রল */
 .excel-scroll {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -236,7 +236,6 @@
   background: #475569;
 }
 
-/* মোবাইলে ছোট ফন্ট, তবে পড়তে পারার মতো */
 @media (max-width: 640px) {
   .excel-table {
     font-size: 0.72rem;
@@ -245,39 +244,8 @@
   .excel-td {
     padding: 0.45rem 0.5rem;
   }
-  .excel-td-name {
-    min-width: 120px;
-  }
   .excel-badge {
     font-size: 0.62rem;
     padding: 0.12rem 0.4rem;
-  }
-}
-/* শিক্ষার্থীর প্রোফাইল প্রিন্ট */
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
-
-  .print\:hidden {
-    display: none !important;
-  }
-
-  .print\:block {
-    display: block !important;
-  }
-
-  .print-header {
-    display: block !important;
-  }
-
-  .print-area table {
-    font-size: 10px;
-  }
-
-  .print-area th,
-  .print-area td {
-    padding: 4px 6px;
   }
 }
