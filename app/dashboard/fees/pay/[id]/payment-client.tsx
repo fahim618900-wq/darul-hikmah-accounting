@@ -39,6 +39,19 @@ function toBangla(input: string | number): string {
   return String(input).replace(/[0-9]/g, (d) => map[d]);
 }
 
+function friendlyError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("duplicate") || m.includes("unique"))
+    return "এই তথ্য আগেই সংরক্ষণ করা হয়েছে। আবার চেষ্টা করুন।";
+  if (m.includes("closed") || m.includes("বন্ধ"))
+    return "এই মাস বন্ধ করা হয়েছে। পরিবর্তন করা যাবে না।";
+  if (m.includes("network") || m.includes("fetch"))
+    return "ইন্টারনেট সংযোগে সমস্যা। আবার চেষ্টা করুন।";
+  if (m.includes("permission") || m.includes("denied"))
+    return "আপনার অনুমতি নেই। Admin-এর সাথে যোগাযোগ করুন।";
+  return "সমস্যা হয়েছে। আবার চেষ্টা করুন বা Admin-এর সাথে যোগাযোগ করুন।";
+}
+
 export default function PaymentClient({
   student,
   currentMonth,
@@ -64,46 +77,102 @@ export default function PaymentClient({
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [successData, setSuccessData] = useState<{ receiptNo: string; amount: number; month: number; year: number } | null>(null);
+  const [successData, setSuccessData] = useState<{
+    receiptNo: string;
+    amount: number;
+    month: number;
+    year: number;
+    paymentId: number;
+  } | null>(null);
+
+  // নির্বাচিত মাসে ইতিমধ্যে কত জমা আছে
+  const alreadyPaidInSelectedMonth = existingPayments
+    .filter((p) => p.month === month && p.year === year)
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const remainingInSelectedMonth = Math.max(0, payable - alreadyPaidInSelectedMonth);
 
   async function handlePayment(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
     setError("");
+
+    const payAmount = Number(amount);
+    if (payAmount <= 0) {
+      setError("সঠিক পরিমাণ দিন।");
+      setLoading(false);
+      return;
+    }
+
+    // এই মাসে এই পরিমাণ আগে জমা হয়েছে কি না চেক
+    const duplicate = existingPayments.find(
+      (p) => p.month === month && p.year === year && Number(p.amount) === payAmount
+    );
+
+    if (duplicate) {
+      const proceed = confirm(
+        `সতর্কতা!\n\n` +
+        `${MONTHS[month - 1]} ${year} মাসে ইতিমধ্যে ৳${payAmount} জমা হয়েছে।\n` +
+        `আপনি কি আবার একই পরিমাণ ৳${payAmount} জমা নিতে চান?`
+      );
+      if (!proceed) {
+        setLoading(false);
+        return;
+      }
+    }
+
+    // মোট পরিমাণ প্রাপ্যের বেশি হতে দেব না
+    if (alreadyPaidInSelectedMonth + payAmount > payable) {
+      const proceed = confirm(
+        `সতর্কতা!\n\n` +
+        `${MONTHS[month - 1]} ${year} মাসের প্রাপ্য: ৳${payable}\n` +
+        `আগে জমা: ৳${alreadyPaidInSelectedMonth}\n` +
+        `এখন জমা দিতে চাইছেন: ৳${payAmount}\n\n` +
+        `মোট জমা হবে: ৳${alreadyPaidInSelectedMonth + payAmount} — যা প্রাপ্যের চেয়ে বেশি।\n\n` +
+        `আপনি কি নিশ্চিত?`
+      );
+      if (!proceed) {
+        setLoading(false);
+        return;
+      }
+    }
 
     const receiptNo = `R-${year}${String(month).padStart(2, "0")}-${Date.now().toString().slice(-6)}`;
 
-    const { error: err } = await supabase.from("fee_payments").insert({
-      student_id: student.id,
-      month,
-      year,
-      amount: Number(amount),
-      payment_method: paymentMethod,
-      receipt_no: receiptNo,
-      note,
-    });
+    const { data, error: err } = await supabase
+      .from("fee_payments")
+      .insert({
+        student_id: student.id,
+        month,
+        year,
+        amount: payAmount,
+        payment_method: paymentMethod,
+        receipt_no: receiptNo,
+        note,
+      })
+      .select()
+      .single();
 
     if (err) {
-      setError("সমস্যা: " + err.message);
+      setError(friendlyError(err.message));
       setLoading(false);
       return;
     }
 
     setSuccessData({
       receiptNo,
-      amount: Number(amount),
+      amount: payAmount,
       month,
       year,
+      paymentId: data.id,
     });
     setShowSuccess(true);
     setLoading(false);
     router.refresh();
   }
 
+  /* ==================== সফল পেজ ==================== */
   if (showSuccess && successData) {
     return (
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -148,7 +217,7 @@ export default function PaymentClient({
 
           <div className="space-y-2">
             <Link
-              href={`/dashboard/fees/receipt?id=${successData.receiptNo}`}
+              href={`/dashboard/fees/receipt?id=${successData.paymentId}`}
               className="block w-full py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition"
             >
               রসিদ দেখুন / প্রিন্ট করুন
@@ -165,9 +234,9 @@ export default function PaymentClient({
     );
   }
 
+  /* ==================== মূল পেজ ==================== */
   return (
     <div className="max-w-2xl mx-auto px-3 sm:px-4 pt-4 pb-6">
-      {/* ফিরে যাওয়ার বাটন */}
       <Link
         href="/dashboard/fees"
         className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 text-sm font-medium mb-4 hover:gap-3 transition-all"
@@ -179,7 +248,6 @@ export default function PaymentClient({
         তালিকায় ফিরে যান
       </Link>
 
-      {/* শিরোনাম */}
       <div className="text-center mb-5">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
           বেতন আদায়
@@ -189,7 +257,7 @@ export default function PaymentClient({
         </p>
       </div>
 
-      {/* শিক্ষার্থীর তথ্য কার্ড */}
+      {/* শিক্ষার্থীর তথ্য */}
       <div className="bg-gradient-to-br from-brand-600 to-purple-600 rounded-3xl p-5 mb-4 text-white shadow-lg">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex-1 min-w-0">
@@ -218,7 +286,7 @@ export default function PaymentClient({
         )}
       </div>
 
-      {/* মাসিক হিসাব কার্ড */}
+      {/* মাসিক হিসাব */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
           {MONTHS[currentMonth - 1]} {toBangla(currentYear)} মাসের হিসাব
@@ -259,12 +327,6 @@ export default function PaymentClient({
         )}
       </div>
 
-      {/* সফল/এরর মেসেজ */}
-      {message && (
-        <div className="mb-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-          {message}
-        </div>
-      )}
       {error && (
         <div className="mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
@@ -277,7 +339,6 @@ export default function PaymentClient({
           পেমেন্ট তথ্য
         </h3>
 
-        {/* মাস ও বছর */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
@@ -285,8 +346,16 @@ export default function PaymentClient({
             </label>
             <select
               value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              onChange={(e) => {
+                const m = Number(e.target.value);
+                setMonth(m);
+                const already = existingPayments
+                  .filter((p) => p.month === m && p.year === year)
+                  .reduce((sum, p) => sum + Number(p.amount), 0);
+                const rem = Math.max(0, payable - already);
+                setAmount(String(rem));
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             >
               {MONTHS.map((m, i) => (
                 <option key={i} value={i + 1}>{m}</option>
@@ -299,12 +368,19 @@ export default function PaymentClient({
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             />
           </div>
         </div>
 
-        {/* পরিমাণ */}
+        {/* নির্বাচিত মাসের তথ্য */}
+        {alreadyPaidInSelectedMonth > 0 && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-700 dark:text-amber-400">
+            <strong>{MONTHS[month - 1]} {toBangla(year)}</strong> মাসে ইতিমধ্যে <strong>৳{toBangla(alreadyPaidInSelectedMonth)}</strong> জমা হয়েছে।
+            বাকি: <strong>৳{toBangla(remainingInSelectedMonth)}</strong>
+          </div>
+        )}
+
         <div className="mb-4">
           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
             কত টাকা জমা নিচ্ছেন? *
@@ -321,22 +397,22 @@ export default function PaymentClient({
             />
           </div>
           <div className="flex gap-2 mt-2 flex-wrap">
+            {remainingInSelectedMonth > 0 && (
+              <button
+                type="button"
+                onClick={() => setAmount(String(remainingInSelectedMonth))}
+                className="px-3 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 text-xs font-medium hover:bg-brand-100 transition"
+              >
+                বাকি {toBangla(remainingInSelectedMonth)} ৳
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setAmount(String(payable))}
-              className="px-3 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 text-xs font-medium hover:bg-brand-100 transition"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium hover:bg-slate-200 transition"
             >
               সম্পূর্ণ {toBangla(payable)} ৳
             </button>
-            {remaining < payable && remaining > 0 && (
-              <button
-                type="button"
-                onClick={() => setAmount(String(remaining))}
-                className="px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium hover:bg-amber-100 transition"
-              >
-                বাকি {toBangla(remaining)} ৳
-              </button>
-            )}
             <button
               type="button"
               onClick={() => setAmount(String(Math.floor(payable / 2)))}
@@ -347,7 +423,6 @@ export default function PaymentClient({
           </div>
         </div>
 
-        {/* পেমেন্ট পদ্ধতি */}
         <div className="mb-4">
           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
             কীভাবে টাকা দিচ্ছেন?
@@ -356,7 +431,7 @@ export default function PaymentClient({
             {[
               { value: "cash", label: "নগদ" },
               { value: "bkash", label: "বিকাশ" },
-              { value: "nagad", label: "নগদ (Nagad)" },
+              { value: "nagad", label: "Nagad" },
               { value: "bank", label: "ব্যাংক" },
               { value: "other", label: "অন্যান্য" },
             ].map((opt) => (
@@ -376,7 +451,6 @@ export default function PaymentClient({
           </div>
         </div>
 
-        {/* নোট */}
         <div className="mb-5">
           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
             নোট (ঐচ্ছিক)
@@ -386,11 +460,10 @@ export default function PaymentClient({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="যেমন: বাকি পরে দেবে"
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
           />
         </div>
 
-        {/* সাবমিট */}
         <button
           type="submit"
           disabled={loading || !amount || Number(amount) <= 0}
