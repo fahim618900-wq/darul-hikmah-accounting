@@ -9,6 +9,7 @@ type PublicStudent = {
   class_name: string;
   roll: string | null;
   section: string | null;
+  photo_url: string | null;
 };
 
 const CLASSES = [
@@ -234,19 +235,20 @@ export default function StudentSelect() {
                   এই শ্রেণিতে কোনো শিক্ষার্থী নেই
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
                   {filteredStudents.map((s) => {
                     const isSelected = selected.find((x) => x.id === s.id);
                     return (
                       <button
                         key={s.id}
                         onClick={() => toggleSelect(s)}
-                        className={`w-full text-left px-4 py-3 rounded-2xl border-2 transition flex items-center gap-3 ${
+                        className={`w-full text-left px-3 py-3 rounded-2xl border-2 transition flex items-center gap-3 ${
                           isSelected
                             ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20"
                             : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-brand-300 dark:hover:border-brand-700"
                         }`}
                       >
+                        {/* চেকবক্স */}
                         <div
                           className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition ${
                             isSelected
@@ -260,13 +262,32 @@ export default function StudentSelect() {
                             </svg>
                           )}
                         </div>
+
+                        {/* ছবি */}
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-600">
+                          {s.photo_url ? (
+                            <img
+                              src={s.photo_url}
+                              alt={s.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-500 font-bold text-base">
+                              {s.name.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* তথ্য */}
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-slate-900 dark:text-white truncate text-sm">
                             {s.name}
                           </div>
                           <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            {s.roll && <span>রোল: {s.roll}</span>}
-                            {s.section && <span>শাখা: {s.section}</span>}
+                            <span className="font-medium">{s.class_name}</span>
+                            {s.roll && <span>• রোল {s.roll}</span>}
+                            {s.section && <span>• {s.section}</span>}
                           </div>
                         </div>
                       </button>
@@ -289,12 +310,25 @@ export default function StudentSelect() {
                   নির্বাচিত ({toBangla(selected.length)} জন)
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {selected.map((s) => (
                   <span
                     key={s.id}
-                    className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1"
+                    className="px-2 py-1 rounded-full bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1.5"
                   >
+                    <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                      {s.photo_url ? (
+                        <img
+                          src={s.photo_url}
+                          alt={s.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-slate-400 text-[9px] font-bold">
+                          {s.name.charAt(0)}
+                        </span>
+                      )}
+                    </span>
                     {s.name}
                   </span>
                 ))}
@@ -393,14 +427,35 @@ export default function StudentSelect() {
               <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                 আপনি নির্বাচন করেছেন:
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="space-y-2">
                 {selected.map((s) => (
-                  <span
+                  <div
                     key={s.id}
-                    className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-700"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
                   >
-                    {s.name} — {s.class_name}
-                  </span>
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                      {s.photo_url ? (
+                        <img
+                          src={s.photo_url}
+                          alt={s.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 font-bold text-sm">
+                          {s.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                        {s.name}
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        {s.class_name}
+                        {s.roll && ` • রোল ${s.roll}`}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -467,6 +522,30 @@ export default function StudentSelect() {
           <p className="text-xs text-slate-500 dark:text-slate-400">
             অভিভাবকের মোবাইল নম্বরের <strong>শেষ ৪ ডিজিট</strong> দিন
           </p>
+        </div>
+
+        {/* নির্বাচিত শিক্ষার্থীদের ছোট ছবি */}
+        <div className="flex items-center justify-center gap-3 mb-5">
+          {selected.map((s) => (
+            <div key={s.id} className="flex flex-col items-center gap-1.5">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-2 border-brand-100 dark:border-brand-900/40">
+                {s.photo_url ? (
+                  <img
+                    src={s.photo_url}
+                    alt={s.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-slate-400 dark:text-slate-500 font-bold text-base">
+                    {s.name.charAt(0)}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium max-w-[60px] truncate">
+                {s.name}
+              </span>
+            </div>
+          ))}
         </div>
 
         <form onSubmit={handleVerify}>
