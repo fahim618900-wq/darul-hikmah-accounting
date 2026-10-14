@@ -345,7 +345,7 @@ export default function FeesReport({
       </div>
 
       {/* ============ প্রিন্ট-অনলি টেবিল ============ */}
-      <div className="hidden print:block">
+<div className="hidden print:block print-area">
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <h1 style={{ fontSize: "18px", fontWeight: "bold", color: "#0f766e", marginBottom: "4px" }}>
             দারুল হিকমাহ মডেল মাদ্রাসা
