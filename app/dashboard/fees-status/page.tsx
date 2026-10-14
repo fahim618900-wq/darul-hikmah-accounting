@@ -22,7 +22,7 @@ export default async function FeesStatusPage() {
     .order("roll");
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
+    <main>
       <FeesStatusClient
         students={students || []}
         userName={profile?.full_name || user?.email || ""}
