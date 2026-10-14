@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -52,6 +52,7 @@ export default function StudentList({
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   // হাইলাইট করা আইডি সেট
   const highlightIds = new Set<number>();
@@ -78,6 +79,15 @@ export default function StudentList({
   const [editing, setEditing] = useState<Student | null>(null);
   const [loading, setLoading] = useState<number | null>(null);
 
+  // হাইলাইট থাকলে স্ক্রল করি
+  useEffect(() => {
+    if (highlightIds.size > 0 && highlightRef.current) {
+      setTimeout(() => {
+        highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, []);
+
   const filtered = students.filter((s) => {
     if (classFilter && s.class_name !== classFilter) return false;
     if (statusFilter === "active" && s.status !== "active") return false;
@@ -98,6 +108,8 @@ export default function StudentList({
     const bH = highlightIds.has(b.id) ? 1 : 0;
     return bH - aH;
   });
+
+  const firstHighlightIndex = sorted.findIndex((s) => highlightIds.has(s.id));
 
   async function handleDelete(student: Student) {
     const confirmed = confirm(
@@ -281,10 +293,12 @@ export default function StudentList({
             const bg = isActive ? "#f0fdf4" : "#fef2f2";
             const badge = isActive ? "#dcfce7" : "#fee2e2";
             const isH = highlightIds.has(s.id);
+            const isFirstHighlight = isH && i === firstHighlightIndex;
 
             return (
               <div
                 key={s.id}
+                ref={isFirstHighlight ? highlightRef : null}
                 className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border shadow-sm transition-all ${
                   isH ? "border-yellow-400 ring-2 ring-yellow-300" : "border-slate-200 dark:border-slate-800"
                 }`}
@@ -435,15 +449,18 @@ export default function StudentList({
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((s) => {
+                  {sorted.map((s, idx) => {
                     const isActive = s.status === "active";
                     const badge = isActive
                       ? { bg: "#dcfce7", text: "#15803d" }
                       : { bg: "#fee2e2", text: "#b91c1c" };
                     const isH = highlightIds.has(s.id);
+                    const isFirstHighlight = isH && idx === firstHighlightIndex;
+
                     return (
                       <tr
                         key={s.id}
+                        ref={isFirstHighlight ? (highlightRef as any) : null}
                         className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
                           isH ? "bg-yellow-50 dark:bg-yellow-900/20" : ""
                         }`}
