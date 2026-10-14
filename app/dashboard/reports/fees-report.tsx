@@ -46,6 +46,19 @@ function formatDate(dateStr: string): string {
   return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
 }
 
+function firstOfMonthISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function lastOfMonthISO(): string {
+  const d = new Date();
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return last.toISOString().split("T")[0];
+}
+
+type FilterMode = "month" | "range";
+
 export default function FeesReport({
   students,
   payments,
@@ -58,21 +71,41 @@ export default function FeesReport({
   preparedBy: string;
 }) {
   const now = new Date();
+  const [filterMode, setFilterMode] = useState<FilterMode>("month");
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [fromDate, setFromDate] = useState(firstOfMonthISO());
+  const [toDate, setToDate] = useState(lastOfMonthISO());
   const [classFilter, setClassFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid" | "partial">("all");
   const [search, setSearch] = useState("");
 
-  const filteredPayments = payments.filter(
-    (p) => p.month === month && p.year === year
-  );
+  // ফিল্টার করা পেমেন্ট
+  const filteredPayments = useMemo(() => {
+    if (filterMode === "month") {
+      return payments.filter((p) => p.month === month && p.year === year);
+    } else {
+      return payments.filter(
+        (p) => p.payment_date >= fromDate && p.payment_date <= toDate
+      );
+    }
+  }, [payments, filterMode, month, year, fromDate, toDate]);
 
+  // শিক্ষার্থীভিত্তিক হিসাব
   const rows = useMemo(() => {
     return students.map((s) => {
       const sp = filteredPayments.filter((p) => p.student_id === s.id);
       const paid = sp.reduce((sum, p) => sum + Number(p.amount), 0);
-      const payable = Number(s.monthly_fee || 0) - Number(s.discount || 0);
+
+      // প্রাপ্য হিসাব — মাস অনুযায়ী বা মাস সংখ্যা × বেতন
+      let payable: number;
+      if (filterMode === "month") {
+        payable = Number(s.monthly_fee || 0) - Number(s.discount || 0);
+      } else {
+        const months = countMonths(fromDate, toDate);
+        payable = (Number(s.monthly_fee || 0) - Number(s.discount || 0)) * months;
+      }
+
       const due = payable - paid;
 
       let status: "paid" | "unpaid" | "partial";
@@ -87,7 +120,13 @@ export default function FeesReport({
 
       return { student: s, payable, paid, due, status, lastReceiptNo };
     });
-  }, [students, filteredPayments]);
+  }, [students, filteredPayments, filterMode, fromDate, toDate]);
+
+  function countMonths(from: string, to: string): number {
+    const f = new Date(from);
+    const t = new Date(to);
+    return (t.getFullYear() - f.getFullYear()) * 12 + (t.getMonth() - f.getMonth()) + 1;
+  }
 
   const filtered = rows.filter((r) => {
     if (classFilter && r.student.class_name !== classFilter) return false;
@@ -115,6 +154,11 @@ export default function FeesReport({
     statusFilter === "paid" ? "Paid" :
     statusFilter === "unpaid" ? "Unpaid" : "Partial";
 
+  const filterLabel =
+    filterMode === "month"
+      ? `${MONTHS[month - 1]} ${toBangla(year)}`
+      : `${formatDate(fromDate)} — ${formatDate(toDate)}`;
+
   function handlePrint() {
     window.print();
   }
@@ -123,64 +167,105 @@ export default function FeesReport({
     <>
       {/* ============ স্ক্রিনে ফিল্টার ============ */}
       <div className="no-print bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
-          <div>
-            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">মাস</label>
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
-            >
-              {MONTHS.map((m, i) => (
-                <option key={i} value={i + 1}>{m}</option>
-              ))}
-            </select>
+        {/* ফিল্টার মোড ট্যাব */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3">
+          <button
+            onClick={() => setFilterMode("month")}
+            className={`py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
+              filterMode === "month"
+                ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            📅 মাস অনুযায়ী
+          </button>
+          <button
+            onClick={() => setFilterMode("range")}
+            className={`py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
+              filterMode === "range"
+                ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            📆 তারিখ রেঞ্জ
+          </button>
+        </div>
+
+        {filterMode === "month" ? (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">মাস</label>
+              <select
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={i} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">বছর</label>
+              <input
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">বছর</label>
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
-            />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">শুরুর তারিখ</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">শেষ তারিখ</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">শ্রেণি</label>
-            <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
-            >
-              <option value="">সব শ্রেণি</option>
-              {classes.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">স্ট্যাটাস</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
-            >
-              <option value="all">All</option>
-              <option value="paid">Paid</option>
-              <option value="unpaid">Unpaid</option>
-              <option value="partial">Partial</option>
-            </select>
-          </div>
-          <div className="col-span-2 sm:col-span-1">
-            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">খুঁজুন</label>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="নাম / আইডি / রোল / রসিদ"
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
-            />
-          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+          >
+            <option value="">সব শ্রেণি</option>
+            {classes.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+          >
+            <option value="all">All</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="partial">Partial</option>
+          </select>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="নাম / আইডি / রোল / রসিদ"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none col-span-2 sm:col-span-1"
+          />
         </div>
 
         <div className="flex flex-wrap gap-3 items-center pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -204,7 +289,7 @@ export default function FeesReport({
         </div>
       </div>
 
-      {/* ============ স্ক্রিনে মোবাইল কার্ড (প্রিন্টে আসবে না) ============ */}
+      {/* ============ স্ক্রিনে মোবাইল কার্ড ============ */}
       <div className="md:hidden space-y-2.5 mb-4 print:hidden">
         {filtered.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 text-sm border border-slate-200 dark:border-slate-800">
@@ -275,7 +360,7 @@ export default function FeesReport({
         )}
       </div>
 
-      {/* ============ স্ক্রিনে ডেস্কটপ টেবিল (প্রিন্টে আসবে না) ============ */}
+      {/* ============ স্ক্রিনে ডেস্কটপ টেবিল ============ */}
       <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4 print:hidden">
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-slate-500">কোনো ফলাফল পাওয়া যায়নি</div>
@@ -344,8 +429,8 @@ export default function FeesReport({
         )}
       </div>
 
-      {/* ============ প্রিন্ট-অনলি টেবিল ============ */}
-<div className="hidden print:block print-area">
+      {/* ============ প্রিন্ট-অনলি ============ */}
+      <div className="hidden print:block print-area">
         <div style={{ textAlign: "center", marginBottom: "12px" }}>
           <h1 style={{ fontSize: "18px", fontWeight: "bold", color: "#0f766e", marginBottom: "4px" }}>
             দারুল হিকমাহ মডেল মাদ্রাসা
@@ -360,7 +445,7 @@ export default function FeesReport({
           <div><strong>তারিখ:</strong> {todayBangla()}</div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "12px" }}>
-          <div><strong>মাস:</strong> {MONTHS[month - 1]} {toBangla(year)}</div>
+          <div><strong>সময়কাল:</strong> {filterLabel}</div>
           <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
         </div>
 
