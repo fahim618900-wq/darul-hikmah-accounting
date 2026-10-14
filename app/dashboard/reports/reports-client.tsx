@@ -1,52 +1,62 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { BarChart3, Wallet, Users, FileText, Printer } from "lucide-react";
 import FeesReport from "./fees-report";
 import IncomeExpenseReport from "./income-expense-report";
 import TransactionsReport from "./transactions-report";
 import StudentsReport from "./students-report";
 
-type Student = {
-  id: number;
-  student_id: string | null;
-  name: string;
-  class_name: string;
-  roll: string | null;
-  section: string | null;
-  monthly_fee: number;
-  discount: number;
-  status: string;
-};
-
-type Payment = {
-  id: number;
-  student_id: number;
-  month: number;
-  year: number;
-  amount: number;
-  payment_date: string;
-  receipt_no: string | null;
-  payment_method: string;
-};
-
-type Transaction = {
-  type: string;
-  id: number;
-  date: string;
-  category: string | null;
-  amount: number;
-  ref_no: string | null;
-  description: string | null;
-  payment_method: string;
-};
+type Student = any;
+type Payment = any;
+type Transaction = any;
 
 type Tab = "fees" | "income-expense" | "transactions" | "students";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "fees", label: "বেতন আদায়" },
-  { id: "income-expense", label: "আয়-ব্যয়" },
-  { id: "transactions", label: "লেনদেন" },
-  { id: "students", label: "শিক্ষার্থী" },
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  {
+    id: "fees",
+    label: "বেতন আদায়",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="6" width="20" height="12" rx="2" />
+        <circle cx="12" cy="12" r="2" />
+      </svg>
+    ),
+  },
+  {
+    id: "income-expense",
+    label: "আয়-ব্যয়",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1v22 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+  },
+  {
+    id: "transactions",
+    label: "লেনদেন",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+  },
+  {
+    id: "students",
+    label: "শিক্ষার্থী",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
 ];
 
 export default function ReportsClient({
@@ -72,100 +82,220 @@ export default function ReportsClient({
     [students]
   );
 
+  // চলতি মাসের সারাংশ
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const monthStart = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
+  const monthEnd = new Date(currentYear, currentMonth, 0).toISOString().split("T")[0];
+
+  const stats = useMemo(() => {
+    // প্রাপ্য বেতন
+    const totalPayable = students.reduce(
+      (sum, s) => sum + Number(s.monthly_fee || 0) - Number(s.discount || 0),
+      0
+    );
+
+    // চলতি মাসে আদায়
+    const thisMonthPayments = payments.filter(
+      (p) => p.month === currentMonth && p.year === currentYear
+    );
+    const totalCollected = thisMonthPayments.reduce(
+      (sum, p) => sum + Number(p.amount),
+      0
+    );
+
+    // চলতি মাসে আয়
+    const thisMonthIncomes = transactions.filter(
+      (t: any) => t.type === "income" && t.date >= monthStart && t.date <= monthEnd
+    );
+    const totalIncome = thisMonthIncomes.reduce(
+      (sum: number, i: any) => sum + Number(i.amount),
+      0
+    );
+
+    // চলতি মাসে ব্যয়
+    const thisMonthExpenses = transactions.filter(
+      (t: any) => t.type === "expense" && t.date >= monthStart && t.date <= monthEnd
+    );
+    const totalExpense = thisMonthExpenses.reduce(
+      (sum: number, e: any) => sum + Number(e.amount),
+      0
+    );
+
+    return {
+      totalPayable,
+      totalCollected,
+      totalIncome,
+      totalExpense,
+      due: totalPayable - totalCollected,
+    };
+  }, [students, payments, transactions, currentMonth, currentYear, monthStart, monthEnd]);
+
+  function toBangla(input: string | number): string {
+    const map: Record<string, string> = {
+      "0": "০", "1": "১", "2": "২", "3": "৩", "4": "৪",
+      "5": "৫", "6": "৬", "7": "৭", "8": "৮", "9": "৯",
+    };
+    return String(input).replace(/[0-9]/g, (d) => map[d]);
+  }
+
+  function formatTaka(amount: number): string {
+    return "৳" + toBangla(Math.round(amount).toLocaleString("en-US"));
+  }
+
   return (
-    <>
-      {/* ট্যাব — প্রিন্টে লুকানো */}
-      <div className="no-print" style={{ marginBottom: "1.25rem" }}>
-        <h2 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>
-          রিপোর্ট ড্যাশবোর্ড
-        </h2>
-        <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1rem" }}>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-5 pb-6">
+      {/* ==================== শিরোনাম ==================== */}
+      <div className="mb-5">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
+          রিপোর্ট
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
           নির্বাচিত সময়ের আয়, ব্যয়, আদায় ও বকেয়ার সারসংক্ষেপ
         </p>
+      </div>
 
-        <div style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-          <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                style={{
-                  padding: "0.5rem 1rem",
-                  borderRadius: "6px",
-                  fontSize: "0.88rem",
-                  fontWeight: "500",
-                  border: tab === t.id ? "1px solid #0f766e" : "1px solid #e2e8f0",
-                  background: tab === t.id ? "#0f766e" : "#ffffff",
-                  color: tab === t.id ? "#ffffff" : "#475569",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+      {/* ==================== সারাংশ কার্ড ==================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <SummaryCard
+          icon={<Wallet size={18} />}
+          label="মোট আদায় (চলতি মাস)"
+          value={formatTaka(stats.totalCollected)}
+          color="#10b981"
+          bgGradient="from-emerald-500 to-teal-600"
+        />
+        <SummaryCard
+          icon={<BarChart3 size={18} />}
+          label="মোট আয়"
+          value={formatTaka(stats.totalIncome)}
+          color="#2563eb"
+          bgGradient="from-blue-500 to-indigo-600"
+        />
+        <SummaryCard
+          icon={<FileText size={18} />}
+          label="মোট ব্যয়"
+          value={formatTaka(stats.totalExpense)}
+          color="#ef4444"
+          bgGradient="from-red-500 to-rose-600"
+        />
+        <SummaryCard
+          icon={<Users size={18} />}
+          label="মোট বকেয়া"
+          value={formatTaka(stats.due)}
+          color="#7c3aed"
+          bgGradient="from-purple-500 to-violet-600"
+        />
+      </div>
 
-          <div>
-            <label style={label}>প্রস্তুতকারীর নাম</label>
+      {/* ==================== ট্যাব ==================== */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-2 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                tab === t.id
+                  ? "bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-md shadow-brand-500/25"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span className={tab === t.id ? "text-white" : "text-slate-400"}>
+                {t.icon}
+              </span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ==================== প্রস্তুতকারীর নাম ==================== */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              প্রস্তুতকারীর নাম (রিপোর্টে দেখাবে)
+            </label>
             <input
               type="text"
               value={preparedBy}
               onChange={(e) => setPreparedBy(e.target.value)}
-              style={{ ...input, maxWidth: "280px" }}
+              placeholder="যিনি রিপোর্ট তৈরি করছেন"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <Printer size={14} />
+            <span>প্রিন্ট সাইজ: A4 Landscape</span>
           </div>
         </div>
       </div>
 
-      {tab === "fees" && (
-        <FeesReport
-          students={students}
-          payments={payments}
-          classes={classes}
-          preparedBy={preparedBy}
-        />
-      )}
+      {/* ==================== ট্যাব কনটেন্ট ==================== */}
+      <div>
+        {tab === "fees" && (
+          <FeesReport
+            students={students}
+            payments={payments}
+            classes={classes}
+            preparedBy={preparedBy}
+          />
+        )}
 
-      {tab === "income-expense" && (
-        <IncomeExpenseReport
-          transactions={transactions}
-          preparedBy={preparedBy}
-        />
-      )}
+        {tab === "income-expense" && (
+          <IncomeExpenseReport
+            transactions={transactions}
+            preparedBy={preparedBy}
+          />
+        )}
 
-      {tab === "transactions" && (
-        <TransactionsReport
-          transactions={transactions}
-          preparedBy={preparedBy}
-        />
-      )}
+        {tab === "transactions" && (
+          <TransactionsReport
+            transactions={transactions}
+            preparedBy={preparedBy}
+          />
+        )}
 
-      {tab === "students" && (
-        <StudentsReport
-          students={students}
-          classes={classes}
-          preparedBy={preparedBy}
-        />
-      )}
-    </>
+        {tab === "students" && (
+          <StudentsReport
+            students={students}
+            classes={classes}
+            preparedBy={preparedBy}
+          />
+        )}
+      </div>
+    </div>
   );
 }
 
-const label: React.CSSProperties = {
-  display: "block",
-  marginBottom: "0.3rem",
-  fontSize: "0.78rem",
-  color: "#475569",
-  fontWeight: "500",
-};
-
-const input: React.CSSProperties = {
-  width: "100%",
-  padding: "0.5rem 0.7rem",
-  border: "1px solid #cbd5e1",
-  borderRadius: "6px",
-  fontSize: "0.85rem",
-  background: "#ffffff",
-  fontFamily: "inherit",
-};
+/* ==================== সারাংশ কার্ড ==================== */
+function SummaryCard({
+  icon,
+  label,
+  value,
+  bgGradient,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  color: string;
+  bgGradient: string;
+}) {
+  return (
+    <div
+      className={`bg-gradient-to-br ${bgGradient} rounded-2xl p-4 text-white shadow-lg relative overflow-hidden`}
+    >
+      <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[11px] opacity-90 leading-tight">{label}</div>
+          <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            {icon}
+          </div>
+        </div>
+        <div className="text-xl sm:text-2xl font-bold">{value}</div>
+      </div>
+    </div>
+  );
+}
