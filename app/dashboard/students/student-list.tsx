@@ -232,8 +232,18 @@ export default function StudentList({
               >
                 {/* হেডার */}
                 <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: bg }}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+  <div className="flex items-start gap-3 flex-1 min-w-0">
+    <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white shadow-sm">
+      {(s as any).photo_url ? (
+        <img src={(s as any).photo_url} alt={s.name} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-slate-400 font-bold text-sm">
+          {s.name.charAt(0)}
+        </span>
+      )}
+    </div>
+    <div className="flex-1 min-w-0">
+    <div className="flex items-center gap-2 mb-1">
                       <span className="text-[11px] font-semibold text-slate-400">
                         {toBangla(i + 1)}.
                       </span>
