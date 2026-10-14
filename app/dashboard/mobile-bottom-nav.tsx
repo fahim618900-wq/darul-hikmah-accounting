@@ -2,24 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 /* ==================== আইকন ==================== */
-
-const Icon = ({ path }: { path: string }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d={path} />
-  </svg>
-);
 
 const ICONS: Record<string, React.ReactNode> = {
   "/dashboard": (
@@ -132,21 +119,11 @@ const ALL_LINKS: { href: string; label: string; roles: string[] }[] = [
 ];
 
 /* ==================== Active Check ==================== */
-/**
- * একটি লিংক active কি না তা নির্ধারণ করে
- *
- * সমস্যা: /dashboard/fees-status থাকলে /dashboard/fees-ও active দেখাত
- * কারণ "/dashboard/fees-status".startsWith("/dashboard/fees") === true
- *
- * সমাধান: প্রতিটি লিংকের জন্য সুনির্দিষ্ট নিয়ম
- */
 function isLinkActive(pathname: string, href: string): boolean {
-  // হোম: হুবহু মিলতে হবে
   if (href === "/dashboard") {
     return pathname === "/dashboard";
   }
 
-  // বেতন: /dashboard/fees হুবহু অথবা /dashboard/fees/pay/... কিন্তু fees-status নয়
   if (href === "/dashboard/fees") {
     if (pathname === "/dashboard/fees") return true;
     if (pathname.startsWith("/dashboard/fees/pay/")) return true;
@@ -154,12 +131,10 @@ function isLinkActive(pathname: string, href: string): boolean {
     return false;
   }
 
-  // Paid/Unpaid: /dashboard/fees-status শুধু
   if (href === "/dashboard/fees-status") {
     return pathname.startsWith("/dashboard/fees-status");
   }
 
-  // শিক্ষার্থী: /dashboard/students কিন্তু students/print ও students/[id] সহ
   if (href === "/dashboard/students") {
     return (
       pathname === "/dashboard/students" ||
@@ -167,7 +142,6 @@ function isLinkActive(pathname: string, href: string): boolean {
     );
   }
 
-  // আয়: /dashboard/income
   if (href === "/dashboard/income") {
     return (
       pathname === "/dashboard/income" ||
@@ -175,7 +149,6 @@ function isLinkActive(pathname: string, href: string): boolean {
     );
   }
 
-  // ব্যয়: /dashboard/expenses
   if (href === "/dashboard/expenses") {
     return (
       pathname === "/dashboard/expenses" ||
@@ -183,7 +156,6 @@ function isLinkActive(pathname: string, href: string): boolean {
     );
   }
 
-  // রিপোর্ট: /dashboard/reports
   if (href === "/dashboard/reports") {
     return (
       pathname === "/dashboard/reports" ||
@@ -191,7 +163,6 @@ function isLinkActive(pathname: string, href: string): boolean {
     );
   }
 
-  // বাকি সব লিংক: সাধারণ startsWith
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -205,7 +176,10 @@ export default function MobileBottomNav({
   fullName: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const visibleLinks = ALL_LINKS.filter((l) => l.roles.includes(role));
 
@@ -215,6 +189,17 @@ export default function MobileBottomNav({
 
   function handleLinkClick() {
     setMoreOpen(false);
+  }
+
+  async function handleLogout() {
+    const confirmed = confirm("আপনি কি লগআউট করতে চান?");
+    if (!confirmed) return;
+
+    setLoggingOut(true);
+    await supabase.auth.signOut();
+    setMoreOpen(false);
+    router.push("/login");
+    router.refresh();
   }
 
   return (
@@ -227,15 +212,23 @@ export default function MobileBottomNav({
             className="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
           />
           <div className="lg:hidden fixed bottom-20 left-3 right-3 z-50 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="text-xs text-slate-400 dark:text-slate-500">
-                আসসালামু আলাইকুম
+            {/* ইউজার প্রোফাইল হেডার */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                {fullName.charAt(0).toUpperCase()}
               </div>
-              <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                {fullName}
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                  আসসালামু আলাইকুম
+                </div>
+                <div className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  {fullName}
+                </div>
               </div>
             </div>
-            <div className="p-2 max-h-[60vh] overflow-y-auto">
+
+            {/* লিংক তালিকা */}
+            <div className="p-2 max-h-[55vh] overflow-y-auto">
               {moreLinks.map((link) => {
                 const active = isLinkActive(pathname, link.href);
                 return (
@@ -256,6 +249,31 @@ export default function MobileBottomNav({
                   </Link>
                 );
               })}
+            </div>
+
+            {/* লগআউট বাটন */}
+            <div className="p-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition disabled:opacity-60"
+              >
+                {loggingOut ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin" />
+                    লগআউট হচ্ছে...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    লগআউট করুন
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </>
