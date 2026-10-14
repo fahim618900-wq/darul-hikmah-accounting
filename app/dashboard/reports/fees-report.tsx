@@ -41,6 +41,11 @@ function todayBangla(): string {
   return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
 }
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
+}
+
 export default function FeesReport({
   students,
   payments,
@@ -59,7 +64,9 @@ export default function FeesReport({
   const [statusFilter, setStatusFilter] = useState<"all" | "paid" | "unpaid" | "partial">("all");
   const [search, setSearch] = useState("");
 
-  const filteredPayments = payments.filter((p) => p.month === month && p.year === year);
+  const filteredPayments = payments.filter(
+    (p) => p.month === month && p.year === year
+  );
 
   const rows = useMemo(() => {
     return students.map((s) => {
@@ -73,7 +80,6 @@ export default function FeesReport({
       else if (paid === 0) status = "unpaid";
       else status = "partial";
 
-      // সর্বশেষ পেমেন্টের রসিদ নম্বর
       const sorted = [...sp].sort(
         (a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()
       );
@@ -104,122 +110,331 @@ export default function FeesReport({
   const totalPaid = filtered.reduce((s, r) => s + r.paid, 0);
   const totalDue = filtered.reduce((s, r) => s + r.due, 0);
 
-  const statusLabel =
+  const statusText =
     statusFilter === "all" ? "All" :
     statusFilter === "paid" ? "Paid" :
     statusFilter === "unpaid" ? "Unpaid" : "Partial";
 
+  function handlePrint() {
+    window.print();
+  }
+
   return (
     <>
-      <div className="no-print" style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
+      {/* ============ স্ক্রিনে ফিল্টার ============ */}
+      <div className="no-print bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
           <div>
-            <label style={lbl}>মাস</label>
-            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={inp}>
-              {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">মাস</label>
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            >
+              {MONTHS.map((m, i) => (
+                <option key={i} value={i + 1}>{m}</option>
+              ))}
             </select>
           </div>
           <div>
-            <label style={lbl}>বছর</label>
-            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={inp} />
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">বছর</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            />
           </div>
           <div>
-            <label style={lbl}>শ্রেণি</label>
-            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} style={inp}>
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">শ্রেণি</label>
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            >
               <option value="">সব শ্রেণি</option>
-              {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+              {classes.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
           <div>
-            <label style={lbl}>স্ট্যাটাস</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} style={inp}>
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">স্ট্যাটাস</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            >
               <option value="all">All</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
               <option value="partial">Partial</option>
             </select>
           </div>
-          <div>
-            <label style={lbl}>খুঁজুন (নাম / আইডি / রোল / রসিদ)</label>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="রসিদ নম্বর..." style={inp} />
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">খুঁজুন</label>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="নাম / আইডি / রোল / রসিদ"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+            />
           </div>
         </div>
-        <button onClick={() => window.print()} style={{ marginTop: "0.75rem", padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
-          🖨️ Print / PDF
-        </button>
+
+        <div className="flex flex-wrap gap-3 items-center pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex gap-2 flex-1 flex-wrap">
+            <SummaryBadge label="মোট" value={toBangla(filtered.length) + " জন"} color="#2563eb" />
+            <SummaryBadge label="প্রাপ্য" value={"৳" + toBangla(totalPayable)} color="#1e40af" />
+            <SummaryBadge label="জমা" value={"৳" + toBangla(totalPaid)} color="#15803d" />
+            <SummaryBadge label="বাকি" value={"৳" + toBangla(totalDue)} color="#b91c1c" />
+          </div>
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md shadow-brand-500/25 transition flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Print / PDF
+          </button>
+        </div>
       </div>
 
-      <div className="print-area">
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
-          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+      {/* ============ স্ক্রিনে মোবাইল কার্ড (প্রিন্টে আসবে না) ============ */}
+      <div className="md:hidden space-y-2.5 mb-4 print:hidden">
+        {filtered.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 text-sm border border-slate-200 dark:border-slate-800">
+            কোনো ফলাফল পাওয়া যায়নি
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
-            <div><strong>বিষয়:</strong> বেতন আদায় রিপোর্ট ({statusLabel})</div>
-            <div><strong>তারিখ:</strong> {todayBangla()}</div>
+        ) : (
+          filtered.map((r) => {
+            const sc =
+              r.status === "paid"
+                ? { bg: "#f0fdf4", text: "#15803d", badge: "#dcfce7", label: "Paid" }
+                : r.status === "unpaid"
+                ? { bg: "#fef2f2", text: "#b91c1c", badge: "#fee2e2", label: "Unpaid" }
+                : { bg: "#fffbeb", text: "#b45309", badge: "#fef3c7", label: "Partial" };
+
+            return (
+              <div
+                key={r.student.id}
+                className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm"
+                style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
+              >
+                <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: sc.bg }}>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[15px] font-semibold text-slate-900 truncate mb-1">
+                      {r.student.name}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
+                      <span className="font-medium">{r.student.class_name}</span>
+                      {r.student.roll && <span>• রোল {r.student.roll}</span>}
+                    </div>
+                  </div>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
+                    style={{ background: sc.badge, color: sc.text }}
+                  >
+                    {sc.label}
+                  </span>
+                </div>
+
+                <div className="px-4 py-3 grid grid-cols-3 gap-2">
+                  <div className="text-center">
+                    <div className="text-[10px] text-slate-400 mb-0.5">প্রাপ্য</div>
+                    <div className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+                      ৳{toBangla(r.payable)}
+                    </div>
+                  </div>
+                  <div className="text-center border-x border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] text-slate-400 mb-0.5">জমা</div>
+                    <div className="text-[13px] font-bold text-emerald-600">
+                      ৳{toBangla(r.paid)}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-slate-400 mb-0.5">বাকি</div>
+                    <div className={`text-[13px] font-bold ${r.due > 0 ? "text-red-600" : "text-slate-400"}`}>
+                      ৳{toBangla(r.due)}
+                    </div>
+                  </div>
+                </div>
+
+                {r.lastReceiptNo && (
+                  <div className="px-4 pb-3 text-[10px] text-slate-400">
+                    শেষ রসিদ: <span className="font-mono text-brand-600">{r.lastReceiptNo}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ============ স্ক্রিনে ডেস্কটপ টেবিল (প্রিন্টে আসবে না) ============ */}
+      <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4 print:hidden">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">কোনো ফলাফল পাওয়া যায়নি</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">নং</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">নাম</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">শ্রেণি</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">রোল</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">নির্ধারিত</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">জমা</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">বাকি</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 dark:text-slate-300">স্ট্যাটাস</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">শেষ রসিদ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r, i) => {
+                  const badge =
+                    r.status === "paid" ? { bg: "#dcfce7", text: "#15803d", label: "Paid" }
+                    : r.status === "unpaid" ? { bg: "#fee2e2", text: "#b91c1c", label: "Unpaid" }
+                    : { bg: "#fef3c7", text: "#b45309", label: "Partial" };
+
+                  return (
+                    <tr key={r.student.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <td className="px-4 py-3 text-slate-500 text-xs">{toBangla(i + 1)}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{r.student.name}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                        {r.student.class_name}
+                        {r.student.section && ` (${r.student.section})`}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{r.student.roll || "-"}</td>
+                      <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">৳{toBangla(r.payable)}</td>
+                      <td className="px-4 py-3 text-right font-medium text-emerald-700">৳{toBangla(r.paid)}</td>
+                      <td className={`px-4 py-3 text-right font-medium ${r.due > 0 ? "text-red-700" : "text-slate-400"}`}>
+                        ৳{toBangla(r.due)}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: badge.bg, color: badge.text }}>
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-brand-600 dark:text-brand-400 font-mono">
+                        {r.lastReceiptNo || "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-brand-600">
+                  <td colSpan={4} className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
+                    সর্বমোট ({toBangla(filtered.length)} জন):
+                  </td>
+                  <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">৳{toBangla(totalPayable)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-emerald-700">৳{toBangla(totalPaid)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-red-700">৳{toBangla(totalDue)}</td>
+                  <td colSpan={2}></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem" }}>
-            <div><strong>মাস:</strong> {MONTHS[month - 1]} {toBangla(year)}</div>
-            <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
-          </div>
+        )}
+      </div>
+
+      {/* ============ প্রিন্ট-অনলি টেবিল ============ */}
+      <div className="hidden print:block">
+        <div style={{ textAlign: "center", marginBottom: "12px" }}>
+          <h1 style={{ fontSize: "18px", fontWeight: "bold", color: "#0f766e", marginBottom: "4px" }}>
+            দারুল হিকমাহ মডেল মাদ্রাসা
+          </h1>
+          <p style={{ fontSize: "11px", color: "#475569" }}>
+            ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
+          </p>
         </div>
 
-        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.82rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
+          <div><strong>বিষয়:</strong> বেতন আদায় রিপোর্ট ({statusText})</div>
+          <div><strong>তারিখ:</strong> {todayBangla()}</div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "12px" }}>
+          <div><strong>মাস:</strong> {MONTHS[month - 1]} {toBangla(year)}</div>
+          <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
+        </div>
+
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
           <thead>
-            <tr style={{ background: "#0f766e", color: "#fff" }}>
-              <th style={th}>নং</th>
-              <th style={th}>নাম</th>
-              <th style={th}>শ্রেণি</th>
-              <th style={th}>রোল</th>
-              <th style={th}>নির্ধারিত</th>
-              <th style={th}>জমা</th>
-              <th style={th}>বকেয়া</th>
-              <th style={th}>স্ট্যাটাস</th>
-              <th style={th}>শেষ রসিদ</th>
+            <tr style={{ background: "#0f766e", color: "#ffffff" }}>
+              <th style={{ border: "1px solid #999", padding: "5px" }}>নং</th>
+              <th style={{ border: "1px solid #999", padding: "5px" }}>নাম</th>
+              <th style={{ border: "1px solid #999", padding: "5px" }}>শ্রেণি</th>
+              <th style={{ border: "1px solid #999", padding: "5px" }}>রোল</th>
+              <th style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>নির্ধারিত</th>
+              <th style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>জমা</th>
+              <th style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>বাকি</th>
+              <th style={{ border: "1px solid #999", padding: "5px", textAlign: "center" }}>স্ট্যাটাস</th>
+              <th style={{ border: "1px solid #999", padding: "5px" }}>শেষ রসিদ</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((r, i) => (
-              <tr key={r.student.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td style={td}>{toBangla(i + 1)}</td>
-                <td style={{ ...td, fontWeight: "500" }}>{r.student.name}</td>
-                <td style={td}>{r.student.class_name}{r.student.section ? ` (${r.student.section})` : ""}</td>
-                <td style={td}>{r.student.roll || "-"}</td>
-                <td style={td}>৳ {toBangla(r.payable)}</td>
-                <td style={{ ...td, color: "#15803d", fontWeight: "500" }}>৳ {toBangla(r.paid)}</td>
-                <td style={{ ...td, color: r.due > 0 ? "#b91c1c" : "#64748b", fontWeight: r.due > 0 ? "500" : "400" }}>৳ {toBangla(r.due)}</td>
-                <td style={td}>
-                  <span style={{
-                    padding: "0.15rem 0.5rem", borderRadius: "4px", fontSize: "0.72rem", fontWeight: "500",
-                    background: r.status === "paid" ? "#dcfce7" : r.status === "unpaid" ? "#fee2e2" : "#fef3c7",
-                    color: r.status === "paid" ? "#15803d" : r.status === "unpaid" ? "#b91c1c" : "#b45309",
-                  }}>
-                    {r.status === "paid" ? "Paid" : r.status === "unpaid" ? "Unpaid" : "Partial"}
-                  </span>
+              <tr key={r.student.id}>
+                <td style={{ border: "1px solid #999", padding: "4px" }}>{toBangla(i + 1)}</td>
+                <td style={{ border: "1px solid #999", padding: "4px" }}>{r.student.name}</td>
+                <td style={{ border: "1px solid #999", padding: "4px" }}>
+                  {r.student.class_name}
+                  {r.student.section && ` (${r.student.section})`}
                 </td>
-                <td style={{ ...td, fontSize: "0.72rem", color: "#64748b" }}>
-                  {r.lastReceiptNo || "-"}
+                <td style={{ border: "1px solid #999", padding: "4px" }}>{r.student.roll || "-"}</td>
+                <td style={{ border: "1px solid #999", padding: "4px", textAlign: "right" }}>৳ {toBangla(r.payable)}</td>
+                <td style={{ border: "1px solid #999", padding: "4px", textAlign: "right" }}>৳ {toBangla(r.paid)}</td>
+                <td style={{ border: "1px solid #999", padding: "4px", textAlign: "right" }}>৳ {toBangla(r.due)}</td>
+                <td style={{ border: "1px solid #999", padding: "4px", textAlign: "center" }}>
+                  {r.status === "paid" ? "Paid" : r.status === "unpaid" ? "Unpaid" : "Partial"}
                 </td>
+                <td style={{ border: "1px solid #999", padding: "4px", fontSize: "9px" }}>{r.lastReceiptNo || "-"}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr style={{ background: "#f1f5f9", borderTop: "2px solid #0f766e" }}>
-              <td colSpan={4} style={{ ...td, fontWeight: "600", textAlign: "right" }}>মোট ({toBangla(filtered.length)} জন):</td>
-              <td style={{ ...td, fontWeight: "600" }}>৳ {toBangla(totalPayable)}</td>
-              <td style={{ ...td, fontWeight: "600", color: "#15803d" }}>৳ {toBangla(totalPaid)}</td>
-              <td style={{ ...td, fontWeight: "600", color: "#b91c1c" }}>৳ {toBangla(totalDue)}</td>
-              <td colSpan={2}></td>
+            <tr style={{ background: "#f1f5f9", fontWeight: "bold" }}>
+              <td colSpan={4} style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>
+                সর্বমোট ({toBangla(filtered.length)} জন):
+              </td>
+              <td style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>৳ {toBangla(totalPayable)}</td>
+              <td style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>৳ {toBangla(totalPaid)}</td>
+              <td style={{ border: "1px solid #999", padding: "5px", textAlign: "right" }}>৳ {toBangla(totalDue)}</td>
+              <td colSpan={2} style={{ border: "1px solid #999" }}></td>
             </tr>
           </tfoot>
         </table>
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px", fontSize: "11px" }}>
+          <div style={{ textAlign: "center", minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px" }}>প্রস্তুতকারীর স্বাক্ষর</div>
+          </div>
+          <div style={{ textAlign: "center", minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px" }}>অনুমোদনকারীর স্বাক্ষর</div>
+          </div>
+        </div>
       </div>
     </>
   );
 }
 
-const lbl: React.CSSProperties = { display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" };
-const inp: React.CSSProperties = { width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", background: "#ffffff", fontFamily: "inherit" };
-const th: React.CSSProperties = { padding: "0.65rem 0.7rem", textAlign: "left", fontWeight: "600", fontSize: "0.75rem", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { padding: "0.65rem 0.7rem", color: "#1a1a1a" };
+function SummaryBadge({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      className="px-3 py-1.5 rounded-xl flex items-center gap-2"
+      style={{
+        background: `${color}10`,
+        border: `1px solid ${color}30`,
+      }}
+    >
+      <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}:</span>
+      <span className="text-xs font-bold" style={{ color }}>{value}</span>
+    </div>
+  );
+}
