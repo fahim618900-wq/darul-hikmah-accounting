@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type NavLink = { href: string; label: string };
-
 /* ==================== আইকন ==================== */
 
 const Icon = ({ path }: { path: string }) => (
@@ -24,19 +22,96 @@ const Icon = ({ path }: { path: string }) => (
 );
 
 const ICONS: Record<string, React.ReactNode> = {
-  "/dashboard": <Icon path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22 L9 12 L15 12 L15 22" />,
-  "/dashboard/students": <Icon path="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 7 a4 4 0 1 0 0 8 a4 4 0 0 0 0-8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" />,
-  "/dashboard/fees": <Icon path="M2 5 h20 v14 h-20 z M2 10 L22 10" />,
-  "/dashboard/fees-status": <Icon path="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />,
-  "/dashboard/income": <Icon path="M12 1v22 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
-  "/dashboard/expenses": <Icon path="M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3" />,
-  "/dashboard/reports": <Icon path="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" />,
-  "/admin/users": <Icon path="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0 8a4 4 0 0 0 0-8 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" />,
-  "/admin/audit-logs": <Icon path="M12 8v4l3 3 M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />,
-  "/admin/closed-months": <Icon path="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />,
-  "/admin/settings": <Icon path="M12 15a3 3 0 1 0 0-6a3 3 0 0 0 0 6 M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />,
-  "/admin/clear-data": <Icon path="M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6" />,
-  "/more": <Icon path="M4 6h16 M4 12h16 M4 18h16" />,
+  "/dashboard": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  "/dashboard/students": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  "/dashboard/fees": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+    </svg>
+  ),
+  "/dashboard/fees-status": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
+  "/dashboard/income": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1v22" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  ),
+  "/dashboard/expenses": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18" />
+      <path d="M18 17V9" />
+      <path d="M13 17V5" />
+      <path d="M8 17v-3" />
+    </svg>
+  ),
+  "/dashboard/reports": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+    </svg>
+  ),
+  "/admin/users": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  "/admin/audit-logs": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  "/admin/closed-months": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  "/admin/settings": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  ),
+  "/admin/clear-data": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  ),
+  "/more": (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  ),
 };
 
 /* ==================== নেভিগেশন লিংক ==================== */
@@ -45,16 +120,80 @@ const ALL_LINKS: { href: string; label: string; roles: string[] }[] = [
   { href: "/dashboard", label: "হোম", roles: ["admin", "accountant", "viewer"] },
   { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
   { href: "/dashboard/fees", label: "বেতন", roles: ["admin", "accountant"] },
-  { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
   { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
-  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
   { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
   { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
   { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
   { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
   { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
   { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
 ];
+
+/* ==================== Active Check ==================== */
+/**
+ * একটি লিংক active কি না তা নির্ধারণ করে
+ *
+ * সমস্যা: /dashboard/fees-status থাকলে /dashboard/fees-ও active দেখাত
+ * কারণ "/dashboard/fees-status".startsWith("/dashboard/fees") === true
+ *
+ * সমাধান: প্রতিটি লিংকের জন্য সুনির্দিষ্ট নিয়ম
+ */
+function isLinkActive(pathname: string, href: string): boolean {
+  // হোম: হুবহু মিলতে হবে
+  if (href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
+
+  // বেতন: /dashboard/fees হুবহু অথবা /dashboard/fees/pay/... কিন্তু fees-status নয়
+  if (href === "/dashboard/fees") {
+    if (pathname === "/dashboard/fees") return true;
+    if (pathname.startsWith("/dashboard/fees/pay/")) return true;
+    if (pathname.startsWith("/dashboard/fees/receipt")) return true;
+    return false;
+  }
+
+  // Paid/Unpaid: /dashboard/fees-status শুধু
+  if (href === "/dashboard/fees-status") {
+    return pathname.startsWith("/dashboard/fees-status");
+  }
+
+  // শিক্ষার্থী: /dashboard/students কিন্তু students/print ও students/[id] সহ
+  if (href === "/dashboard/students") {
+    return (
+      pathname === "/dashboard/students" ||
+      pathname.startsWith("/dashboard/students/")
+    );
+  }
+
+  // আয়: /dashboard/income
+  if (href === "/dashboard/income") {
+    return (
+      pathname === "/dashboard/income" ||
+      pathname.startsWith("/dashboard/income/")
+    );
+  }
+
+  // ব্যয়: /dashboard/expenses
+  if (href === "/dashboard/expenses") {
+    return (
+      pathname === "/dashboard/expenses" ||
+      pathname.startsWith("/dashboard/expenses/")
+    );
+  }
+
+  // রিপোর্ট: /dashboard/reports
+  if (href === "/dashboard/reports") {
+    return (
+      pathname === "/dashboard/reports" ||
+      pathname.startsWith("/dashboard/reports/")
+    );
+  }
+
+  // বাকি সব লিংক: সাধারণ startsWith
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
 /* ==================== মূল কম্পোনেন্ট ==================== */
 
@@ -70,15 +209,9 @@ export default function MobileBottomNav({
 
   const visibleLinks = ALL_LINKS.filter((l) => l.roles.includes(role));
 
-  // মোবাইলে ৪টি মেইন লিংক + "আরও" বাটন (admin হলে)
   const primaryCount = role === "admin" ? 4 : 5;
   const primaryLinks = visibleLinks.slice(0, primaryCount);
   const moreLinks = visibleLinks.slice(primaryCount);
-
-  function isActive(href: string): boolean {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname.startsWith(href);
-  }
 
   function handleLinkClick() {
     setMoreOpen(false);
@@ -86,7 +219,7 @@ export default function MobileBottomNav({
 
   return (
     <>
-      {/* "আরও" ড্রয়ার (নিচ থেকে উপরে) */}
+      {/* "আরও" ড্রয়ার */}
       {moreOpen && (
         <>
           <div
@@ -104,7 +237,7 @@ export default function MobileBottomNav({
             </div>
             <div className="p-2 max-h-[60vh] overflow-y-auto">
               {moreLinks.map((link) => {
-                const active = isActive(link.href);
+                const active = isLinkActive(pathname, link.href);
                 return (
                   <Link
                     key={link.href}
@@ -132,7 +265,7 @@ export default function MobileBottomNav({
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] no-print">
         <div className="flex items-center justify-around px-1 py-1.5">
           {primaryLinks.map((link) => {
-            const active = isActive(link.href);
+            const active = isLinkActive(pathname, link.href);
             return (
               <Link
                 key={link.href}
