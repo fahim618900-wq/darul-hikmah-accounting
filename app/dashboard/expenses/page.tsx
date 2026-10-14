@@ -4,27 +4,47 @@ import ExpensesClient from "./expenses-client";
 export default async function ExpensesPage() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user?.id)
+    .single();
+
   const { data: categories } = await supabase
     .from("expense_categories")
     .select("*")
     .order("name");
 
-  const { data: expenses } = await supabase
+  const { data: expensesRaw } = await supabase
     .from("expenses")
     .select("*, expense_categories(name)")
     .order("entry_date", { ascending: false })
-    .limit(50);
+    .limit(500);
+
+  // Supabase relational normalize
+  const expenses = (expensesRaw || []).map((e: any) => ({
+    id: e.id,
+    amount: e.amount,
+    entry_date: e.entry_date,
+    payment_method: e.payment_method,
+    voucher_no: e.voucher_no,
+    description: e.description,
+    expense_categories: Array.isArray(e.expense_categories)
+      ? e.expense_categories[0] || null
+      : e.expense_categories,
+  }));
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
-      <h2 style={{ fontSize: "1.5rem", color: "#0f766e", marginBottom: "0.25rem" }}>
-        ব্যয় ব্যবস্থাপনা
-      </h2>
-      <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-        মাদ্রাসার সকল ব্যয় এখানে লিখুন
-      </p>
-
-      <ExpensesClient categories={categories || []} initialExpenses={expenses || []} />
+    <main>
+      <ExpensesClient
+        categories={categories || []}
+        initialExpenses={expenses}
+        userName={profile?.full_name || user?.email || ""}
+      />
     </main>
   );
 }
