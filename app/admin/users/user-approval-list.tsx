@@ -37,7 +37,7 @@ function roleLabel(role: string): string {
   }
 }
 
-function roleColor(role: string): { bg: string; text: string; border: string } {
+function roleColor(role: string) {
   switch (role) {
     case "admin": return { bg: "#dbeafe", text: "#1e40af", border: "#93c5fd" };
     case "accountant": return { bg: "#d1fae5", text: "#065f46", border: "#6ee7b7" };
@@ -50,9 +50,11 @@ function roleColor(role: string): { bg: string; text: string; border: string } {
 export default function UserApprovalList({
   initialProfiles,
   currentUserId,
+  highlight = "",
 }: {
   initialProfiles: Profile[];
   currentUserId: string;
+  highlight?: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -61,6 +63,14 @@ export default function UserApprovalList({
   const [roleFilter, setRoleFilter] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+
+  // হাইলাইট করা আইডি সেট
+  const highlightIds = new Set<string>();
+  if (highlight === "held") {
+    initialProfiles.forEach((p) => {
+      if (p.is_held) highlightIds.add(p.id);
+    });
+  }
 
   const filtered = useMemo(() => {
     return profiles.filter((p) => {
@@ -75,6 +85,13 @@ export default function UserApprovalList({
       return true;
     });
   }, [profiles, search, roleFilter]);
+
+  // হাইলাইট উপরে
+  const sorted = [...filtered].sort((a, b) => {
+    const aH = highlightIds.has(a.id) ? 1 : 0;
+    const bH = highlightIds.has(b.id) ? 1 : 0;
+    return bH - aH;
+  });
 
   const pendingCount = profiles.filter((p) => p.role === "pending").length;
   const adminCount = profiles.filter((p) => p.role === "admin").length;
@@ -146,6 +163,20 @@ export default function UserApprovalList({
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* হাইলাইট বার্তা */}
+      {highlight === "held" && (
+        <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
+            Hold করা ব্যবহারকারীরা হাইলাইট করা হয়েছে — {toBangla(heldCount)} জন
+          </span>
+        </div>
+      )}
+
       {/* সারাংশ কার্ড */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
         <SummaryCard label="মোট ব্যবহারকারী" value={toBangla(profiles.length)} color="#2563eb" />
@@ -158,7 +189,7 @@ export default function UserApprovalList({
         />
       </div>
 
-      {heldCount > 0 && (
+      {heldCount > 0 && !highlight && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-3 mb-4 flex items-center gap-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
@@ -207,26 +238,29 @@ export default function UserApprovalList({
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 border border-slate-200 dark:border-slate-800">
           {profiles.length === 0 ? "কোনো ব্যবহারকারী নেই" : "কোনো ফলাফল পাওয়া যায়নি"}
         </div>
       ) : (
         <>
-          {/* ============ মোবাইল: কার্ড ============ */}
+          {/* মোবাইল: কার্ড */}
           <div className="md:hidden space-y-2.5">
-            {filtered.map((p) => {
+            {sorted.map((p) => {
               const rc = roleColor(p.role);
               const isMe = p.id === currentUserId;
               const isHeld = p.is_held;
+              const isH = highlightIds.has(p.id);
 
               return (
                 <div
                   key={p.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm"
+                  className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border shadow-sm transition-all ${
+                    isH ? "border-amber-400 ring-2 ring-amber-300" : "border-slate-200 dark:border-slate-800"
+                  }`}
                   style={{
                     borderLeftWidth: "4px",
-                    borderLeftColor: isHeld ? "#b45309" : rc.text,
+                    borderLeftColor: isH ? "#eab308" : isHeld ? "#b45309" : rc.text,
                   }}
                 >
                   <div className="p-4">
@@ -264,7 +298,6 @@ export default function UserApprovalList({
 
                     {!isMe && (
                       <div className="space-y-2">
-                        {/* Role select */}
                         <div>
                           <label className="block text-[10px] font-medium text-slate-500 mb-1">
                             Role পরিবর্তন করুন
@@ -282,7 +315,6 @@ export default function UserApprovalList({
                           </select>
                         </div>
 
-                        {/* Hold button */}
                         <button
                           onClick={() => toggleHold(p)}
                           disabled={updating === p.id}
@@ -325,7 +357,7 @@ export default function UserApprovalList({
             })}
           </div>
 
-          {/* ============ ডেস্কটপ: টেবিল ============ */}
+          {/* ডেস্কটপ: টেবিল */}
           <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -339,13 +371,19 @@ export default function UserApprovalList({
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => {
+                  {sorted.map((p) => {
                     const rc = roleColor(p.role);
                     const isMe = p.id === currentUserId;
                     const isHeld = p.is_held;
+                    const isH = highlightIds.has(p.id);
 
                     return (
-                      <tr key={p.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <tr
+                        key={p.id}
+                        className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
+                          isH ? "bg-amber-50 dark:bg-amber-900/20" : ""
+                        }`}
+                      >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
