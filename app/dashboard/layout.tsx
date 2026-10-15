@@ -65,6 +65,7 @@ export default async function DashboardLayout({
     { href: "/dashboard", label: "Dashboard", roles: ["admin", "accountant", "viewer"] },
     { href: "/dashboard/students", label: "Students", roles: ["admin", "accountant"] },
     { href: "/dashboard/fees", label: "Fee Collection", roles: ["admin", "accountant"] },
+    { href: "/dashboard/events", label: "Event Fees", roles: ["admin", "accountant", "viewer"] },
     { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
     { href: "/dashboard/income", label: "Income", roles: ["admin", "accountant"] },
     { href: "/dashboard/expenses", label: "Expenses", roles: ["admin", "accountant"] },
