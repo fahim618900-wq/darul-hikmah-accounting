@@ -70,18 +70,18 @@ export default function StudentsReport({
 
   return (
     <>
-      <div className="no-print" style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
           <div>
-            <label style={lbl}>শ্রেণি</label>
-            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} style={inp}>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শ্রেণি</label>
+            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
               <option value="">সব শ্রেণি</option>
               {classes.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label style={lbl}>অবস্থা</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} style={inp}>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">অবস্থা</label>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
               <option value="all">সব</option>
               <option value="active">সক্রিয়</option>
               <option value="inactive">নিষ্ক্রিয়</option>
@@ -89,26 +89,26 @@ export default function StudentsReport({
             </select>
           </div>
           <div>
-            <label style={lbl}>খুঁজুন</label>
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="নাম / আইডি / রোল" style={inp} />
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">খুঁজুন</label>
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="নাম / আইডি / রোল" className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
           </div>
         </div>
-        <button onClick={() => window.print()} style={{ marginTop: "0.75rem", padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
+        <button onClick={() => window.print()} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2">
           🖨️ Print / PDF
         </button>
       </div>
 
-      <div className="print-area">
+      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800">
         <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
             <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>বিষয়:</strong> শিক্ষার্থী রিপোর্ট</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem" }}>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>মোট শিক্ষার্থী:</strong> {toBangla(filtered.length)} জন</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
