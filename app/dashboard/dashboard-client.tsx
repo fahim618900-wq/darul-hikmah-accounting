@@ -342,7 +342,7 @@ export default function DashboardClient({
               </div>
             </div>
             <div className="bg-white/10 backdrop-blur px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-semibold border border-white/20 shadow-inner">
-              <span className="block text-[10px] uppercase tracking-wider text-teal-100/80 mb-0.5">বেতন আদায়ের হার</span>
+              <span className="block text-[10px] uppercase tracking-wider text-teal-100/80 mb-0.5">Fee collectionের হার</span>
               <span className="text-lg">{toBangla(collectionRate)}%</span>
             </div>
           </div>
@@ -413,21 +413,21 @@ export default function DashboardClient({
         />
       </div>
 
-      {/* ============ দ্রুত কাজ ============ */}
+      {/* ============ Quick Actions ============ */}
       <section className="mb-5">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">দ্রুত কাজ</h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">প্রয়োজনীয় বিভাগে সরাসরি যান</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Jump to a section</p>
           </div>
           <span className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500">QUICK ACCESS</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[
-            { href: "/dashboard/students", label: "শিক্ষার্থী যোগ/দেখুন", note: "শিক্ষার্থী তালিকা", icon: <BookOpen size={18} />, color: "#0f766e", tint: "rgba(13,148,136,.10)" },
-            { href: "/dashboard/fees", label: "বেতন আদায়", note: "নতুন পেমেন্ট", icon: <Receipt size={18} />, color: "#2563eb", tint: "rgba(37,99,235,.10)" },
-            { href: "/dashboard/income", label: "আয় যোগ করুন", note: "আয়ের এন্ট্রি", icon: <PlusCircle size={18} />, color: "#7c3aed", tint: "rgba(124,58,237,.10)" },
-            { href: "/dashboard/reports", label: "রিপোর্ট দেখুন", note: "PDF ও প্রিন্ট", icon: <FileText size={18} />, color: "#b45309", tint: "rgba(217,119,6,.11)" },
+            { href: "/dashboard/students", label: "Students", note: "Student directory", icon: <BookOpen size={18} />, color: "#0f766e", tint: "rgba(13,148,136,.10)" },
+            { href: "/dashboard/fees", label: "বেতন আদায়", note: "Record a payment", icon: <Receipt size={18} />, color: "#2563eb", tint: "rgba(37,99,235,.10)" },
+            { href: "/dashboard/income", label: "Add income", note: "Income entry", icon: <PlusCircle size={18} />, color: "#7c3aed", tint: "rgba(124,58,237,.10)" },
+            { href: "/dashboard/reports", label: "View reports", note: "PDF and print", icon: <FileText size={18} />, color: "#b45309", tint: "rgba(217,119,6,.11)" },
           ].map((action) => (
             <Link key={action.href} href={action.href} className="dashboard-quick-link group flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700">
               <span className="flex shrink-0 items-center justify-center w-10 h-10 rounded-xl" style={{ color: action.color, background: action.tint }}>{action.icon}</span>
@@ -443,8 +443,8 @@ export default function DashboardClient({
 
       {/* ============ লাইন চার্ট ============ */}
       <ChartCard
-        title="মাসিক বেতন আদায়"
-        subtitle={`${toBangla(filterMode === "month" ? selectedYear : new Date(fromDate).getFullYear())} সালের মাসভিত্তিক আদায়ের হার (%)`}
+        title="Monthly Fee Collection"
+        subtitle={`${toBangla(filterMode === "month" ? selectedYear : new Date(fromDate).getFullYear())} monthly collection rate (%)`}
         cardBg={cardBg}
         textPrimary={textPrimary}
         textMuted={textMuted}
@@ -474,12 +474,12 @@ export default function DashboardClient({
                 color: "#fff",
                 fontSize: "0.8rem",
               }}
-              formatter={(v: number) => [`${toBangla(v)}%`, "বেতন আদায়ের হার"]}
+              formatter={(v: number) => [`${toBangla(v)}%`, "Collection rate"]}
             />
             <Line
               type="monotone"
               dataKey="collectionRate"
-              name="আদায়ের হার"
+              name="Collection rate"
               stroke="url(#lineColor)"
               strokeWidth={3}
               dot={{ fill: "#22d3ee", r: 4, strokeWidth: 2, stroke: "#fff" }}
@@ -492,8 +492,8 @@ export default function DashboardClient({
       {/* ============ শ্রেণিভিত্তিক শিক্ষার্থী ============ */}
       <div className="grid grid-cols-1 gap-3 mt-3">
         <ChartCard
-          title="শ্রেণিভিত্তিক শিক্ষার্থী"
-          subtitle="প্রতিটি শ্রেণিতে শিক্ষার্থীর সংখ্যা"
+          title="Students by Class"
+          subtitle="Number of students in each class"
           cardBg={cardBg}
           textPrimary={textPrimary}
           textMuted={textMuted}
@@ -585,7 +585,7 @@ function StatCard({
         )}
       </div>
       <div className="pl-1 flex items-center gap-1 mt-3 text-[10px] sm:text-xs font-semibold" style={{ color }}>
-        বিস্তারিত দেখুন <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        View details <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </div>
     </Link>
   );
