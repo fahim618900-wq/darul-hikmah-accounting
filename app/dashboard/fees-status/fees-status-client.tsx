@@ -667,13 +667,13 @@ export default function FeesStatusClient({
         </div>
 
         {/* প্রিন্ট-অনলি: Excel-style Paid / Unpaid তালিকা */}
-        <div className="print-summary hidden print:block mt-2">
+        <div className="fees-status-print-summary hidden print:block mt-2">
           <table className="w-full border-collapse text-[10px]">
             <thead>
               <tr>
                 <th className="border border-slate-500 px-1.5 py-2 text-center w-[5%]">ক্রমিক</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[19%]">শিক্ষার্থীর নাম ও শ্রেণি</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">মোবাইল নম্বর</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">অভিভাবকের মোবাইল</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">অভিভাবকের নাম</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">যে মাসগুলোর বেতন বাকি</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[18%]">মাসভিত্তিক বকেয়া</th>
@@ -720,7 +720,7 @@ export default function FeesStatusClient({
                     <td className="border border-slate-400 px-1.5 py-2">{monthAmounts.length ? monthAmounts.join(" · ") : "—"}</td>
                     <td className="border border-slate-400 px-1.5 py-2 text-right font-semibold">{toBangla(printDue)}</td>
                     <td className="border border-slate-400 px-1.5 py-2 text-center">
-                      <span className="inline-block w-4 h-4 border border-slate-700 align-middle"></span>
+                      <span className="print-checkbox inline-block w-4 h-4 border border-slate-700 align-middle"></span>
                     </td>
                   </tr>
                 );
