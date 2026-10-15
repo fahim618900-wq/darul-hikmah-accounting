@@ -214,3 +214,49 @@
     padding: 0.12rem 0.4rem;
   }
 }
+
+
+/* Paid / Unpaid print-only ledger: screen-hidden, explicitly visible in print */
+.fees-status-print-summary {
+  display: none !important;
+}
+@media print {
+  .fees-status-print-summary {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  .fees-status-print-summary table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+  .fees-status-print-summary thead {
+    display: table-header-group !important;
+  }
+  .fees-status-print-summary tbody {
+    display: table-row-group !important;
+  }
+  .fees-status-print-summary tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .fees-status-print-summary th,
+  .fees-status-print-summary td {
+    visibility: visible !important;
+    overflow-wrap: anywhere !important;
+    vertical-align: middle !important;
+  }
+  .fees-status-print-summary .print-checkbox {
+    display: inline-block !important;
+    width: 14px !important;
+    height: 14px !important;
+    border: 1px solid #111827 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
