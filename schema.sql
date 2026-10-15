@@ -726,6 +726,10 @@ CREATE TABLE IF NOT EXISTS "public"."students" (
     "is_deleted" boolean DEFAULT false,
     "deleted_at" timestamp with time zone,
     "photo_url" "text",
+    "gender" "text",
+    "blood_group" "text",
+    "emergency_contact" "text",
+    CONSTRAINT "students_gender_check" CHECK (("gender" = ANY (ARRAY['male'::"text", 'female'::"text", 'other'::"text"]))),
     CONSTRAINT "students_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'inactive'::"text"])))
 );
 
@@ -738,7 +742,8 @@ CREATE OR REPLACE VIEW "public"."student_public" AS
     "name",
     "class_name",
     "roll",
-    "section"
+    "section",
+    "photo_url"
    FROM "public"."students"
   WHERE ("status" = 'active'::"text");
 
