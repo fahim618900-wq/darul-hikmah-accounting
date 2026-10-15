@@ -130,11 +130,11 @@ export default function TransactionsReport({
         </div>
       </div>
 
-      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
+      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/10 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-5 sm:px-6 dark:border-teal-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950 print:bg-white" style={{ borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+            <h1 className="mb-1 text-xl font-extrabold tracking-tight text-teal-800 sm:text-2xl dark:text-teal-300 print:text-teal-800" style={{ marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
+            <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400 print:text-slate-600" style={{ fontSize: "0.85rem" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>বিষয়:</strong> লেনদেনের রিপোর্ট</div>
@@ -155,7 +155,7 @@ export default function TransactionsReport({
 
         <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.8rem" }}>
           <thead>
-            <tr style={{ background: "#0f766e", color: "#fff" }}>
+            <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
               <th style={th}>নং</th>
               <th style={th}>তারিখ</th>
               <th style={th}>ধরন</th>
@@ -174,7 +174,7 @@ export default function TransactionsReport({
               </tr>
             ) : (
               filtered.map((t, i) => (
-                <tr key={`${t.type}-${t.id}`} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <tr key={`${t.type}-${t.id}`} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                   <td style={td}>{toBangla(i + 1)}</td>
                   <td style={td}>{toBangla(t.date)}</td>
                   <td style={td}>
