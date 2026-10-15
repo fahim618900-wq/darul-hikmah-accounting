@@ -131,8 +131,8 @@ export default function StudentView() {
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="w-12 h-12 border-4 border-brand-500/30 border-t-brand-500 rounded-full animate-spin mx-auto mb-4" />
+      <div className="mx-auto max-w-md rounded-3xl border border-white/80 bg-white/90 px-6 py-10 text-center shadow-xl shadow-teal-950/5 dark:border-slate-800 dark:bg-slate-900/90">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-violet-500 shadow-lg shadow-teal-500/20"><div className="h-7 w-7 animate-spin rounded-full border-[3px] border-white/40 border-t-white" /></div>
         <p className="text-slate-500 text-sm">লোড হচ্ছে...</p>
       </div>
     );
@@ -140,7 +140,7 @@ export default function StudentView() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+      <div className="rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-6 text-center shadow-lg shadow-rose-900/5 dark:border-rose-900/50 dark:from-rose-950/40 dark:to-slate-900">
         <p className="text-red-700 text-sm">সমস্যা: {error}</p>
       </div>
     );
@@ -148,7 +148,7 @@ export default function StudentView() {
 
   if (students.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-800">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900">
         <p className="text-slate-500">কোনো তথ্য পাওয়া যায়নি।</p>
       </div>
     );
@@ -178,7 +178,7 @@ export default function StudentView() {
       <div className="no-print">
         {/* বকেয়া নোটিফিকেশন */}
         {dueNotifications.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800/40 p-4 rounded-2xl mb-4">
+          <div className="mb-4 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50 to-white p-4 shadow-md shadow-amber-900/5 dark:border-amber-800/50 dark:from-amber-950/50 dark:via-orange-950/30 dark:to-slate-900 sm:p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -204,7 +204,7 @@ export default function StudentView() {
         )}
 
         {/* প্রস্তুতকারীর নাম + প্রিন্ট বাটন */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap gap-3 items-end">
+        <div className="mb-4 flex flex-wrap items-end gap-3 rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-lg shadow-slate-900/[0.03] dark:border-slate-800 dark:bg-slate-900/95 sm:p-5">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
               প্রস্তুতকারীর নাম (প্রিন্টে দেখাবে)
@@ -219,7 +219,7 @@ export default function StudentView() {
           </div>
           <button
             onClick={handlePrint}
-            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md shadow-brand-500/25 transition flex items-center gap-2"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition hover:-translate-y-0.5 hover:shadow-xl"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 6 2 18 2 18 9" />
@@ -261,10 +261,10 @@ export default function StudentView() {
           return (
             <div
               key={s.id}
-              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4 print:border-0 print:shadow-none print:rounded-none"
+              className="mb-5 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-900/[0.04] transition-shadow hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 print:mb-4 print:rounded-none print:border-0 print:shadow-none"
             >
               {/* হেডার কার্ড (স্ক্রিনে) */}
-              <div className="bg-gradient-to-br from-brand-600 to-purple-700 p-5 print:bg-none print:p-0">
+              <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-violet-700 p-4 sm:p-5 print:bg-none print:p-0">
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden shrink-0 border-2 border-white/40 print:border-slate-300">
                     {s.photo_url ? (
@@ -294,14 +294,14 @@ export default function StudentView() {
               </div>
 
               {/* তথ্য ও হিসাব */}
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
                 {/* অভিভাবক তথ্য */}
                 {(s.guardian_name || s.guardian_phone || s.address) && (
                   <div className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-wider">
                       অভিভাবকের তথ্য
                     </h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                       {s.guardian_name && (
                         <div>
                           <div className="text-[10px] text-slate-400">নাম</div>
@@ -325,16 +325,16 @@ export default function StudentView() {
                 )}
 
                 {/* বেতনের সারসংক্ষেপ */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-3 text-center">
+                <div className="mb-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white p-3.5 text-center shadow-sm dark:border-slate-700 dark:from-slate-800 dark:to-slate-800/70">
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">মাসিক বেতন</div>
                     <div className="text-base font-bold text-slate-700 dark:text-slate-300">৳{toBangla(payable)}</div>
                   </div>
-                  <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 text-center">
+                  <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3.5 text-center shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/40 dark:to-slate-900">
                     <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mb-1">মোট পরিশোধিত</div>
                     <div className="text-base font-bold text-emerald-700 dark:text-emerald-400">৳{toBangla(totalPaid)}</div>
                   </div>
-                  <div className="bg-brand-50 dark:bg-brand-900/20 rounded-2xl p-3 text-center">
+                  <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white p-3.5 text-center shadow-sm dark:border-violet-900/40 dark:from-violet-950/40 dark:to-slate-900">
                     <div className="text-[10px] text-brand-700 dark:text-brand-400 mb-1">মোট পেমেন্ট</div>
                     <div className="text-base font-bold text-brand-700 dark:text-brand-400">{toBangla(studentPayments.length)} বার</div>
                   </div>
@@ -352,9 +352,9 @@ export default function StudentView() {
                 ) : (
                   <>
                     {/* স্ক্রিনে টেবিল */}
-                    <div className="overflow-x-auto print:hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm dark:border-slate-800 print:hidden">
                       <table className="w-full text-xs">
-                        <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                        <thead className="border-b border-slate-200 bg-gradient-to-r from-teal-50 to-cyan-50 dark:border-slate-700 dark:from-slate-800 dark:to-slate-800">
                           <tr>
                             <th className="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300 text-[11px]">মাস</th>
                             <th className="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300 text-[11px]">বছর</th>
@@ -445,7 +445,7 @@ export default function StudentView() {
       </div>
 
       {/* স্ক্রিনে সতর্কবার্তা */}
-      <div className="no-print bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 border border-red-200 dark:border-red-800/40 mt-4">
+      <div className="no-print mt-5 rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-4 shadow-sm dark:border-rose-900/50 dark:from-rose-950/30 dark:to-slate-900 sm:p-5">
         <div className="flex gap-2 items-start">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
             <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
