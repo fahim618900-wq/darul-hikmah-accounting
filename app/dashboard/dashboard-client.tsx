@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileText, ArrowUpRight } from "lucide-react";
-import { isDateInMonth, isDateInRange } from "@/lib/financial";
+import { isDateInMonth, isDateInRange, lastDayOfMonth, calculateFinancialTotals } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -81,8 +81,7 @@ function firstOfMonthISO(): string {
 
 function lastOfMonthISO(): string {
   const d = new Date();
-  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return last.toISOString().split("T")[0];
+  return lastDayOfMonth(d.getFullYear(), d.getMonth() + 1);
 }
 
 type FilterMode = "month" | "range";
@@ -168,9 +167,15 @@ export default function DashboardClient({
     );
     const totalDue = totalPayable - totalCollected;
 
-    const totalIncome = filtered.fIncomes.reduce((s, i) => s + Number(i.amount), 0);
-    const totalExpense = filtered.fExpenses.reduce((s, e) => s + Number(e.amount), 0);
-    const balance = totalIncome + totalCollected - totalExpense;
+    const financialRows = [
+      ...filtered.fIncomes.map((i) => ({ source: "direct-income" as const, type: "income" as const, date: i.entry_date, amount: Number(i.amount) || 0, id: 0, category: null, ref_no: null, description: null })),
+      ...filtered.fPayments.map((p) => ({ source: "fee-collection" as const, type: "income" as const, date: p.payment_date, amount: Number(p.amount) || 0, id: 0, category: "শিক্ষার্থীদের বেতন/ফি", ref_no: null, description: null })),
+      ...filtered.fExpenses.map((e) => ({ source: "expense" as const, type: "expense" as const, date: e.entry_date, amount: Number(e.amount) || 0, id: 0, category: null, ref_no: null, description: null })),
+    ];
+    const financialTotals = calculateFinancialTotals(financialRows);
+    const totalIncome = financialTotals.directIncome;
+    const totalExpense = financialTotals.totalExpense;
+    const balance = financialTotals.balance;
 
     return {
       activeStudents,
