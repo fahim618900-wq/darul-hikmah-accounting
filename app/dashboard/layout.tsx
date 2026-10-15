@@ -5,6 +5,7 @@ import NotificationBell from "./notification-bell";
 import ThemeToggle from "./theme-toggle";
 import MobileMenu from "./mobile-menu";
 import MobileBottomNav from "./mobile-bottom-nav";
+import RoutePrefetcher from "./route-prefetcher";
 
 export default async function DashboardLayout({
   children,
@@ -79,6 +80,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <RoutePrefetcher routes={visibleLinks.map((link) => link.href)} />
       {/* ============ ডেস্কটপ হেডার (শুধু lg-এ দেখাবে) ============ */}
       <div className="no-print hidden lg:block">
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
