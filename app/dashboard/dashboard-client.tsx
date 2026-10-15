@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Users, TrendingUp, Wallet, AlertCircle, DollarSign } from "lucide-react";
+import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileBarChart, ArrowUpRight } from "lucide-react";
 
 type Student = {
   id: number;
@@ -241,26 +241,31 @@ export default function DashboardClient({
       : `${toBangla(fromDate)} — ${toBangla(toDate)}`;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-5 pb-6">
-      {/* ============ শিরোনাম ============ */}
-      <div className="mb-4">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="dashboard-shell max-w-7xl mx-auto px-3 sm:px-5 py-5 sm:py-7 pb-8">
+      {/* ============ প্রিমিয়াম ড্যাশবোর্ড হেডার ============ */}
+      <section className="mb-5 sm:mb-6">
+        <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold tracking-[0.18em] text-teal-700 dark:text-teal-300 uppercase mb-2">
+          <span className="w-7 h-[2px] rounded-full bg-teal-600 dark:bg-teal-400" />
+          DARUL HIKMAH · FINANCE
+        </div>
+        <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-1">
               হিসাব ড্যাশবোর্ড
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              আসসালামু আলাইকুম, {userName}
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              আসসালামু আলাইকুম, <span className="font-semibold text-slate-700 dark:text-slate-200">{userName}</span> — মাদরাসার আর্থিক চিত্র এক নজরে।
             </p>
           </div>
-          <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 shadow-sm">
-            {todayBangla()}
+          <div className="inline-flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"><Wallet size={16} /></span>
+            <span><span className="block text-[10px] uppercase tracking-wider text-slate-400">আজকের তারিখ</span><strong className="font-bold">{todayBangla()}</strong></span>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ============ ফিল্টার ============ */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-3xl p-3.5 sm:p-4 mb-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_-18px_rgba(15,23,42,0.22)]">
         <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3">
           <button
             onClick={() => setFilterMode("month")}
@@ -327,12 +332,13 @@ export default function DashboardClient({
       {/* ============ মোট ব্যালেন্স কার্ড ============ */}
       <div
         style={{
-          background: "linear-gradient(135deg, #1e3a8a 0%, #3b0764 50%, #4c1d95 100%)",
+          background: "linear-gradient(125deg, #064e3b 0%, #0f766e 46%, #155e75 100%)",
         }}
-        className="rounded-3xl p-5 sm:p-7 mb-4 text-white shadow-xl relative overflow-hidden"
+        className="dashboard-balance-card rounded-[28px] p-5 sm:p-7 mb-5 text-white shadow-[0_24px_60px_-28px_rgba(13,148,136,0.7)] relative overflow-hidden ring-1 ring-white/10"
       >
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-12 w-56 h-56 bg-pink-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -right-12 w-56 h-56 bg-cyan-300/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 left-1/3 w-64 h-64 bg-emerald-300/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-6 bottom-4 opacity-[0.08] pointer-events-none"><Wallet size={150} strokeWidth={1} /></div>
 
         <div className="relative">
           <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
@@ -345,12 +351,13 @@ export default function DashboardClient({
                 {formatTaka(stats.balance)}
               </div>
             </div>
-            <div className="bg-cyan-500/20 px-3 py-1.5 rounded-full text-xs font-medium border border-cyan-400/30">
-              Collections: {toBangla(collectionRate)}%
+            <div className="bg-white/10 backdrop-blur px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-semibold border border-white/20 shadow-inner">
+              <span className="block text-[10px] uppercase tracking-wider text-teal-100/80 mb-0.5">বেতন আদায়ের হার</span>
+              <span className="text-lg">{toBangla(collectionRate)}%</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 mt-2 border-t border-white/20">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 pt-4 mt-3 border-t border-white/20">
             <div>
               <div className="text-[11px] opacity-75 mb-0.5">মোট আয়</div>
               <div className="text-base sm:text-lg font-bold text-cyan-200">
@@ -368,7 +375,7 @@ export default function DashboardClient({
       </div>
 
       {/* ============ ৪টি কার্ড ============ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5">
         <StatCard
           icon={<Users size={16} />}
           label="শিক্ষার্থী"
@@ -415,6 +422,34 @@ export default function DashboardClient({
           link="/dashboard/fees-status"
         />
       </div>
+
+      {/* ============ দ্রুত কাজ ============ */}
+      <section className="mb-5">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">দ্রুত কাজ</h2>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">প্রয়োজনীয় বিভাগে সরাসরি যান</p>
+          </div>
+          <span className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500">QUICK ACCESS</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {[
+            { href: "/dashboard/students", label: "শিক্ষার্থী যোগ/দেখুন", note: "শিক্ষার্থী তালিকা", icon: <BookOpen size={18} />, color: "#0f766e", tint: "rgba(13,148,136,.10)" },
+            { href: "/dashboard/fees", label: "বেতন আদায়", note: "নতুন পেমেন্ট", icon: <Receipt size={18} />, color: "#2563eb", tint: "rgba(37,99,235,.10)" },
+            { href: "/dashboard/income", label: "আয় যোগ করুন", note: "আয়ের এন্ট্রি", icon: <PlusCircle size={18} />, color: "#7c3aed", tint: "rgba(124,58,237,.10)" },
+            { href: "/dashboard/reports", label: "রিপোর্ট দেখুন", note: "PDF ও প্রিন্ট", icon: <FileBarChart size={18} />, color: "#b45309", tint: "rgba(217,119,6,.11)" },
+          ].map((action) => (
+            <Link key={action.href} href={action.href} className="dashboard-quick-link group flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700">
+              <span className="flex shrink-0 items-center justify-center w-10 h-10 rounded-xl" style={{ color: action.color, background: action.tint }}>{action.icon}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug">{action.label}</span>
+                <span className="block text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1">{action.note}</span>
+              </span>
+              <ArrowUpRight size={15} className="shrink-0 text-slate-300 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition" />
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* ============ লাইন চার্ট ============ */}
       <ChartCard
@@ -576,29 +611,31 @@ function StatCard({
   return (
     <Link
       href={link}
-      className="block"
+      className="dashboard-stat-card group relative block overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
       style={{
         background: cardBg,
-        borderRadius: "16px",
-        padding: "0.85rem",
         textDecoration: "none",
         border: `1px solid ${borderColor}`,
-        borderLeft: `3px solid ${color}`,
+        boxShadow: "0 6px 22px -18px rgba(15,23,42,.45)",
       }}
     >
-      <div className="flex items-center justify-between mb-1.5">
-        <div style={{ fontSize: "0.7rem", color: textMuted, fontWeight: 500 }}>
+      <span className="absolute left-0 top-0 h-full w-1 rounded-l-2xl" style={{ background: color }} />
+      <div className="flex items-start justify-between gap-2 mb-3 pl-1">
+        <div className="text-xs sm:text-sm font-semibold leading-snug" style={{ color: textMuted }}>
           {label}
         </div>
-        <div style={{ color, opacity: 0.8 }}>{icon}</div>
+        <div className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0" style={{ color, background: `${color}14` }}>{icon}</div>
       </div>
-      <div style={{ fontSize: "1rem", fontWeight: 700, color }}>
+      <div className="pl-1 break-words" style={{ fontSize: "clamp(1rem, 2.2vw, 1.35rem)", lineHeight: 1.25, fontWeight: 800, letterSpacing: "-0.03em", color: textPrimary }}>
         {value}
         {suffix && (
-          <span style={{ fontSize: "0.7rem", marginLeft: "0.2rem", color: textMuted, fontWeight: 400 }}>
+          <span className="ml-1" style={{ fontSize: "0.72rem", color: textMuted, fontWeight: 500 }}>
             {suffix}
           </span>
         )}
+      </div>
+      <div className="pl-1 flex items-center gap-1 mt-3 text-[10px] sm:text-xs font-semibold" style={{ color }}>
+        বিস্তারিত দেখুন <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </div>
     </Link>
   );
@@ -623,19 +660,21 @@ function ChartCard({
 }) {
   return (
     <div
-      className="mb-1"
+      className="dashboard-chart-card mb-1 rounded-3xl p-4 sm:p-5 transition-shadow hover:shadow-md"
       style={{
         background: cardBg,
-        borderRadius: "20px",
-        padding: "1.1rem",
         border: `1px solid ${borderColor}`,
+        boxShadow: "0 8px 28px -24px rgba(15,23,42,.45)",
       }}
     >
-      <div style={{ marginBottom: "0.85rem" }}>
-        <div style={{ fontSize: "0.95rem", fontWeight: 600, color: textPrimary, marginBottom: "0.1rem" }}>
-          {title}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <div style={{ fontSize: "1rem", fontWeight: 750, letterSpacing: "-0.02em", color: textPrimary, marginBottom: "0.25rem" }}>
+            {title}
+          </div>
+          <div style={{ fontSize: "0.75rem", color: textMuted }}>{subtitle}</div>
         </div>
-        <div style={{ fontSize: "0.72rem", color: textMuted }}>{subtitle}</div>
+        <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 shrink-0"><TrendingUp size={15} /></span>
       </div>
       {children}
     </div>
