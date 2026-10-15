@@ -126,6 +126,66 @@ export async function getFinancialData(supabase: SupabaseClient) {
   return { incomes, expenses, feePayments, transactions };
 }
 
+/** Fee-payment queries shared by fee pages; exclude soft-deleted rows and fetch every page. */
+export async function getFeePaymentsForMonth(supabase: SupabaseClient, month: number, year: number) {
+  return fetchAllRows<any>((from, to) =>
+    (supabase as any).from("fee_payments")
+      .select("*")
+      .eq("month", month)
+      .eq("year", year)
+      .or("is_deleted.eq.false,is_deleted.is.null")
+      .is("deleted_at", null)
+      .order("payment_date", { ascending: false })
+      .range(from, to)
+  );
+}
+
+export async function getFeePaymentsForDateRange(
+  supabase: SupabaseClient,
+  fromDate: string,
+  toDate: string
+) {
+  return fetchAllRows<any>((from, to) =>
+    (supabase as any).from("fee_payments")
+      .select("*")
+      .gte("payment_date", fromDate)
+      .lte("payment_date", toDate)
+      .or("is_deleted.eq.false,is_deleted.is.null")
+      .is("deleted_at", null)
+      .order("payment_date", { ascending: false })
+      .range(from, to)
+  );
+}
+
+/** Fetch payments allocated to fee-months inside an inclusive month/year period. */
+export async function getFeePaymentsForFeeMonthRange(
+  supabase: SupabaseClient,
+  firstMonth: number,
+  firstYear: number,
+  lastMonth: number,
+  lastYear: number
+) {
+  const firstPeriod = firstYear * 12 + firstMonth;
+  const lastPeriod = lastYear * 12 + lastMonth;
+  if (firstPeriod > lastPeriod) return [];
+  const rows = await fetchAllRows<any>((from, to) =>
+    (supabase as any).from("fee_payments")
+      .select("*")
+      .gte("year", firstYear)
+      .lte("year", lastYear)
+      .or("is_deleted.eq.false,is_deleted.is.null")
+      .is("deleted_at", null)
+      .order("year", { ascending: true })
+      .order("month", { ascending: true })
+      .order("payment_date", { ascending: false })
+      .range(from, to)
+  );
+  return rows.filter((row) => {
+    const period = Number(row.year) * 12 + Number(row.month);
+    return period >= firstPeriod && period <= lastPeriod;
+  });
+}
+
 /** Build local calendar dates without UTC conversion. */
 export function todayDateKey(): string {
   return toDateKey(new Date());
