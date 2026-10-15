@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { lastDayOfMonth } from "@/lib/financial";
+import { lastDayOfMonth, calculateFinancialTotals, isDateInRange, type FinancialTransaction } from "@/lib/financial";
 
 type Transaction = {
-  type: string;
+  type: "income" | "expense";
+  source: "direct-income" | "fee-collection" | "expense";
   id: number;
   date: string;
   category: string | null;
@@ -41,15 +42,16 @@ export default function IncomeExpenseReport({
   const [toDate, setToDate] = useState(lastOfMonth);
 
   const filtered = useMemo(() => {
-    return transactions.filter((t) => t.date >= fromDate && t.date <= toDate);
+    return transactions.filter((t) => isDateInRange(t.date, fromDate, toDate));
   }, [transactions, fromDate, toDate]);
 
   const incomeRows = filtered.filter((t) => t.type === "income");
   const expenseRows = filtered.filter((t) => t.type === "expense");
 
-  const totalIncome = incomeRows.reduce((s, t) => s + Number(t.amount), 0);
-  const totalExpense = expenseRows.reduce((s, t) => s + Number(t.amount), 0);
-  const balance = totalIncome - totalExpense;
+  const totals = calculateFinancialTotals(filtered as FinancialTransaction[]);
+  const totalIncome = totals.totalIncome;
+  const totalExpense = totals.totalExpense;
+  const balance = totals.balance;
 
   // খাতভিত্তিক সারসংক্ষেপ
   const incomeByCategory: Record<string, number> = {};
