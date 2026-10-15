@@ -289,149 +289,78 @@ export default function StudentList({
         )}
       </div>
 
-      {/* ============ মোবাইল: কার্ড ============ */}
-      <div className="md:hidden max-w-7xl mx-auto px-3 sm:px-4 space-y-2.5 mb-6">
-        {sorted.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center text-slate-500 text-sm border border-slate-200 dark:border-slate-800">
-            {students.length === 0
-              ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি"
-              : "কোনো ফলাফল পাওয়া যায়নি"}
-          </div>
-        ) : (
-          sorted.map((s, i) => {
-            const isActive = s.status === "active";
-            const accent = isActive ? "#15803d" : "#b91c1c";
-            const bg = isActive ? "#f0fdf4" : "#fef2f2";
-            const badge = isActive ? "#dcfce7" : "#fee2e2";
-            const isH = highlightIds.has(s.id);
-            const isFirstHighlight = isH && i === firstHighlightIndex;
-
-            return (
-              <div
-                key={s.id}
-                ref={isFirstHighlight ? highlightRef : null}
-                className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border shadow-sm transition-all ${
-                  isH ? "border-yellow-400 ring-2 ring-yellow-300" : "border-slate-200 dark:border-slate-800"
-                }`}
-                style={{ borderLeftWidth: "4px", borderLeftColor: isH ? "#eab308" : accent }}
-              >
-                {/* হেডার */}
-                <div className="px-4 py-3 flex items-start justify-between gap-3" style={{ background: isH ? "#fef3c7" : bg }}>
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white shadow-sm">
-                      {s.photo_url ? (
-                        <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-slate-400 font-bold text-sm">
-                          {s.name.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[11px] font-semibold text-slate-400">
-                          {toBangla(i + 1)}.
-                        </span>
-                        <Link
-                          href={`/dashboard/students/${s.id}`}
-                          className="text-[15px] font-semibold text-slate-900 truncate hover:text-brand-600 transition"
-                        >
-                          {s.name}
-                        </Link>
-                        {isH && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-200 text-yellow-800">
-                            {highlight === "new" ? "নতুন" : "ছাড়"}
+      {/* ============ মোবাইল: টেবিল ============ */}
+      <div className="md:hidden max-w-7xl mx-auto px-3 sm:px-4 mb-6">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          {sorted.length === 0 ? (
+            <div className="p-8 text-center text-sm text-slate-500">
+              {students.length === 0 ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি" : "কোনো ফলাফল পাওয়া যায়নি"}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[590px] text-xs">
+                <thead className="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800/80">
+                  <tr>
+                    <th className="px-3 py-3 text-left font-bold text-slate-600 dark:text-slate-300">শিক্ষার্থীর নাম</th>
+                    <th className="px-3 py-3 text-left font-bold text-slate-600 dark:text-slate-300">শ্রেণি / রোল</th>
+                    <th className="px-3 py-3 text-right font-bold text-slate-600 dark:text-slate-300">মাসিক বেতন</th>
+                    <th className="px-3 py-3 text-center font-bold text-slate-600 dark:text-slate-300">অবস্থা</th>
+                    <th className="px-3 py-3 text-center font-bold text-slate-600 dark:text-slate-300">কাজ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((s, i) => {
+                    const isActive = s.status === "active";
+                    const isH = highlightIds.has(s.id);
+                    const isFirstHighlight = isH && i === firstHighlightIndex;
+                    return (
+                      <tr
+                        key={s.id}
+                        ref={isFirstHighlight ? (highlightRef as any) : null}
+                        className={`border-t border-slate-100 transition hover:bg-teal-50/50 dark:border-slate-800 dark:hover:bg-slate-800/60 ${isH ? "bg-amber-50 dark:bg-amber-900/20" : ""}`}
+                      >
+                        <td className="px-3 py-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-100 font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800">
+                              {s.photo_url ? <img src={s.photo_url} alt={s.name} className="h-full w-full object-cover" /> : s.name.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                              <Link href={`/dashboard/students/${s.id}`} className="block max-w-[180px] truncate text-xs font-bold text-slate-900 hover:text-teal-700 dark:text-white dark:hover:text-teal-300">
+                                {s.name}
+                              </Link>
+                              <span className="mt-0.5 block text-[10px] text-slate-400">{s.student_id || "আইডি নেই"}</span>
+                              {isH && <span className="mt-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{highlight === "new" ? "নতুন" : "ছাড়"}</span>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-slate-600 dark:text-slate-300">
+                          <span className="block font-semibold">{s.class_name}{s.section ? ` · ${s.section}` : ""}</span>
+                          <span className="mt-1 block text-[10px] text-slate-400">রোল: {s.roll || "—"}</span>
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">৳{toBangla(s.monthly_fee)}</span>
+                          {Number(s.discount || 0) > 0 && <span className="mt-1 block text-[10px] text-amber-600">ছাড় ৳{toBangla(s.discount)}</span>}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-bold ${isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"}`}>
+                            {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
-                        <span className="font-medium">{s.class_name}</span>
-                        {s.section && <span>• {s.section}</span>}
-                        {s.roll && <span>• রোল {s.roll}</span>}
-                      </div>
-                    </div>
-                  </div>
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
-                    style={{ background: badge, color: accent }}
-                  >
-                    {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
-                  </span>
-                </div>
-
-                {/* তথ্য */}
-                <div className="px-4 py-3 grid grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-800">
-                  <div className="text-center">
-                    <div className="text-[10px] text-slate-400 mb-0.5">আইডি</div>
-                    <div className="text-[12px] font-semibold text-slate-700 dark:text-slate-300 truncate">
-                      {s.student_id || "-"}
-                    </div>
-                  </div>
-                  <div className="text-center border-x border-slate-100 dark:border-slate-800">
-                    <div className="text-[10px] text-slate-400 mb-0.5">মাসিক বেতন</div>
-                    <div className="text-[12px] font-bold text-emerald-600">
-                      ৳{toBangla(s.monthly_fee)}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-slate-400 mb-0.5">ছাড়</div>
-                    <div className="text-[12px] font-semibold text-amber-600">
-                      ৳{toBangla(s.discount || 0)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* অভিভাবক */}
-                {s.guardian_name && (
-                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
-                    <span className="text-slate-400">অভিভাবক:</span>{" "}
-                    <span className="font-medium text-slate-700 dark:text-slate-300">{s.guardian_name}</span>
-                    {s.guardian_phone && (
-                      <span className="ml-2 text-slate-500">({s.guardian_phone})</span>
-                    )}
-                  </div>
-                )}
-
-                {/* অ্যাকশন বাটন */}
-                <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800">
-                  <Link
-                    href={`/dashboard/students/${s.id}`}
-                    className="py-2.5 text-[12px] font-medium text-brand-700 hover:bg-brand-50 transition flex items-center justify-center gap-1"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    দেখুন
-                  </Link>
-                  <button
-                    onClick={() => handleEdit(s)}
-                    className="py-2.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    সম্পাদনা
-                  </button>
-                  <button
-                    onClick={() => handleDelete(s)}
-                    disabled={loading === s.id}
-                    className="py-2.5 text-[12px] font-medium text-red-600 hover:bg-red-50 transition flex items-center justify-center gap-1 disabled:opacity-50"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6M14 11v6" />
-                    </svg>
-                    {loading === s.id ? "..." : "ডিলিট"}
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button onClick={() => handleEdit(s)} aria-label={s.name + " সম্পাদনা"} className="rounded-lg border border-teal-100 bg-teal-50 px-2 py-1.5 font-semibold text-teal-800 transition hover:bg-teal-100 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300">সম্পাদনা</button>
+                            <button onClick={() => handleDelete(s)} disabled={loading === s.id} aria-label={s.name + " ডিলিট"} className="rounded-lg border border-rose-100 bg-rose-50 px-2 py-1.5 font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">{loading === s.id ? "..." : "ডিলিট"}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        {sorted.length > 0 && <p className="mt-2 text-center text-[11px] text-slate-400">তালিকাটি আড়াআড়ি সরিয়ে সব তথ্য ও কাজের বোতাম দেখুন</p>}
       </div>
 
       {/* ============ ডেস্কটপ: টেবিল ============ */}
