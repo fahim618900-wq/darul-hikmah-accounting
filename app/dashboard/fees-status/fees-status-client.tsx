@@ -215,9 +215,10 @@ export default function FeesStatusClient({
   }, [students, payments, filterMode, fromDate, toDate]);
 
   function countMonths(from: string, to: string): number {
-    const f = new Date(from);
-    const t = new Date(to);
-    return (t.getFullYear() - f.getFullYear()) * 12 + (t.getMonth() - f.getMonth()) + 1;
+    if (!from || !to || from > to) return 0;
+    const fromMonth = Number(from.slice(0, 4)) * 12 + Number(from.slice(5, 7));
+    const toMonth = Number(to.slice(0, 4)) * 12 + Number(to.slice(5, 7));
+    return Math.max(0, toMonth - fromMonth + 1);
   }
 
   const filtered = rows.filter((r) => {
@@ -635,7 +636,7 @@ export default function FeesStatusClient({
                       const to = new Date(toDate + "T12:00:00");
                       const cursor = new Date(from.getFullYear(), from.getMonth(), 1, 12);
                       const last = new Date(to.getFullYear(), to.getMonth(), 1, 12);
-                      while (cursor <= last && result.length < 24) {
+                      while (cursor <= last) {
                         result.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
                         cursor.setMonth(cursor.getMonth() + 1);
                       }
