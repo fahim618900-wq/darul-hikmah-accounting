@@ -97,7 +97,7 @@ export default function FeesStatusClient({
 }) {
   const supabase = createClient();
   const topRef = useRef<HTMLDivElement>(null);
-  const highlightRowRef = useRef<HTMLTableRowElement>(null);
+  const highlightRowRef = useRef<HTMLElement | null>(null);
 
   const now = new Date();
 
@@ -454,14 +454,15 @@ export default function FeesStatusClient({
           ) : (
             filtered.map((r, i) => {
               const sc = statusColor(r.status);
-              const isHighlighted = highlightToday && todayPaymentIds.has(r.student.id);
+              const isHighlighted = (highlightToday && todayPaymentIds.has(r.student.id)) || (highlight === "due" && r.status !== "paid");
 
               return (
                 <div
                   key={r.student.id}
+                  ref={(element) => { if (isHighlighted && !highlightRowRef.current) highlightRowRef.current = element; }}
                   className={`bg-white rounded-2xl overflow-hidden border shadow-sm transition-all ${
                     isHighlighted
-                      ? "border-emerald-400 ring-2 ring-emerald-300"
+                      ? (highlight === "due" ? "border-amber-400 ring-2 ring-amber-300 bg-amber-50" : "border-emerald-400 ring-2 ring-emerald-300 bg-emerald-50")
                       : "border-slate-200"
                   }`}
                   style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
@@ -566,7 +567,7 @@ export default function FeesStatusClient({
                     return (
                       <tr
                         key={r.student.id}
-                        ref={isHighlighted && !highlightRowRef.current ? highlightRowRef : undefined}
+                        ref={(element) => { if (isHighlighted && !highlightRowRef.current) highlightRowRef.current = element; }}
                         className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
                           isHighlighted ? (highlight === "due" ? "bg-amber-100 ring-1 ring-inset ring-amber-300 dark:bg-amber-900/30 dark:ring-amber-700" : "bg-emerald-100 ring-1 ring-inset ring-emerald-300 dark:bg-emerald-900/30 dark:ring-emerald-700") : ""
                         }`}
