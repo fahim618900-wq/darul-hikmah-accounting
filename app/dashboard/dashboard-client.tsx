@@ -15,6 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileText, ArrowUpRight } from "lucide-react";
+import { isDateInMonth, isDateInRange } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -139,13 +140,13 @@ export default function DashboardClient({
         return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
       });
       fPayments = payments.filter(
-        (p) => p.month === selectedMonth && p.year === selectedYear
+        (p) => isDateInMonth(p.payment_date, selectedMonth, selectedYear)
       );
     } else {
-      fIncomes = incomes.filter((i) => i.entry_date >= fromDate && i.entry_date <= toDate);
-      fExpenses = expenses.filter((e) => e.entry_date >= fromDate && e.entry_date <= toDate);
+      fIncomes = incomes.filter((i) => isDateInRange(i.entry_date, fromDate, toDate));
+      fExpenses = expenses.filter((e) => isDateInRange(e.entry_date, fromDate, toDate));
       fPayments = payments.filter(
-        (p) => p.payment_date >= fromDate && p.payment_date <= toDate
+        (p) => isDateInRange(p.payment_date, fromDate, toDate)
       );
     }
 
@@ -190,9 +191,10 @@ export default function DashboardClient({
     const chartYear = filterMode === "month" ? selectedYear : new Date(fromDate).getFullYear();
 
     payments
-      .filter((p) => p.year === chartYear)
+      .filter((p) => Number(String(p.payment_date).slice(0, 4)) === chartYear)
       .forEach((p) => {
-        monthly[p.month] = (monthly[p.month] || 0) + Number(p.amount);
+        const paidMonth = Number(String(p.payment_date).slice(5, 7));
+        if (paidMonth >= 1 && paidMonth <= 12) monthly[paidMonth] = (monthly[paidMonth] || 0) + Number(p.amount);
       });
 
     const monthlyPayable = students.reduce(
