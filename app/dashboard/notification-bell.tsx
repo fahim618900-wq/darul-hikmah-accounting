@@ -273,7 +273,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
           <div className="absolute top-[calc(100%+8px)] right-0 w-[340px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <div className="font-semibold text-brand-600 dark:text-brand-400 text-sm">
-                নোটিফিকেশন
+                Notifications
               </div>
               {unreadCount > 0 && (
                 <button
