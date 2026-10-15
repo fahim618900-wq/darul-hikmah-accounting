@@ -3,18 +3,18 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 const links = [
-  { href: "/dashboard", label: "ড্যাশবোর্ড" },
-  { href: "/dashboard/students", label: "শিক্ষার্থী" },
-  { href: "/dashboard/fees", label: "বেতন আদায়" },
-  { href: "/dashboard/fees-status", label: "Paid / Unpaid" },
-  { href: "/dashboard/income", label: "আয়" },
-  { href: "/dashboard/expenses", label: "ব্যয়" },
-  { href: "/dashboard/reports", label: "রিপোর্ট" },
-  { href: "/admin/users", label: "ব্যবহারকারী" },
-  { href: "/admin/audit-logs", label: "অডিট লগ" },
-  { href: "/admin/closed-months", label: "মাস বন্ধ" },
-  { href: "/admin/settings", label: "সেটিংস" },
-  { href: "/admin/clear-data", label: "ডেটা মুছুন" },
+  { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees-status", label: "Paid / Unpaid", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
+  { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
+  { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
+  { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
+  { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
+  { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,12 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const visibleLinks = links.filter((item) =>
-    item.href.startsWith("/admin/") ? isAdmin : (
-      item.href === "/dashboard" || item.href === "/dashboard/fees-status" || item.href === "/dashboard/reports" ||
-      (["/dashboard/students", "/dashboard/fees", "/dashboard/income", "/dashboard/expenses"].includes(item.href) && ["admin", "accountant"].includes(profile?.role || ""))
-    )
-  );
+  const visibleLinks = links.filter((item) => item.roles.includes(profile?.role || ""));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
