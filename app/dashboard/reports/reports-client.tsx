@@ -101,9 +101,6 @@ export default function ReportsClient({
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
-  const monthStart = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
-  const monthEnd = new Date(currentYear, currentMonth, 0).toISOString().split("T")[0];
-
   const stats = useMemo(() => {
     // প্রাপ্য বেতন
     const totalPayable = students.reduce(
@@ -135,7 +132,7 @@ export default function ReportsClient({
       totalExpense,
       due: totalPayable - totalCollected,
     };
-  }, [students, payments, transactions, currentMonth, currentYear, monthStart, monthEnd]);
+  }, [students, payments, transactions, currentMonth, currentYear]);
 
   function toBangla(input: string | number): string {
     const map: Record<string, string> = {
