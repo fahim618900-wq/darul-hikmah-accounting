@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getFeePaymentsForMonth } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -68,13 +69,15 @@ export default function FeesClient({ students }: { students: Student[] }) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data } = await supabase
-        .from("fee_payments")
-        .select("student_id, amount, month, year, payment_date")
-        .eq("month", month)
-        .eq("year", year);
-      setPayments(data || []);
-      setLoading(false);
+      try {
+        const data = await getFeePaymentsForMonth(supabase, month, year);
+        setPayments(data || []);
+      } catch (error) {
+        console.error("Unable to load fee payments", error);
+        setPayments([]);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, [month, year]);
