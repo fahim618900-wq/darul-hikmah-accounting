@@ -168,15 +168,15 @@ export default function FeesStatusClient({
     return students.map((s) => {
       const sp = payments.filter((p) => p.student_id === s.id);
       const paid = sp.reduce((sum, p) => sum + Number(p.amount), 0);
+      const monthlyPayable = Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0));
       const payable =
         filterMode === "month"
-          ? Number(s.monthly_fee || 0) - Number(s.discount || 0)
-          : (Number(s.monthly_fee || 0) - Number(s.discount || 0)) *
-            Math.max(1, countMonths(fromDate, toDate));
-      const due = payable - paid;
+          ? monthlyPayable
+          : monthlyPayable * countMonths(fromDate, toDate);
+      const due = Math.max(0, payable - paid);
 
       let status: "paid" | "unpaid" | "partial";
-      if (paid >= payable && payable > 0) status = "paid";
+      if (payable <= 0 || paid >= payable) status = "paid";
       else if (paid === 0) status = "unpaid";
       else status = "partial";
 
