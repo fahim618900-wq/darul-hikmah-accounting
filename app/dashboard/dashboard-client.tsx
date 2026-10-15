@@ -130,14 +130,8 @@ export default function DashboardClient({
     let fPayments: Payment[] = [];
 
     if (filterMode === "month") {
-      fIncomes = incomes.filter((i) => {
-        const d = new Date(i.entry_date);
-        return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
-      });
-      fExpenses = expenses.filter((e) => {
-        const d = new Date(e.entry_date);
-        return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
-      });
+      fIncomes = incomes.filter((i) => isDateInMonth(i.entry_date, selectedMonth, selectedYear));
+      fExpenses = expenses.filter((e) => isDateInMonth(e.entry_date, selectedMonth, selectedYear));
       fPayments = payments.filter(
         (p) => isDateInMonth(p.payment_date, selectedMonth, selectedYear)
       );
