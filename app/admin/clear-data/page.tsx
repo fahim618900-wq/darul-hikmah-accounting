@@ -16,14 +16,14 @@ export default async function ClearDataPage() {
   if (profile?.role !== "admin") redirect("/dashboard");
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
-      <h2 style={{ fontSize: "1.5rem", color: "#b91c1c", marginBottom: "0.5rem" }}>
+    <section className="space-y-5">
+      <h2 className="text-2xl font-extrabold tracking-tight text-red-700 dark:text-red-400 sm:text-3xl">
         সব ডেটা মুছুন
       </h2>
-      <p style={{ color: "#64748b", marginBottom: "2rem" }}>
+      <p className="max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
         ⚠️ বিপজ্জনক এলাকা। এখান থেকে সব ডেমো ডেটা মুছে ফেলা যাবে।
       </p>
       <ClearDataClient />
-    </main>
+    </section>
   );
 }
