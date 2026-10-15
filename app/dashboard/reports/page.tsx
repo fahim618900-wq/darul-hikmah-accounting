@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { getFinancialData } from "@/lib/financial";
 import ReportsClient from "./reports-client";
 
 export default async function ReportsPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -14,41 +14,26 @@ export default async function ReportsPage() {
     .eq("id", user?.id)
     .single();
 
-  const { data: students } = await supabase
-    .from("students")
-    .select("id, student_id, name, class_name, roll, section, monthly_fee, discount, status")
-    .eq("status", "active")
-    .order("class_name")
-    .order("roll");
-
-  const { data: incomeCategories } = await supabase
-    .from("income_categories")
-    .select("id, name")
-    .order("name");
-
-  const { data: expenseCategories } = await supabase
-    .from("expense_categories")
-    .select("id, name")
-    .order("name");
-
-  const { data: payments } = await supabase
-    .from("fee_payments")
-    .select("*")
-    .order("payment_date", { ascending: false });
-
-  const { data: transactions } = await supabase
-    .from("transactions_all")
-    .select("*")
-    .order("date", { ascending: false });
+  const [studentsResult, incomeCategoriesResult, expenseCategoriesResult, financialData] = await Promise.all([
+    supabase
+      .from("students")
+      .select("id, student_id, name, class_name, roll, section, monthly_fee, discount, status")
+      .eq("status", "active")
+      .order("class_name")
+      .order("roll"),
+    supabase.from("income_categories").select("id, name").order("name"),
+    supabase.from("expense_categories").select("id, name").order("name"),
+    getFinancialData(supabase),
+  ]);
 
   return (
     <main>
       <ReportsClient
-        students={students || []}
-        payments={payments || []}
-        transactions={transactions || []}
-        incomeCategories={incomeCategories || []}
-        expenseCategories={expenseCategories || []}
+        students={studentsResult.data || []}
+        payments={financialData.feePayments || []}
+        transactions={financialData.transactions || []}
+        incomeCategories={incomeCategoriesResult.data || []}
+        expenseCategories={expenseCategoriesResult.data || []}
         userName={profile?.full_name || user?.email || ""}
       />
     </main>
