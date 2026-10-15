@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import FeesStatusClient from "./fees-status-client";
 
-export default async function FeesStatusPage() {
+export default async function FeesStatusPage({ searchParams }: { searchParams: { highlight?: string; month?: string; year?: string; date?: string } }) {
   const supabase = await createClient();
 
   const {
@@ -26,6 +26,10 @@ export default async function FeesStatusPage() {
       <FeesStatusClient
         students={students || []}
         userName={profile?.full_name || user?.email || ""}
+        highlight={searchParams.highlight || ""}
+        initialMonth={searchParams.month ? Number(searchParams.month) : undefined}
+        initialYear={searchParams.year ? Number(searchParams.year) : undefined}
+        highlightDate={searchParams.date || ""}
       />
     </main>
   );
