@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StudentDetailModal from "./student-detail-modal";
+import { getFeePaymentsForMonth, getFeePaymentsForDateRange, getFeePaymentsForFeeMonthRange, lastDayOfMonth, todayDateKey } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -67,7 +68,7 @@ function firstOfMonthISO(): string {
 function lastOfMonthISO(): string {
   const d = new Date();
   const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return last.toISOString().split("T")[0];
+  return lastDayOfMonth(d.getFullYear(), d.getMonth() + 1);
 }
 
 function statusLabel(s: "paid" | "unpaid" | "partial"): string {
@@ -121,27 +122,22 @@ export default function FeesStatusClient({
 
   // হাইলাইট তারিখ
   const highlightToday = highlight === "today";
-  const targetDate = highlightDate || new Date().toISOString().split("T")[0];
+  const targetDate = highlightDate || todayDateKey();
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      if (filterMode === "month") {
-        const { data } = await supabase
-          .from("fee_payments")
-          .select("*")
-          .eq("month", month)
-          .eq("year", year);
+      try {
+        const data = filterMode === "month"
+          ? await getFeePaymentsForMonth(supabase, month, year)
+          : await getFeePaymentsForDateRange(supabase, fromDate, toDate);
         setPayments(data || []);
-      } else {
-        const { data } = await supabase
-          .from("fee_payments")
-          .select("*")
-          .gte("payment_date", fromDate)
-          .lte("payment_date", toDate);
-        setPayments(data || []);
+      } catch (error) {
+        console.error("Unable to load fee status payments", error);
+        setPayments([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     load();
   }, [filterMode, month, year, fromDate, toDate]);
@@ -163,18 +159,13 @@ export default function FeesStatusClient({
         return;
       }
 
-      const { data } = await supabase
-        .from("fee_payments")
-        .select("*")
-        .gte("year", from.getFullYear())
-        .lte("year", to.getFullYear());
-
-      const firstPeriod = from.getFullYear() * 12 + from.getMonth() + 1;
-      const lastPeriod = to.getFullYear() * 12 + to.getMonth() + 1;
-      const periodPayments = (data || []).filter((payment) => {
-        const period = Number(payment.year) * 12 + Number(payment.month);
-        return period >= firstPeriod && period <= lastPeriod;
-      });
+      const periodPayments = await getFeePaymentsForFeeMonthRange(
+        supabase,
+        from.getMonth() + 1,
+        from.getFullYear(),
+        to.getMonth() + 1,
+        to.getFullYear()
+      );
       if (!cancelled) setRangePrintPayments(periodPayments);
     }
 
