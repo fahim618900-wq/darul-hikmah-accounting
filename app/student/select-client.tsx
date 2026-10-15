@@ -140,8 +140,8 @@ export default function StudentSelect() {
 
   if (checking) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="w-12 h-12 border-4 border-brand-500/30 border-t-brand-500 rounded-full animate-spin mx-auto mb-4" />
+      <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-white/90 p-7 text-center shadow-xl shadow-teal-950/5 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 sm:p-10">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-violet-500 shadow-lg shadow-teal-500/20"><div className="h-7 w-7 animate-spin rounded-full border-[3px] border-white/40 border-t-white" /></div>
         <p className="text-slate-500 text-sm">লোড হচ্ছে...</p>
       </div>
     );
@@ -149,7 +149,7 @@ export default function StudentSelect() {
 
   if (!portalEnabled) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-white/95 p-7 text-center shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/95 sm:p-10">
         <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-5">
           <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" />
@@ -177,19 +177,19 @@ export default function StudentSelect() {
   // ==================== ধাপ ১: নাম সিলেক্ট ====================
   if (step === "select") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5 sm:space-y-6">
         {/* হেডার */}
         <div className="text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-gradient-to-br from-emerald-500 via-teal-500 to-violet-600 shadow-xl shadow-teal-500/25 ring-4 ring-white/80 sm:h-20 sm:w-20 dark:ring-slate-900">
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
+          <h1 className="mb-1 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
             দারুল হিকমাহ মডেল মাদ্রাসা
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             শিক্ষার্থী পোর্টাল
           </p>
         </div>
@@ -204,7 +204,7 @@ export default function StudentSelect() {
         </div>
 
         {/* মূল কার্ড */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-white/80 bg-white/95 p-4 shadow-xl shadow-slate-900/5 ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900/95 dark:ring-slate-800 sm:p-6">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">
             আপনার পরিচয় নির্বাচন করুন
           </h2>
@@ -219,7 +219,7 @@ export default function StudentSelect() {
           <select
             value={classFilter}
             onChange={(e) => setClassFilter(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-semibold text-slate-900 shadow-inner shadow-slate-900/[0.02] transition focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           >
             <option value="">-- শ্রেণি বেছে নিন --</option>
             {CLASSES.map((c) => (
@@ -242,10 +242,10 @@ export default function StudentSelect() {
                       <button
                         key={s.id}
                         onClick={() => toggleSelect(s)}
-                        className={`w-full text-left px-3 py-3 rounded-2xl border-2 transition flex items-center gap-3 ${
+                        className={`group w-full text-left px-3 py-3.5 rounded-2xl border transition flex items-center gap-3 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${
                           isSelected
-                            ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-brand-300 dark:hover:border-brand-700"
+                            ? "border-teal-400 bg-gradient-to-r from-teal-50 to-emerald-50 ring-2 ring-teal-500/10 dark:border-teal-700 dark:from-teal-950/60 dark:to-emerald-950/30"
+                            : "border-slate-200 bg-white hover:border-teal-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-teal-700"
                         }`}
                       >
                         {/* চেকবক্স */}
@@ -346,7 +346,7 @@ export default function StudentSelect() {
           <button
             onClick={handleNext}
             disabled={selected.length === 0}
-            className="w-full mt-5 py-4 rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white text-sm font-bold shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-violet-600 py-4 text-sm font-extrabold text-white shadow-lg shadow-teal-600/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
             পরবর্তী ধাপ
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -362,9 +362,9 @@ export default function StudentSelect() {
   // ==================== ধাপ ২: সতর্কবার্তা ====================
   if (step === "warning") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5 sm:space-y-6">
         <div className="text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-gradient-to-br from-emerald-500 via-teal-500 to-violet-600 shadow-xl shadow-teal-500/25 ring-4 ring-white/80 sm:h-20 sm:w-20 dark:ring-slate-900">
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
@@ -383,7 +383,7 @@ export default function StudentSelect() {
           <StepIndicator number={3} label="যাচাই" />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border-2 border-red-200 dark:border-red-800/40 shadow-xl">
+        <div className="overflow-hidden rounded-3xl border border-rose-200 bg-white shadow-xl shadow-rose-900/10 dark:border-rose-900/50 dark:bg-slate-900">
           {/* হেডার */}
           <div className="bg-gradient-to-br from-red-500 to-rose-600 p-5 sm:p-6 text-center text-white">
             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3">
@@ -487,9 +487,9 @@ export default function StudentSelect() {
 
   // ==================== ধাপ ৩: যাচাই ====================
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 sm:space-y-6">
       <div className="text-center">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-gradient-to-br from-emerald-500 via-teal-500 to-violet-600 shadow-xl shadow-teal-500/25 ring-4 ring-white/80 sm:h-20 sm:w-20 dark:ring-slate-900">
           <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
@@ -508,7 +508,7 @@ export default function StudentSelect() {
         <StepIndicator number={3} label="যাচাই" active />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-white/80 bg-white/95 p-4 shadow-xl shadow-slate-900/5 ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900/95 dark:ring-slate-800 sm:p-6">
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-3">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -564,7 +564,7 @@ export default function StudentSelect() {
             placeholder="১২৩৪"
             required
             autoFocus
-            className="w-full text-center text-3xl font-bold tracking-[0.5em] py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 text-center text-3xl font-extrabold tracking-[0.5em] text-slate-900 shadow-inner transition focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           />
 
           {error && (
