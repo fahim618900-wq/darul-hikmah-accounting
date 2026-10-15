@@ -113,7 +113,7 @@ export default function StudentList({
 
   async function handleDelete(student: Student) {
     const confirmed = confirm(
-      `"${student.name}" কে স্থায়ীভাবে ডিলিট করতে চান?\n\n` +
+      `"${student.name}" কে স্থায়ীভাবে Delete করতে চান?\n\n` +
         `সতর্কতা: এই শিক্ষার্থীর সব বেতন এন্ট্রি ও রেকর্ড স্থায়ীভাবে মুছে যাবে।\n` +
         `এই কাজটি ফিরিয়ে আনা যাবে না।`
     );
@@ -164,10 +164,10 @@ export default function StudentList({
         <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
           <div>
             <h2 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white mb-0.5">
-              শিক্ষার্থী ব্যবস্থাপনা
+              Student Management
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              মোট {toBangla(students.length)} জন শিক্ষার্থী
+              Total {toBangla(students.length)} students
             </p>
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
@@ -180,7 +180,7 @@ export default function StudentList({
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
       <rect x="6" y="14" width="12" height="8" />
     </svg>
-    ক্লাস প্রিন্ট
+    Print by Class
   </Link>
   <button
     onClick={handleAddNew}
@@ -190,7 +190,7 @@ export default function StudentList({
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              নতুন
+              Add New
             </button>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function StudentList({
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
             <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
-              নতুন ভর্তি হওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
+              Add New ভর্তি হওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
             </span>
           </div>
         )}
@@ -216,7 +216,7 @@ export default function StudentList({
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <span className="text-sm text-purple-700 dark:text-purple-400 font-medium">
-              ছাড় পাওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
+              Discount পাওয়া শিক্ষার্থীরা হাইলাইট করা হয়েছে — {toBangla(highlightIds.size)} জন
             </span>
           </div>
         )}
@@ -228,11 +228,11 @@ export default function StudentList({
             <div className="text-base font-bold text-brand-600">{toBangla(students.length)}</div>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#15803d" }}>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">সক্রিয়</div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Active</div>
             <div className="text-base font-bold text-emerald-600">{toBangla(activeCount)}</div>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#b91c1c" }}>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">নিষ্ক্রিয়</div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Inactive</div>
             <div className="text-base font-bold text-red-600">{toBangla(inactiveCount)}</div>
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function StudentList({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="নাম, আইডি, রোল বা ফোন দিয়ে খুঁজুন..."
+              placeholder="Search name, ID, roll or phone..."
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
           </div>
@@ -254,7 +254,7 @@ export default function StudentList({
               onChange={(e) => setClassFilter(e.target.value)}
               className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             >
-              <option value="">সব শ্রেণি</option>
+              <option value="">All Classes</option>
               {CLASSES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -264,9 +264,9 @@ export default function StudentList({
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             >
-              <option value="all">সব স্ট্যাটাস</option>
-              <option value="active">সক্রিয়</option>
-              <option value="inactive">নিষ্ক্রিয়</option>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
           </div>
         </div>
@@ -278,78 +278,64 @@ export default function StudentList({
         )}
       </div>
 
-      {/* ============ মোবাইল: টেবিল ============ */}
-      <div className="md:hidden max-w-7xl mx-auto px-3 sm:px-4 mb-6">
+      {/* Mobile student list: fit screen, avatar and actions stay visible */}
+      <div className="md:hidden w-full min-w-0 max-w-7xl mx-auto px-3 mb-6">
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2.5 text-[11px] font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+            <span>Student</span><span>Actions</span>
+          </div>
           {sorted.length === 0 ? (
             <div className="p-8 text-center text-sm text-slate-500">
-              {students.length === 0 ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি" : "কোনো ফলাফল পাওয়া যায়নি"}
+              {students.length === 0 ? "No students added yet" : "No results found"}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[590px] text-xs">
-                <thead className="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800/80">
-                  <tr>
-                    <th className="px-3 py-3 text-left font-bold text-slate-600 dark:text-slate-300">শিক্ষার্থীর নাম</th>
-                    <th className="px-3 py-3 text-left font-bold text-slate-600 dark:text-slate-300">শ্রেণি / রোল</th>
-                    <th className="px-3 py-3 text-right font-bold text-slate-600 dark:text-slate-300">মাসিক বেতন</th>
-                    <th className="px-3 py-3 text-center font-bold text-slate-600 dark:text-slate-300">অবস্থা</th>
-                    <th className="px-3 py-3 text-center font-bold text-slate-600 dark:text-slate-300">কাজ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map((s, i) => {
-                    const isActive = s.status === "active";
-                    const isH = highlightIds.has(s.id);
-                    const isFirstHighlight = isH && i === firstHighlightIndex;
-                    return (
-                      <tr
-                        key={s.id}
-                        ref={isFirstHighlight ? (highlightRef as any) : null}
-                        className={`border-t border-slate-100 transition hover:bg-teal-50/50 dark:border-slate-800 dark:hover:bg-slate-800/60 ${isH ? "bg-amber-50 dark:bg-amber-900/20" : ""}`}
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {sorted.map((s, i) => {
+                const isH = highlightIds.has(s.id);
+                const isFirstHighlight = isH && i === firstHighlightIndex;
+                return (
+                  <div
+                    key={s.id}
+                    ref={isFirstHighlight ? (highlightRef as any) : null}
+                    className={`flex w-full min-w-0 items-center gap-2 px-2.5 py-2.5 transition ${isH ? "bg-amber-50 dark:bg-amber-900/20" : ""}`}
+                  >
+                    <Link href={`/dashboard/students/${s.id}`} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-sm font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800">
+                        {s.photo_url ? <img src={s.photo_url} alt={s.name} className="h-full w-full object-cover" /> : s.name.charAt(0)}
+                      </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-bold text-slate-900 dark:text-white">{s.name}</span>
+                        <span className="mt-0.5 block truncate text-[10px] text-slate-500 dark:text-slate-400">ID: {s.student_id || "—"}</span>
+                        {isH && <span className="mt-0.5 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{highlight === "new" ? "New" : "Discount"}</span>}
+                      </span>
+                    </Link>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(s)}
+                        aria-label={"Edit " + s.name}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-teal-100 bg-teal-50 text-teal-800 transition hover:bg-teal-100 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300"
+                        title="Edit"
                       >
-                        <td className="px-3 py-3">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-100 font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800">
-                              {s.photo_url ? <img src={s.photo_url} alt={s.name} className="h-full w-full object-cover" /> : s.name.charAt(0)}
-                            </div>
-                            <div className="min-w-0">
-                              <Link href={`/dashboard/students/${s.id}`} className="block max-w-[180px] truncate text-xs font-bold text-slate-900 hover:text-teal-700 dark:text-white dark:hover:text-teal-300">
-                                {s.name}
-                              </Link>
-                              <span className="mt-0.5 block text-[10px] text-slate-400">{s.student_id || "আইডি নেই"}</span>
-                              {isH && <span className="mt-1 inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">{highlight === "new" ? "নতুন" : "ছাড়"}</span>}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-slate-600 dark:text-slate-300">
-                          <span className="block font-semibold">{s.class_name}{s.section ? ` · ${s.section}` : ""}</span>
-                          <span className="mt-1 block text-[10px] text-slate-400">রোল: {s.roll || "—"}</span>
-                        </td>
-                        <td className="px-3 py-3 text-right">
-                          <span className="font-bold text-emerald-700 dark:text-emerald-400">৳{toBangla(s.monthly_fee)}</span>
-                          {Number(s.discount || 0) > 0 && <span className="mt-1 block text-[10px] text-amber-600">ছাড় ৳{toBangla(s.discount)}</span>}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-bold ${isActive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"}`}>
-                            {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button onClick={() => handleEdit(s)} aria-label={s.name + " সম্পাদনা"} className="rounded-lg border border-teal-100 bg-teal-50 px-2 py-1.5 font-semibold text-teal-800 transition hover:bg-teal-100 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300">সম্পাদনা</button>
-                            <button onClick={() => handleDelete(s)} disabled={loading === s.id} aria-label={s.name + " ডিলিট"} className="rounded-lg border border-rose-100 bg-rose-50 px-2 py-1.5 font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">{loading === s.id ? "..." : "ডিলিট"}</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(s)}
+                        disabled={loading === s.id}
+                        aria-label={"Delete " + s.name}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                        title="Delete"
+                      >
+                        {loading === s.id ? <span className="text-[10px]">...</span> : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
-        {sorted.length > 0 && <p className="mt-2 text-center text-[11px] text-slate-400">তালিকাটি আড়াআড়ি সরিয়ে সব তথ্য ও কাজের বোতাম দেখুন</p>}
       </div>
 
       {/* ============ ডেস্কটপ: টেবিল ============ */}
@@ -358,7 +344,7 @@ export default function StudentList({
           {sorted.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               {students.length === 0
-                ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি। উপরে '+ নতুন' বাটনে ক্লিক করুন।"
+                ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি। উপরে '+ Add New' বাটনে ক্লিক করুন।"
                 : "কোনো ফলাফল পাওয়া যায়নি।"}
             </div>
           ) : (
@@ -370,11 +356,11 @@ export default function StudentList({
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">অভিভাবক</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">মাসিক বেতন</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">ছাড়</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">স্ট্যাটাস</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">অ্যাকশন</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Guardian</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Monthly Fee</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Discount</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">Status</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -411,7 +397,7 @@ export default function StudentList({
                             </Link>
                             {isH && (
                               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-200 text-yellow-800">
-                                {highlight === "new" ? "নতুন" : "ছাড়"}
+                                {highlight === "new" ? "Add New" : "Discount"}
                               </span>
                             )}
                           </div>
@@ -431,7 +417,7 @@ export default function StudentList({
                         <td className="px-4 py-3 text-right text-amber-600">৳{toBangla(s.discount || 0)}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ background: badge.bg, color: badge.text }}>
-                            {isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                            {isActive ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -440,14 +426,14 @@ export default function StudentList({
                               onClick={() => handleEdit(s)}
                               className="px-2.5 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 text-xs font-medium hover:bg-brand-100 transition"
                             >
-                              সম্পাদনা
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDelete(s)}
                               disabled={loading === s.id}
                               className="px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-100 transition disabled:opacity-50"
                             >
-                              {loading === s.id ? "..." : "ডিলিট"}
+                              {loading === s.id ? "..." : "Delete"}
                             </button>
                           </div>
                         </td>
