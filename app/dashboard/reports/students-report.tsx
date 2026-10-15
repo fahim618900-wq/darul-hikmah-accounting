@@ -98,11 +98,11 @@ export default function StudentsReport({
         </button>
       </div>
 
-      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
+      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/10 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-5 sm:px-6 dark:border-teal-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950 print:bg-white" style={{ borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+            <h1 className="mb-1 text-xl font-extrabold tracking-tight text-teal-800 sm:text-2xl dark:text-teal-300 print:text-teal-800" style={{ marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
+            <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400 print:text-slate-600" style={{ fontSize: "0.85rem" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>বিষয়:</strong> শিক্ষার্থী রিপোর্ট</div>
@@ -114,18 +114,18 @@ export default function StudentsReport({
           </div>
         </div>
 
-        <div style={{ background: "#ffffff", padding: "1rem 1.5rem" }}>
-          <h3 style={{ fontSize: "1rem", color: "#0f766e", marginBottom: "0.6rem" }}>শ্রেণিভিত্তিক সংখ্যা</h3>
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1rem 1.5rem" }}>
+          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1rem", color: "#0f766e", marginBottom: "0.6rem" }}>শ্রেণিভিত্তিক সংখ্যা</h3>
           <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
             <thead>
-              <tr style={{ background: "#0f766e", color: "#fff" }}>
+              <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
                 <th style={th}>শ্রেণি</th>
                 <th style={{ ...th, textAlign: "right" }}>শিক্ষার্থী</th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(byClass).map(([cls, count]) => (
-                <tr key={cls} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <tr key={cls} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                   <td style={td}>{cls}</td>
                   <td style={{ ...td, textAlign: "right", fontWeight: "500" }}>{toBangla(count)} জন</td>
                 </tr>
@@ -136,7 +136,7 @@ export default function StudentsReport({
 
         <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.82rem" }}>
           <thead>
-            <tr style={{ background: "#0f766e", color: "#fff" }}>
+            <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
               <th style={th}>নং</th>
               <th style={th}>আইডি</th>
               <th style={th}>নাম</th>
@@ -152,7 +152,7 @@ export default function StudentsReport({
             {filtered.map((s, i) => {
               const payable = Number(s.monthly_fee) - Number(s.discount || 0);
               return (
-                <tr key={s.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <tr key={s.id} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                   <td style={td}>{toBangla(i + 1)}</td>
                   <td style={td}>{s.student_id || "-"}</td>
                   <td style={{ ...td, fontWeight: "500" }}>{s.name}</td>
