@@ -146,7 +146,7 @@ export default function FeesStatusClient({
     load();
   }, [filterMode, month, year, fromDate, toDate]);
 
-  // শুধু প্রিন্ট রিপোর্টের জন্য: নির্বাচিত সময়ের ফি-মাসগুলোর সব পেমেন্ট আলাদা করে আনি।
+  // শুধু Print রিপোর্টের জন্য: নির্বাচিত সময়ের ফি-মাসগুলোর সব পেমেন্ট আলাদা করে আনি।
   // মূল পেজের payment-date ফিল্টার ও হিসাব অপরিবর্তিত থাকে।
   useEffect(() => {
     if (filterMode !== "range") {
@@ -314,7 +314,7 @@ export default function FeesStatusClient({
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
             <span className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
-              আজ বেতন দিয়েছে — {toBangla(todayPaymentIds.size)} জন
+              Paid today — {toBangla(todayPaymentIds.size)} জন
             </span>
           </div>
         )}
@@ -361,7 +361,7 @@ export default function FeesStatusClient({
           {filterMode === "month" && (
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">মাস</label>
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Month</label>
                 <select
                   value={month}
                   onChange={(e) => setMonth(Number(e.target.value))}
@@ -373,7 +373,7 @@ export default function FeesStatusClient({
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">বছর</label>
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Year</label>
                 <input
                   type="number"
                   value={year}
@@ -462,9 +462,9 @@ export default function FeesStatusClient({
         </div>
       </div>
 
-      {/* ==================== প্রিন্ট এরিয়া ==================== */}
+      {/* ==================== Print এরিয়া ==================== */}
       <div className="print-area max-w-7xl mx-auto px-3 sm:px-4">
-        {/* প্রিন্ট হেডার */}
+        {/* Print হেডার */}
         <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 sm:py-5 mb-4 border-b-2 border-brand-600">
           <div className="text-center mb-3">
             <h1 className="text-lg sm:text-xl font-bold text-brand-700 mb-1">
@@ -475,12 +475,12 @@ export default function FeesStatusClient({
             </p>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
-            <div><strong>বিষয়:</strong> Paid / Unpaid List ({statusText})</div>
-            <div><strong>তারিখ:</strong> {todayBangla()}</div>
+            <div><strong>Report:</strong> Paid / Unpaid List ({statusText})</div>
+            <div><strong>Date:</strong> {todayBangla()}</div>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
-            <div><strong>সময়কাল:</strong> {filterLabel}</div>
-            <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
+            <div><strong>Period:</strong> {filterLabel}</div>
+            <div><strong>Prepared by:</strong> {preparedBy || "_______________"}</div>
           </div>
         </div>
 
@@ -535,15 +535,15 @@ export default function FeesStatusClient({
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নং</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">No.</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Student</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Class</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Roll</th>
                     <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Payable</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">জমা</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Collected</th>
                     <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Due</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">স্ট্যাটাস</th>
-                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs no-print">অ্যাকশন</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">Status</th>
+                    <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs no-print">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -598,7 +598,7 @@ export default function FeesStatusClient({
                 <tfoot>
                   <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-brand-600">
                     <td colSpan={4} className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                      Total ({toBangla(filtered.length)} জন):
+                      Total ({toBangla(filtered.length)} students):
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">৳{toBangla(totalPayable)}</td>
                     <td className="px-4 py-3 text-right font-bold text-emerald-700">৳{toBangla(totalPaid)}</td>
@@ -611,19 +611,19 @@ export default function FeesStatusClient({
           )}
         </div>
 
-        {/* প্রিন্ট-অনলি: Excel-style Paid / Unpaid List */}
+        {/* Print-অনলি: Excel-style Paid / Unpaid List */}
         <div className="fees-status-print-summary hidden print:block mt-2">
           <table className="w-full border-collapse text-[10px]">
             <thead>
               <tr>
                 <th className="border border-slate-500 px-1.5 py-2 text-center w-[5%]">ক্রমিক</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[19%]">শিক্ষার্থীর নাম ও শ্রেণি</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">অভিভাবকের মোবাইল</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">অভিভাবকের নাম</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">যে মাসগুলোর বেতন Due</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[18%]">মাসভিত্তিক বকেয়া</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[19%]">Student Name ও Class</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">Guardian Phone</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">অভিভাবকের Student</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">Outstanding Months</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[18%]">Monthly Due</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-right w-[9%]">মোট Due (৳)</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-center w-[6%]">যাচাই</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-center w-[6%]">Checked</th>
               </tr>
             </thead>
             <tbody>
@@ -649,15 +649,13 @@ export default function FeesStatusClient({
                     .reduce((sum, p) => sum + Number(p.amount || 0), 0);
                   return { ...period, due: Math.max(0, netMonthlyFee - paidForMonth) };
                 }).filter((period) => period.due > 0);
-                const monthNames = monthDues.map((period) => MONTHS[period.month - 1] + (filterMode === "range" ? " " + toBangla(period.year) : ""));
-                const monthAmounts = monthDues.map((period) => MONTHS[period.month - 1] + ": ৳" + toBangla(period.due));
                 const printDue = monthDues.reduce((sum, period) => sum + period.due, 0);
                 return (
                   <tr key={r.student.id} className="print-row">
                     <td className="border border-slate-400 px-1.5 py-2 text-center">{toBangla(i + 1)}</td>
                     <td className="border border-slate-400 px-1.5 py-2">
                       <div className="font-semibold">{r.student.name}</div>
-                      <div className="text-[9px] text-slate-600">শ্রেণি: {r.student.class_name}{r.student.roll ? " · রোল: " + r.student.roll : ""}</div>
+                      <div className="text-[9px] text-slate-600">Class: {r.student.class_name}{r.student.roll ? " · Roll: " + r.student.roll : ""}</div>
                     </td>
                     <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_phone || "—"}</td>
                     <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_name || "—"}</td>
@@ -668,7 +666,7 @@ export default function FeesStatusClient({
                             {monthDues.map((period) => (
                               <tr key={period.year + "-" + period.month}>
                                 <td className="border border-slate-300 px-1 py-1">{MONTHS[period.month - 1]}{filterMode === "range" ? " " + toBangla(period.year) : ""}</td>
-                                <td className="border border-slate-300 px-1 py-1 text-right">{period.due > 0 ? "Due" : "পরিশোধিত"}</td>
+                                <td className="border border-slate-300 px-1 py-1 text-right">{period.due > 0 ? "Due" : "Paid"}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -730,13 +728,13 @@ export default function FeesStatusClient({
 
           <div className="flex justify-between mt-12 pt-2">
             <div className="text-center">
-              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">প্রস্তুতকারীর স্বাক্ষর</div>
+              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">Prepared by</div>
             </div>
             <div className="text-center">
-              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">যাচাইকারীর স্বাক্ষর</div>
+              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">Verified by</div>
             </div>
           </div>
-          <div className="text-center text-[9px] text-slate-500 mt-4">এই রিপোর্টটি মাদরাসার হিসাব ব্যবস্থাপনা থেকে তৈরি করা হয়েছে।</div>
+          <div className="text-center text-[9px] text-slate-500 mt-4">Generated by the Madrasa Accounting System.</div>
         </div>
       </div>
     </>
