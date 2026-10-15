@@ -18,6 +18,8 @@ export default async function PaymentPage({
     .from("students")
     .select("*")
     .eq("id", params.id)
+    .or("is_deleted.eq.false,is_deleted.is.null")
+    .is("deleted_at", null)
     .single();
 
   if (!student) {
@@ -35,7 +37,10 @@ export default async function PaymentPage({
     .eq("student_id", params.id)
     .eq("month", currentMonth)
     .eq("year", currentYear)
-    .order("payment_date", { ascending: false });
+    .or("is_deleted.eq.false,is_deleted.is.null")
+    .is("deleted_at", null)
+    .order("payment_date", { ascending: false })
+    .order("id", { ascending: true });
 
   const paidThisMonth = (existingPayments || []).reduce(
     (sum, p) => sum + Number(p.amount),
