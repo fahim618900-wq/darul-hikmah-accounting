@@ -22,11 +22,11 @@ export default async function ClosedMonthsPage() {
     .order("month", { ascending: false });
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
-      <h2 style={{ fontSize: "1.5rem", color: "#0f766e", marginBottom: "0.25rem" }}>
+    <section className="space-y-5">
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         মাস বন্ধ / লক
       </h2>
-      <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
         মাস বন্ধ করলে সেই মাসের সব আয়-ব্যয়-বেতন লক হয়ে যাবে। আর কেউ পরিবর্তন করতে পারবে না।
       </p>
 
@@ -34,6 +34,6 @@ export default async function ClosedMonthsPage() {
         closedMonths={closedMonths || []}
         userName={profile?.full_name || user.email || ""}
       />
-    </main>
+    </section>
   );
 }
