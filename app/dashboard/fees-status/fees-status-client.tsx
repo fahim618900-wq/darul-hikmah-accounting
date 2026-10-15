@@ -195,7 +195,7 @@ export default function FeesStatusClient({
 
   const classes = Array.from(new Set(students.map((s) => s.class_name)));
 
-  // প্রাপ্য হিসাব
+  // Payable হিসাব
   const rows: Row[] = useMemo(() => {
     return students.map((s) => {
       const sp = payments.filter((p) => p.student_id === s.id);
@@ -286,10 +286,10 @@ export default function FeesStatusClient({
       <div ref={topRef} className="no-print max-w-7xl mx-auto px-3 sm:px-4 pt-4">
         <div className="mb-4">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
-            Paid / Unpaid তালিকা
+            Paid / Unpaid List
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            মাস বা তারিখ রেঞ্জ অনুযায়ী হিসাব ও প্রিন্ট
+            View and print fee status by month or date range
           </p>
         </div>
 
@@ -302,7 +302,7 @@ export default function FeesStatusClient({
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <span className="text-sm text-amber-700 dark:text-amber-400 font-medium">
-              বাকি থাকা শিক্ষার্থীরা দেখানো হচ্ছে — {toBangla(filtered.length)} জন
+              Due থাকা শিক্ষার্থীরা দেখানো হচ্ছে — {toBangla(filtered.length)} জন
             </span>
           </div>
         )}
@@ -321,16 +321,16 @@ export default function FeesStatusClient({
 
         {/* সারাংশ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
-          <SummaryCard label="মোট শিক্ষার্থী" value={toBangla(students.length)} color="#2563eb" />
+          <SummaryCard label="Total Students" value={toBangla(students.length)} color="#2563eb" />
           <SummaryCard label="Paid" value={toBangla(paidCount)} color="#15803d" />
           <SummaryCard label="Partial" value={toBangla(partialCount)} color="#b45309" />
           <SummaryCard label="Unpaid" value={toBangla(unpaidOnly)} color="#b91c1c" />
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
-          <MoneyCard label="প্রাপ্য" value={totalPayable} color="#1e40af" />
-          <MoneyCard label="আদায়" value={totalPaid} color="#15803d" />
-          <MoneyCard label="বাকি" value={totalDue} color="#b91c1c" />
+          <MoneyCard label="Payable" value={totalPayable} color="#1e40af" />
+          <MoneyCard label="Collected" value={totalPaid} color="#15803d" />
+          <MoneyCard label="Due" value={totalDue} color="#b91c1c" />
         </div>
 
         {/* ফিল্টার */}
@@ -344,7 +344,7 @@ export default function FeesStatusClient({
                   : "text-slate-500 dark:text-slate-400"
               }`}
             >
-              📅 মাস অনুযায়ী
+              📅 By Month
             </button>
             <button
               onClick={() => setFilterMode("range")}
@@ -354,7 +354,7 @@ export default function FeesStatusClient({
                   : "text-slate-500 dark:text-slate-400"
               }`}
             >
-              📆 তারিখ রেঞ্জ
+              📆 Date Range
             </button>
           </div>
 
@@ -387,7 +387,7 @@ export default function FeesStatusClient({
           {filterMode === "range" && (
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">শুরুর তারিখ</label>
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Start Date</label>
                 <input
                   type="date"
                   value={fromDate}
@@ -396,7 +396,7 @@ export default function FeesStatusClient({
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">শেষ তারিখ</label>
+                <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">End Date</label>
                 <input
                   type="date"
                   value={toDate}
@@ -413,7 +413,7 @@ export default function FeesStatusClient({
               onChange={(e) => setClassFilter(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             >
-              <option value="">সব শ্রেণি</option>
+              <option value="">All Classes</option>
               {classes.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -423,7 +423,7 @@ export default function FeesStatusClient({
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
             >
-              <option value="all">সব স্ট্যাটাস</option>
+              <option value="all">All Statuses</option>
               <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
               <option value="partial">Partial</option>
@@ -432,7 +432,7 @@ export default function FeesStatusClient({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="নাম / আইডি / রোল"
+              placeholder="Search name / ID / roll"
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none col-span-2 sm:col-span-1"
             />
           </div>
@@ -475,7 +475,7 @@ export default function FeesStatusClient({
             </p>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
-            <div><strong>বিষয়:</strong> Paid / Unpaid তালিকা ({statusText})</div>
+            <div><strong>বিষয়:</strong> Paid / Unpaid List ({statusText})</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
           <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
@@ -484,99 +484,44 @@ export default function FeesStatusClient({
           </div>
         </div>
 
-        {/* মোবাইল: কার্ড */}
-        <div className="md:hidden space-y-2.5 mb-6 print:hidden">
-          {loading ? (
-            <div className="text-center py-8 text-slate-500 text-sm">লোড হচ্ছে...</div>
-          ) : filtered.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center text-slate-500 text-sm">
-              কোনো ফলাফল পাওয়া যায়নি
+        {/* Mobile: compact, no-horizontal-scroll table */}
+        <div className="md:hidden mb-6 print:hidden w-full min-w-0">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 bg-slate-50 px-3 py-2.5 text-[11px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <span>Student / Phone</span><span>Class · Status</span>
             </div>
-          ) : (
-            filtered.map((r, i) => {
-              const sc = statusColor(r.status);
-              const isHighlighted = (highlightToday && todayPaymentIds.has(r.student.id)) || (highlight === "due" && r.status !== "paid");
-
-              return (
-                <div
-                  key={r.student.id}
-                  ref={(element) => { if (isHighlighted && !highlightRowRef.current) highlightRowRef.current = element; }}
-                  className={`bg-white rounded-2xl overflow-hidden border shadow-sm transition-all ${
-                    isHighlighted
-                      ? (highlight === "due" ? "border-amber-400 ring-2 ring-amber-300 bg-amber-50" : "border-emerald-400 ring-2 ring-emerald-300 bg-emerald-50")
-                      : "border-slate-200"
-                  }`}
-                  style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
-                >
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-semibold text-slate-400">
-                            {toBangla(i + 1)}.
-                          </span>
-                          <h3 className="text-[15px] font-semibold text-slate-900 truncate">
-                            {r.student.name}
-                          </h3>
-                          {isHighlighted && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">
-                              আজ
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500">
-                          <span className="font-medium">{r.student.class_name}</span>
-                          {r.student.roll && <span>• রোল {r.student.roll}</span>}
-                          {r.student.student_id && <span>• {r.student.student_id}</span>}
-                        </div>
-                      </div>
-                      <span
-                        className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
-                        style={{ background: sc.bg, color: sc.text }}
-                      >
-                        {statusLabel(r.status)}
+            {loading ? (
+              <div className="py-8 text-center text-sm text-slate-500">Loading...</div>
+            ) : filtered.length === 0 ? (
+              <div className="py-8 text-center text-sm text-slate-500">No students found</div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filtered.map((r, i) => {
+                  const sc = statusColor(r.status);
+                  const isHighlighted = (highlightToday && todayPaymentIds.has(r.student.id)) || (highlight === "due" && r.status !== "paid");
+                  return (
+                    <button
+                      type="button"
+                      key={r.student.id}
+                      ref={(element) => { if (isHighlighted && !highlightRowRef.current) highlightRowRef.current = element; }}
+                      onClick={() => setDetailStudent(r.student)}
+                      className={`grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-3 text-left transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:hover:bg-slate-800/70 ${isHighlighted ? (highlight === "due" ? "bg-amber-50 ring-1 ring-inset ring-amber-300 dark:bg-amber-900/20" : "bg-emerald-50 ring-1 ring-inset ring-emerald-300 dark:bg-emerald-900/20") : ""}`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px] font-bold text-slate-900 dark:text-white">{r.student.name}</span>
+                        <span className="mt-0.5 block truncate text-[10px] text-slate-500 dark:text-slate-400">{r.student.guardian_phone || "No phone"}</span>
                       </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-slate-50 rounded-xl p-2.5 text-center">
-                        <div className="text-[10px] text-slate-500 mb-0.5">প্রাপ্য</div>
-                        <div className="text-[13px] font-bold text-slate-800">
-                          ৳{toBangla(r.payable)}
-                        </div>
-                      </div>
-                      <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
-                        <div className="text-[10px] text-emerald-700 mb-0.5">জমা</div>
-                        <div className="text-[13px] font-bold text-emerald-700">
-                          ৳{toBangla(r.paid)}
-                        </div>
-                      </div>
-                      <div className={`rounded-xl p-2.5 text-center ${r.due > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-                        <div className={`text-[10px] mb-0.5 ${r.due > 0 ? "text-red-700" : "text-slate-500"}`}>
-                          বাকি
-                        </div>
-                        <div className={`text-[13px] font-bold ${r.due > 0 ? "text-red-700" : "text-slate-500"}`}>
-                          ৳{toBangla(r.due)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setDetailStudent(r.student)}
-                    className="no-print w-full py-2.5 border-t border-slate-100 text-brand-700 text-[12px] font-medium hover:bg-brand-50 transition flex items-center justify-center gap-1.5"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    বিস্তারিত দেখুন
-                  </button>
-                </div>
-              );
-            })
-          )}
+                      <span className="flex max-w-[112px] flex-col items-end gap-1">
+                        <span className="max-w-full truncate text-[11px] font-medium text-slate-700 dark:text-slate-200">{r.student.class_name}</span>
+                        <span className="rounded-full px-2 py-0.5 text-[9px] font-bold" style={{ background: sc.bg, color: sc.text }}>{statusLabel(r.status)}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <p className="mt-1.5 text-center text-[10px] text-slate-400">Tap a student to view details</p>
         </div>
 
         {/* ডেস্কটপ: টেবিল */}
@@ -584,7 +529,7 @@ export default function FeesStatusClient({
           {loading ? (
             <div className="text-center py-12 text-slate-500">লোড হচ্ছে...</div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">কোনো ফলাফল পাওয়া যায়নি</div>
+            <div className="text-center py-12 text-slate-500">No results found</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -594,9 +539,9 @@ export default function FeesStatusClient({
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">প্রাপ্য</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Payable</th>
                     <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">জমা</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">বাকি</th>
+                    <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Due</th>
                     <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs">স্ট্যাটাস</th>
                     <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs no-print">অ্যাকশন</th>
                   </tr>
@@ -653,7 +598,7 @@ export default function FeesStatusClient({
                 <tfoot>
                   <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-brand-600">
                     <td colSpan={4} className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                      সর্বমোট ({toBangla(filtered.length)} জন):
+                      Total ({toBangla(filtered.length)} জন):
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">৳{toBangla(totalPayable)}</td>
                     <td className="px-4 py-3 text-right font-bold text-emerald-700">৳{toBangla(totalPaid)}</td>
@@ -666,7 +611,7 @@ export default function FeesStatusClient({
           )}
         </div>
 
-        {/* প্রিন্ট-অনলি: Excel-style Paid / Unpaid তালিকা */}
+        {/* প্রিন্ট-অনলি: Excel-style Paid / Unpaid List */}
         <div className="fees-status-print-summary hidden print:block mt-2">
           <table className="w-full border-collapse text-[10px]">
             <thead>
@@ -675,9 +620,9 @@ export default function FeesStatusClient({
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[19%]">শিক্ষার্থীর নাম ও শ্রেণি</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">অভিভাবকের মোবাইল</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">অভিভাবকের নাম</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">যে মাসগুলোর বেতন বাকি</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">যে মাসগুলোর বেতন Due</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-left w-[18%]">মাসভিত্তিক বকেয়া</th>
-                <th className="border border-slate-500 px-1.5 py-2 text-right w-[9%]">মোট বাকি (৳)</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-right w-[9%]">মোট Due (৳)</th>
                 <th className="border border-slate-500 px-1.5 py-2 text-center w-[6%]">যাচাই</th>
               </tr>
             </thead>
@@ -716,8 +661,34 @@ export default function FeesStatusClient({
                     </td>
                     <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_phone || "—"}</td>
                     <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_name || "—"}</td>
-                    <td className="border border-slate-400 px-1.5 py-2">{monthNames.length ? monthNames.join(", ") : "বাকি নেই"}</td>
-                    <td className="border border-slate-400 px-1.5 py-2">{monthAmounts.length ? monthAmounts.join(" · ") : "—"}</td>
+                    <td className="border border-slate-400 p-1 align-top">
+                      {monthDues.length ? (
+                        <table className="w-full border-collapse text-[9px]">
+                          <tbody>
+                            {monthDues.map((period) => (
+                              <tr key={period.year + "-" + period.month}>
+                                <td className="border border-slate-300 px-1 py-1">{MONTHS[period.month - 1]}{filterMode === "range" ? " " + toBangla(period.year) : ""}</td>
+                                <td className="border border-slate-300 px-1 py-1 text-right">{period.due > 0 ? "Due" : "পরিশোধিত"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : "—"}
+                    </td>
+                    <td className="border border-slate-400 p-1 align-top">
+                      {monthDues.length ? (
+                        <table className="w-full border-collapse text-[9px]">
+                          <tbody>
+                            {monthDues.map((period) => (
+                              <tr key={period.year + "-" + period.month}>
+                                <td className="border border-slate-300 px-1 py-1">{MONTHS[period.month - 1]}</td>
+                                <td className="border border-slate-300 px-1 py-1 text-right">৳{toBangla(period.due)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : "—"}
+                    </td>
                     <td className="border border-slate-400 px-1.5 py-2 text-right font-semibold">{toBangla(printDue)}</td>
                     <td className="border border-slate-400 px-1.5 py-2 text-center">
                       <span className="print-checkbox inline-block w-4 h-4 border border-slate-700 align-middle"></span>
@@ -728,7 +699,7 @@ export default function FeesStatusClient({
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={6} className="border border-slate-500 px-2 py-2 text-right font-bold">সর্বমোট ({toBangla(filtered.length)} জন)</td>
+                <td colSpan={6} className="border border-slate-500 px-2 py-2 text-right font-bold">Total ({toBangla(filtered.length)} জন)</td>
                 <td className="border border-slate-500 px-1.5 py-2 text-right font-bold">{toBangla(filtered.reduce((sum, r) => {
                   const netMonthlyFee = Math.max(0, Number(r.student.monthly_fee || 0) - Number(r.student.discount || 0));
                   const periods = filterMode === "month"
