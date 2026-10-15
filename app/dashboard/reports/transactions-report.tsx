@@ -48,7 +48,7 @@ export default function TransactionsReport({
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
-      if (t.date < fromDate || t.date > toDate) return false;
+      if (!isDateInRange(t.date, fromDate, toDate)) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
       if (receiptSearch && !(t.ref_no || "").toLowerCase().includes(receiptSearch.toLowerCase())) return false;
       if (categorySearch && !(t.category || "").toLowerCase().includes(categorySearch.toLowerCase())) return false;
