@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { lastDayOfMonth } from "@/lib/financial";
+import { lastDayOfMonth, calculateFinancialTotals, isDateInRange, type FinancialTransaction } from "@/lib/financial";
 
 type Transaction = {
-  type: string;
+  type: "income" | "expense";
+  source: "direct-income" | "fee-collection" | "expense";
   id: number;
   date: string;
   category: string | null;
@@ -56,8 +57,9 @@ export default function TransactionsReport({
     });
   }, [transactions, fromDate, toDate, typeFilter, receiptSearch, categorySearch, descSearch]);
 
-  const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const totalExpense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const totals = calculateFinancialTotals(filtered as FinancialTransaction[]);
+  const totalIncome = totals.totalIncome;
+  const totalExpense = totals.totalExpense;
 
   function clearFilters() {
     setReceiptSearch("");
