@@ -1,5 +1,5 @@
 import LoadingSkeleton from "../../components/loading-skeleton";
 
 export default function Loading() {
-  return <LoadingSkeleton title="অ্যাডমিন পেজ প্রস্তুত হচ্ছে..." fullScreen={false} />;
+  return <LoadingSkeleton title="অ্যাডমিন পেজ প্রস্তুত হচ্ছে..." layout="form" />;
 }
