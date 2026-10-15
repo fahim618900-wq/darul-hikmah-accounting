@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useLayoutEffect, useRef } from "react";
 import { BarChart3, Wallet, Users, FileText, Printer } from "lucide-react";
+import { isDateInMonth, calculateFinancialTotals, type FinancialTransaction } from "@/lib/financial";
 import FeesReport from "./fees-report";
 import IncomeExpenseReport from "./income-expense-report";
 import TransactionsReport from "./transactions-report";
@@ -112,30 +113,20 @@ export default function ReportsClient({
 
     // চলতি মাসে আদায়
     const thisMonthPayments = payments.filter(
-      (p) => p.month === currentMonth && p.year === currentYear
+      (p) => isDateInMonth(p.payment_date, currentMonth, currentYear)
     );
     const totalCollected = thisMonthPayments.reduce(
       (sum, p) => sum + Number(p.amount),
       0
     );
 
-    // চলতি মাসে আয়
-    const thisMonthIncomes = transactions.filter(
-      (t: any) => t.type === "income" && t.date >= monthStart && t.date <= monthEnd
+    // চলতি মাসের আয়, ফি আদায়সহ, এবং ব্যয়—একই কেন্দ্রীয় হিসাব থেকে
+    const thisMonthTransactions = transactions.filter(
+      (t: any) => isDateInMonth(t.date, currentMonth, currentYear)
     );
-    const totalIncome = thisMonthIncomes.reduce(
-      (sum: number, i: any) => sum + Number(i.amount),
-      0
-    );
-
-    // চলতি মাসে ব্যয়
-    const thisMonthExpenses = transactions.filter(
-      (t: any) => t.type === "expense" && t.date >= monthStart && t.date <= monthEnd
-    );
-    const totalExpense = thisMonthExpenses.reduce(
-      (sum: number, e: any) => sum + Number(e.amount),
-      0
-    );
+    const financialTotals = calculateFinancialTotals(thisMonthTransactions as FinancialTransaction[]);
+    const totalIncome = financialTotals.totalIncome;
+    const totalExpense = financialTotals.totalExpense;
 
     return {
       totalPayable,
