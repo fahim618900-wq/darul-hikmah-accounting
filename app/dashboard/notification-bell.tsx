@@ -246,7 +246,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
       <div ref={containerRef} className="relative" style={{ zIndex: 9999 }}>
         <button
           onClick={() => setOpen(!open)}
-          aria-label="নোটিফিকেশন"
+          aria-label="Notifications"
           className="relative w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
         >
           <svg
@@ -280,7 +280,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
                   onClick={markAllAsRead}
                   className="text-brand-600 dark:text-brand-400 text-[11px] font-medium hover:underline"
                 >
-                  সব পড়া হয়েছে
+                  Mark all as read
                 </button>
               )}
             </div>
@@ -288,7 +288,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
             <div className="max-h-[400px] overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="py-8 px-4 text-center text-slate-500 text-sm">
-                  কোনো নোটিফিকেশন নেই
+                  No notifications
                 </div>
               ) : (
                 notifications.map((n) => {
