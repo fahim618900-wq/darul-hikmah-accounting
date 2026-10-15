@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileBarChart, ArrowUpRight } from "lucide-react";
+import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileText, ArrowUpRight } from "lucide-react";
 
 type Student = {
   id: number;
@@ -437,7 +437,7 @@ export default function DashboardClient({
             { href: "/dashboard/students", label: "শিক্ষার্থী যোগ/দেখুন", note: "শিক্ষার্থী তালিকা", icon: <BookOpen size={18} />, color: "#0f766e", tint: "rgba(13,148,136,.10)" },
             { href: "/dashboard/fees", label: "বেতন আদায়", note: "নতুন পেমেন্ট", icon: <Receipt size={18} />, color: "#2563eb", tint: "rgba(37,99,235,.10)" },
             { href: "/dashboard/income", label: "আয় যোগ করুন", note: "আয়ের এন্ট্রি", icon: <PlusCircle size={18} />, color: "#7c3aed", tint: "rgba(124,58,237,.10)" },
-            { href: "/dashboard/reports", label: "রিপোর্ট দেখুন", note: "PDF ও প্রিন্ট", icon: <FileBarChart size={18} />, color: "#b45309", tint: "rgba(217,119,6,.11)" },
+            { href: "/dashboard/reports", label: "রিপোর্ট দেখুন", note: "PDF ও প্রিন্ট", icon: <FileText size={18} />, color: "#b45309", tint: "rgba(217,119,6,.11)" },
           ].map((action) => (
             <Link key={action.href} href={action.href} className="dashboard-quick-link group flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700">
               <span className="flex shrink-0 items-center justify-center w-10 h-10 rounded-xl" style={{ color: action.color, background: action.tint }}>{action.icon}</span>
