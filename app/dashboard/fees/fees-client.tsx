@@ -89,11 +89,11 @@ export default function FeesClient({ students }: { students: Student[] }) {
     return students.map((s) => {
       const sp = payments.filter((p) => p.student_id === s.id);
       const paid = sp.reduce((sum, p) => sum + Number(p.amount), 0);
-      const payable = Number(s.monthly_fee || 0) - Number(s.discount || 0);
-      const due = payable - paid;
+      const payable = Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0));
+      const due = Math.max(0, payable - paid);
 
       let status: "paid" | "unpaid" | "partial";
-      if (paid >= payable && payable > 0) status = "paid";
+      if (payable <= 0 || paid >= payable) status = "paid";
       else if (paid === 0) status = "unpaid";
       else status = "partial";
 
@@ -173,7 +173,7 @@ export default function FeesClient({ students }: { students: Student[] }) {
       <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
         <MoneyCard label="মোট প্রাপ্য" value={totalPayable} color="#1e40af" />
         <MoneyCard label="আদায়" value={totalPaid} color="#15803d" />
-        <MoneyCard label="বাকি" value={totalPayable - totalPaid} color="#b91c1c" />
+        <MoneyCard label="বাকি" value={Math.max(0, totalPayable - totalPaid)} color="#b91c1c" />
       </div>
 
       {/* ফিল্টার */}
