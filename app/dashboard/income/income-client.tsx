@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { isDateInMonth, isDateInRange } from "@/lib/financial";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -110,8 +111,7 @@ export default function IncomeClient({
         if (d.getMonth() + 1 !== selectedMonth) return false;
         if (d.getFullYear() !== selectedYear) return false;
       } else {
-        if (i.entry_date < fromDate) return false;
-        if (i.entry_date > toDate) return false;
+        if (!isDateInRange(i.entry_date, fromDate, toDate)) return false;
       }
 
       if (categoryFilter && i.income_categories?.name !== categoryFilter) return false;
