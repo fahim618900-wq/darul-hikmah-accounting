@@ -11,6 +11,8 @@ type Student = {
   class_name: string;
   section: string | null;
   roll: string | null;
+  guardian_name: string | null;
+  guardian_phone: string | null;
   monthly_fee: number;
   discount: number;
 };
@@ -444,7 +446,7 @@ export default function FeesStatusClient({
         </div>
 
         {/* মোবাইল: কার্ড */}
-        <div className="md:hidden space-y-2.5 mb-6">
+        <div className="md:hidden space-y-2.5 mb-6 print:hidden">
           {loading ? (
             <div className="text-center py-8 text-slate-500 text-sm">লোড হচ্ছে...</div>
           ) : filtered.length === 0 ? (
@@ -539,7 +541,7 @@ export default function FeesStatusClient({
         </div>
 
         {/* ডেস্কটপ: টেবিল */}
-        <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
+        <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6 print:hidden">
           {loading ? (
             <div className="text-center py-12 text-slate-500">লোড হচ্ছে...</div>
           ) : filtered.length === 0 ? (
@@ -625,68 +627,86 @@ export default function FeesStatusClient({
           )}
         </div>
 
-        {/* প্রিন্ট-অনলি: শ্রেণিভিত্তিক সারসংক্ষেপ */}
-        <div className="print-summary hidden print:block mt-6">
-          <h3 className="text-sm font-bold text-slate-800 mb-2 text-center">
-            শ্রেণিভিত্তিক সারসংক্ষেপ
-          </h3>
-          <table className="w-full border-collapse text-xs">
+        {/* প্রিন্ট-অনলি: Excel-style Paid / Unpaid তালিকা */}
+        <div className="print-summary hidden print:block mt-2">
+          <table className="w-full border-collapse text-[10px]">
             <thead>
-              <tr className="bg-brand-600 text-white">
-                <th className="border border-slate-300 px-2 py-2 text-left">শ্রেণি</th>
-                <th className="border border-slate-300 px-2 py-2 text-center">শিক্ষার্থী</th>
-                <th className="border border-slate-300 px-2 py-2 text-right">প্রাপ্য</th>
-                <th className="border border-slate-300 px-2 py-2 text-right">জমা</th>
-                <th className="border border-slate-300 px-2 py-2 text-right">বাকি</th>
+              <tr>
+                <th className="border border-slate-500 px-1.5 py-2 text-center w-[5%]">ক্রমিক</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[19%]">শিক্ষার্থীর নাম ও শ্রেণি</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[13%]">মোবাইল নম্বর</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">অভিভাবকের নাম</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[15%]">যে মাসগুলোর বেতন বাকি</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-left w-[18%]">মাসভিত্তিক বকেয়া</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-right w-[9%]">মোট বাকি (৳)</th>
+                <th className="border border-slate-500 px-1.5 py-2 text-center w-[6%]">যাচাই</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(
-                filtered.reduce((acc, r) => {
-                  const k = r.student.class_name;
-                  if (!acc[k]) acc[k] = { count: 0, payable: 0, paid: 0, due: 0 };
-                  acc[k].count += 1;
-                  acc[k].payable += r.payable;
-                  acc[k].paid += r.paid;
-                  acc[k].due += r.due;
-                  return acc;
-                }, {} as Record<string, { count: number; payable: number; paid: number; due: number }>)
-              ).map(([cls, data]) => (
-                <tr key={cls}>
-                  <td className="border border-slate-300 px-2 py-1.5 font-medium">{cls}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-center">{toBangla(data.count)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">৳ {toBangla(data.payable)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right text-emerald-700 font-semibold">৳ {toBangla(data.paid)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right text-red-700 font-semibold">৳ {toBangla(data.due)}</td>
-                </tr>
-              ))}
+              {filtered.map((r, i) => {
+                const netMonthlyFee = Math.max(0, Number(r.student.monthly_fee || 0) - Number(r.student.discount || 0));
+                const monthDues = (filterMode === "month"
+                  ? [{ month, year }]
+                  : (() => {
+                      const result: { month: number; year: number }[] = [];
+                      const from = new Date(fromDate + "T12:00:00");
+                      const to = new Date(toDate + "T12:00:00");
+                      const cursor = new Date(from.getFullYear(), from.getMonth(), 1, 12);
+                      const last = new Date(to.getFullYear(), to.getMonth(), 1, 12);
+                      while (cursor <= last && result.length < 24) {
+                        result.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
+                        cursor.setMonth(cursor.getMonth() + 1);
+                      }
+                      return result;
+                    })()
+                ).map((period) => {
+                  const paidForMonth = payments
+                    .filter((p) => p.student_id === r.student.id && p.month === period.month && p.year === period.year)
+                    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+                  return { ...period, due: Math.max(0, netMonthlyFee - paidForMonth) };
+                }).filter((period) => period.due > 0);
+                const monthNames = monthDues.map((period) => MONTHS[period.month - 1] + (filterMode === "range" ? " " + toBangla(period.year) : ""));
+                const monthAmounts = monthDues.map((period) => MONTHS[period.month - 1] + ": ৳" + toBangla(period.due));
+                const printDue = filterMode === "month"
+                  ? (monthDues[0]?.due ?? Math.max(0, r.due))
+                  : Math.max(0, r.due);
+                return (
+                  <tr key={r.student.id} className="print-row">
+                    <td className="border border-slate-400 px-1.5 py-2 text-center">{toBangla(i + 1)}</td>
+                    <td className="border border-slate-400 px-1.5 py-2">
+                      <div className="font-semibold">{r.student.name}</div>
+                      <div className="text-[9px] text-slate-600">শ্রেণি: {r.student.class_name}{r.student.roll ? " · রোল: " + r.student.roll : ""}</div>
+                    </td>
+                    <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_phone || "—"}</td>
+                    <td className="border border-slate-400 px-1.5 py-2">{r.student.guardian_name || "—"}</td>
+                    <td className="border border-slate-400 px-1.5 py-2">{monthNames.length ? monthNames.join(", ") : "বাকি নেই"}</td>
+                    <td className="border border-slate-400 px-1.5 py-2">{monthAmounts.length ? monthAmounts.join(" · ") : "—"}</td>
+                    <td className="border border-slate-400 px-1.5 py-2 text-right font-semibold">{toBangla(printDue)}</td>
+                    <td className="border border-slate-400 px-1.5 py-2 text-center">
+                      <span className="inline-block w-4 h-4 border border-slate-700 align-middle"></span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-100">
-                <td colSpan={2} className="border border-slate-300 px-2 py-2 text-right font-bold">সর্বমোট</td>
-                <td className="border border-slate-300 px-2 py-2 text-right font-bold">৳ {toBangla(totalPayable)}</td>
-                <td className="border border-slate-300 px-2 py-2 text-right font-bold text-emerald-700">৳ {toBangla(totalPaid)}</td>
-                <td className="border border-slate-300 px-2 py-2 text-right font-bold text-red-700">৳ {toBangla(totalDue)}</td>
+              <tr>
+                <td colSpan={6} className="border border-slate-500 px-2 py-2 text-right font-bold">সর্বমোট ({toBangla(filtered.length)} জন)</td>
+                <td className="border border-slate-500 px-1.5 py-2 text-right font-bold">{toBangla(Math.max(0, totalDue))}</td>
+                <td className="border border-slate-500"></td>
               </tr>
             </tfoot>
           </table>
 
-          <div className="flex justify-between mt-14 pt-2">
+          <div className="flex justify-between mt-12 pt-2">
             <div className="text-center">
-              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">
-                প্রস্তুতকারীর স্বাক্ষর
-              </div>
+              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">প্রস্তুতকারীর স্বাক্ষর</div>
             </div>
             <div className="text-center">
-              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">
-                অনুমোদনকারীর স্বাক্ষর
-              </div>
+              <div className="border-t border-slate-600 w-40 pt-1 text-xs text-slate-600">যাচাইকারীর স্বাক্ষর</div>
             </div>
           </div>
-
-          <div className="text-center text-[10px] text-slate-500 mt-6">
-            এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
-          </div>
+          <div className="text-center text-[9px] text-slate-500 mt-4">এই রিপোর্টটি মাদরাসার হিসাব ব্যবস্থাপনা থেকে তৈরি করা হয়েছে।</div>
         </div>
       </div>
     </>
