@@ -123,6 +123,16 @@ export async function getFinancialData(supabase: SupabaseClient) {
   return { incomes, expenses, feePayments, transactions };
 }
 
+/** Build local calendar dates without UTC conversion. */
+export function todayDateKey(): string {
+  return toDateKey(new Date());
+}
+
+export function lastDayOfMonth(year: number, month: number): string {
+  const last = new Date(year, month, 0);
+  return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, "0")}-${String(last.getDate()).padStart(2, "0")}`;
+}
+
 /** Date-only comparison: never parse YYYY-MM-DD as UTC and shift it to another local day. */
 export function toDateKey(value: string | Date | null | undefined): string {
   if (!value) return "";
