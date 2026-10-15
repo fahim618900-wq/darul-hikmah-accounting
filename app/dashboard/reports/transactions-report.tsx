@@ -177,7 +177,7 @@ export default function TransactionsReport({
               </tr>
             ) : (
               filtered.map((t, i) => (
-                <tr key={`${t.type}-${t.id}`} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
+                <tr key={`${t.source}-${t.id}`} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                   <td style={td}>{toBangla(i + 1)}</td>
                   <td style={td}>{toBangla(t.date)}</td>
                   <td style={td}>
