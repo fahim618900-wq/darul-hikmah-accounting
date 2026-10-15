@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useLayoutEffect, useRef } from "react";
 import { BarChart3, Wallet, Users, FileText, Printer } from "lucide-react";
-import { isDateInMonth, calculateFinancialTotals, type FinancialTransaction } from "@/lib/financial";
+import { isDateInMonth, isFeePaymentForMonth, calculateFinancialTotals, type FinancialTransaction } from "@/lib/financial";
 import FeesReport from "./fees-report";
 import IncomeExpenseReport from "./income-expense-report";
 import TransactionsReport from "./transactions-report";
@@ -104,7 +104,7 @@ export default function ReportsClient({
   const stats = useMemo(() => {
     // প্রাপ্য বেতন
     const totalPayable = students.reduce(
-      (sum, s) => sum + Number(s.monthly_fee || 0) - Number(s.discount || 0),
+      (sum, s) => sum + Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0)),
       0
     );
 
@@ -113,9 +113,12 @@ export default function ReportsClient({
       (p) => isDateInMonth(p.payment_date, currentMonth, currentYear)
     );
     const totalCollected = thisMonthPayments.reduce(
-      (sum, p) => sum + Number(p.amount),
+      (sum, p) => sum + Number(p.amount || 0),
       0
     );
+    const feeMonthCollected = payments
+      .filter((p) => isFeePaymentForMonth(p, currentMonth, currentYear))
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
     // চলতি মাসের আয়, ফি আদায়সহ, এবং ব্যয়—একই কেন্দ্রীয় হিসাব থেকে
     const thisMonthTransactions = transactions.filter(
@@ -130,7 +133,7 @@ export default function ReportsClient({
       totalCollected,
       totalIncome,
       totalExpense,
-      due: totalPayable - totalCollected,
+      due: totalPayable - feeMonthCollected,
     };
   }, [students, payments, transactions, currentMonth, currentYear]);
 
