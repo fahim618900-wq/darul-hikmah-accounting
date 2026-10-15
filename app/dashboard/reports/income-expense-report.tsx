@@ -81,11 +81,11 @@ export default function IncomeExpenseReport({
         </button>
       </div>
 
-      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
+      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/10 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-5 sm:px-6 dark:border-teal-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950 print:bg-white" style={{ borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+            <h1 className="mb-1 text-xl font-extrabold tracking-tight text-teal-800 sm:text-2xl dark:text-teal-300 print:text-teal-800" style={{ marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
+            <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400 print:text-slate-600" style={{ fontSize: "0.85rem" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>বিষয়:</strong> আয়-ব্যয় রিপোর্ট</div>
@@ -97,41 +97,41 @@ export default function IncomeExpenseReport({
           </div>
         </div>
 
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>সারসংক্ষেপ</h3>
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
+          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>সারসংক্ষেপ</h3>
           <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
             <tbody>
               <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td style={{ padding: "0.6rem 0", color: "#475569" }}>মোট আয়</td>
+                <td className="font-medium text-slate-600 dark:text-slate-300" style={{ padding: "0.6rem 0", color: "#475569" }}>মোট আয়</td>
                 <td style={{ padding: "0.6rem 0", textAlign: "right", color: "#15803d", fontWeight: "600" }}>৳ {toBangla(totalIncome)}</td>
               </tr>
               <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td style={{ padding: "0.6rem 0", color: "#475569" }}>মোট ব্যয়</td>
+                <td className="font-medium text-slate-600 dark:text-slate-300" style={{ padding: "0.6rem 0", color: "#475569" }}>মোট ব্যয়</td>
                 <td style={{ padding: "0.6rem 0", textAlign: "right", color: "#b91c1c", fontWeight: "600" }}>৳ {toBangla(totalExpense)}</td>
               </tr>
               <tr style={{ borderBottom: "2px solid #0f766e" }}>
-                <td style={{ padding: "0.6rem 0", color: "#0f766e", fontWeight: "600" }}>নিট উদ্বৃত্ত</td>
+                <td className="font-bold text-teal-800 dark:text-teal-300" style={{ padding: "0.6rem 0", color: "#0f766e", fontWeight: "600" }}>নিট উদ্বৃত্ত</td>
                 <td style={{ padding: "0.6rem 0", textAlign: "right", color: balance >= 0 ? "#15803d" : "#b91c1c", fontWeight: "700" }}>৳ {toBangla(balance)}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>আয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
+          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>আয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
           {Object.keys(incomeByCategory).length === 0 ? (
             <p style={{ color: "#64748b", fontSize: "0.9rem" }}>কোনো আয় নেই</p>
           ) : (
             <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
               <thead>
-                <tr style={{ background: "#0f766e", color: "#fff" }}>
+                <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
                   <th style={th}>খাত</th>
                   <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(incomeByCategory).map(([cat, amt]) => (
-                  <tr key={cat} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  <tr key={cat} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                     <td style={td}>{cat}</td>
                     <td style={{ ...td, textAlign: "right", color: "#15803d", fontWeight: "500" }}>৳ {toBangla(amt)}</td>
                   </tr>
@@ -141,21 +141,21 @@ export default function IncomeExpenseReport({
           )}
         </div>
 
-        <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>ব্যয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
+          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>ব্যয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
           {Object.keys(expenseByCategory).length === 0 ? (
             <p style={{ color: "#64748b", fontSize: "0.9rem" }}>কোনো ব্যয় নেই</p>
           ) : (
             <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
               <thead>
-                <tr style={{ background: "#0f766e", color: "#fff" }}>
+                <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
                   <th style={th}>খাত</th>
                   <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(expenseByCategory).map(([cat, amt]) => (
-                  <tr key={cat} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  <tr key={cat} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
                     <td style={td}>{cat}</td>
                     <td style={{ ...td, textAlign: "right", color: "#b91c1c", fontWeight: "500" }}>৳ {toBangla(amt)}</td>
                   </tr>
