@@ -49,6 +49,7 @@ export async function getFinancialData(supabase: SupabaseClient) {
       (supabase as any).from("incomes")
         .select("id, amount, entry_date, category_id, student_id, payment_method, receipt_no, description, is_deleted, income_categories(name)")
         .or("is_deleted.eq.false,is_deleted.is.null")
+        .is("deleted_at", null)
         .order("entry_date", { ascending: false })
         .range(from, to)
     ),
@@ -63,6 +64,7 @@ export async function getFinancialData(supabase: SupabaseClient) {
       (supabase as any).from("fee_payments")
         .select("id, student_id, month, year, amount, payment_date, payment_method, receipt_no, note, is_deleted, students(name, class_name, roll)")
         .or("is_deleted.eq.false,is_deleted.is.null")
+        .is("deleted_at", null)
         .order("payment_date", { ascending: false })
         .range(from, to)
     ),
