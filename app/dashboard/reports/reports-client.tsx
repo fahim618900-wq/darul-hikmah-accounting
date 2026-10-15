@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useLayoutEffect, useRef } from "react";
 import { BarChart3, Wallet, Users, FileText, Printer } from "lucide-react";
 import FeesReport from "./fees-report";
 import IncomeExpenseReport from "./income-expense-report";
@@ -76,6 +76,20 @@ export default function ReportsClient({
 }) {
   const [tab, setTab] = useState<Tab>("fees");
   const [preparedBy, setPreparedBy] = useState(userName);
+  const savedScrollY = useRef<number | null>(null);
+
+  // Keep the page at the same vertical position when switching report sections.
+  useLayoutEffect(() => {
+    if (savedScrollY.current === null) return;
+    window.scrollTo(0, savedScrollY.current);
+    savedScrollY.current = null;
+  }, [tab]);
+
+  function selectReport(nextTab: Tab) {
+    if (nextTab === tab) return;
+    savedScrollY.current = window.scrollY;
+    setTab(nextTab);
+  }
 
   const classes = useMemo(
     () => Array.from(new Set(students.map((s) => s.class_name))),
@@ -145,7 +159,7 @@ export default function ReportsClient({
   }
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-7xl overflow-x-clip px-3 pt-5 pb-6 sm:px-4">
+    <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pt-5 pb-24 sm:px-4 lg:pb-6">
       {/* ==================== শিরোনাম ==================== */}
       <div className="mb-5">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
@@ -189,8 +203,8 @@ export default function ReportsClient({
       </div>
 
       {/* ==================== ট্যাব ==================== */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-2 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div role="tablist" aria-label="রিপোর্টের ধরন" className="grid min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-4">
+      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-sm shadow-slate-200/40 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-black/10">
+        <div role="tablist" aria-label="রিপোর্টের ধরন" className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
           {TABS.map((t) => (
             <button
               type="button"
@@ -199,17 +213,17 @@ export default function ReportsClient({
               aria-controls={`report-panel-${t.id}`}
               aria-selected={tab === t.id}
               key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
+              onClick={() => selectReport(t.id)}
+              className={`flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-xl px-2 py-3 text-xs font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 sm:px-3 sm:text-sm ${
                 tab === t.id
-                  ? "bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-md shadow-brand-500/25"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  ? "bg-gradient-to-r from-brand-700 via-brand-600 to-indigo-600 text-white shadow-md shadow-brand-500/20"
+                  : "border border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800"
               }`}
             >
               <span className={tab === t.id ? "text-white" : "text-slate-400"}>
                 {t.icon}
               </span>
-              <span>{t.label}</span>
+              <span className="truncate">{t.label}</span>
             </button>
           ))}
         </div>
@@ -242,7 +256,7 @@ export default function ReportsClient({
         id={`report-panel-${tab}`}
         role="tabpanel"
         aria-labelledby={`report-tab-${tab}`}
-        className="w-full min-w-0 overflow-x-clip"
+        className="w-full min-w-0"
       >
         {tab === "fees" && (
           <FeesReport
