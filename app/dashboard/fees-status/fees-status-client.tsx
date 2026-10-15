@@ -114,6 +114,7 @@ export default function FeesStatusClient({
   );
   const [search, setSearch] = useState("");
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [rangePrintPayments, setRangePrintPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [preparedBy, setPreparedBy] = useState(userName);
@@ -144,6 +145,44 @@ export default function FeesStatusClient({
     }
     load();
   }, [filterMode, month, year, fromDate, toDate]);
+
+  // শুধু প্রিন্ট রিপোর্টের জন্য: নির্বাচিত সময়ের ফি-মাসগুলোর সব পেমেন্ট আলাদা করে আনি।
+  // মূল পেজের payment-date ফিল্টার ও হিসাব অপরিবর্তিত থাকে।
+  useEffect(() => {
+    if (filterMode !== "range") {
+      setRangePrintPayments([]);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadRangePrintPayments() {
+      const from = new Date(fromDate + "T12:00:00");
+      const to = new Date(toDate + "T12:00:00");
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
+        setRangePrintPayments([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("fee_payments")
+        .select("*")
+        .gte("year", from.getFullYear())
+        .lte("year", to.getFullYear());
+
+      const firstPeriod = from.getFullYear() * 12 + from.getMonth() + 1;
+      const lastPeriod = to.getFullYear() * 12 + to.getMonth() + 1;
+      const periodPayments = (data || []).filter((payment) => {
+        const period = Number(payment.year) * 12 + Number(payment.month);
+        return period >= firstPeriod && period <= lastPeriod;
+      });
+      if (!cancelled) setRangePrintPayments(periodPayments);
+    }
+
+    loadRangePrintPayments();
+    return () => { cancelled = true; };
+  }, [filterMode, fromDate, toDate]);
+
+  const printPayments = filterMode === "month" ? payments : rangePrintPayments;
 
   // হাইলাইটে স্ক্রল করি
   useEffect(() => {
@@ -660,16 +699,14 @@ export default function FeesStatusClient({
                       return result;
                     })()
                 ).map((period) => {
-                  const paidForMonth = payments
+                  const paidForMonth = printPayments
                     .filter((p) => p.student_id === r.student.id && p.month === period.month && p.year === period.year)
                     .reduce((sum, p) => sum + Number(p.amount || 0), 0);
                   return { ...period, due: Math.max(0, netMonthlyFee - paidForMonth) };
                 }).filter((period) => period.due > 0);
                 const monthNames = monthDues.map((period) => MONTHS[period.month - 1] + (filterMode === "range" ? " " + toBangla(period.year) : ""));
                 const monthAmounts = monthDues.map((period) => MONTHS[period.month - 1] + ": ৳" + toBangla(period.due));
-                const printDue = filterMode === "month"
-                  ? (monthDues[0]?.due ?? Math.max(0, r.due))
-                  : Math.max(0, r.due);
+                const printDue = monthDues.reduce((sum, period) => sum + period.due, 0);
                 return (
                   <tr key={r.student.id} className="print-row">
                     <td className="border border-slate-400 px-1.5 py-2 text-center">{toBangla(i + 1)}</td>
@@ -692,7 +729,29 @@ export default function FeesStatusClient({
             <tfoot>
               <tr>
                 <td colSpan={6} className="border border-slate-500 px-2 py-2 text-right font-bold">সর্বমোট ({toBangla(filtered.length)} জন)</td>
-                <td className="border border-slate-500 px-1.5 py-2 text-right font-bold">{toBangla(Math.max(0, totalDue))}</td>
+                <td className="border border-slate-500 px-1.5 py-2 text-right font-bold">{toBangla(filtered.reduce((sum, r) => {
+                  const netMonthlyFee = Math.max(0, Number(r.student.monthly_fee || 0) - Number(r.student.discount || 0));
+                  const periods = filterMode === "month"
+                    ? [{ month, year }]
+                    : (() => {
+                        const result: { month: number; year: number }[] = [];
+                        const from = new Date(fromDate + "T12:00:00");
+                        const to = new Date(toDate + "T12:00:00");
+                        const cursor = new Date(from.getFullYear(), from.getMonth(), 1, 12);
+                        const last = new Date(to.getFullYear(), to.getMonth(), 1, 12);
+                        while (cursor <= last && result.length < 24) {
+                          result.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
+                          cursor.setMonth(cursor.getMonth() + 1);
+                        }
+                        return result;
+                      })();
+                  return sum + periods.reduce((dueSum, period) => {
+                    const paidForMonth = printPayments
+                      .filter((p) => p.student_id === r.student.id && p.month === period.month && p.year === period.year)
+                      .reduce((paidSum, p) => paidSum + Number(p.amount || 0), 0);
+                    return dueSum + Math.max(0, netMonthlyFee - paidForMonth);
+                  }, 0);
+                }, 0))}</td>
                 <td className="border border-slate-500"></td>
               </tr>
             </tfoot>
