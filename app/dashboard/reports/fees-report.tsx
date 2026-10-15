@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { isFeePaymentForMonth, isFeePaymentForPeriodRange, lastDayOfMonth } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -54,7 +55,7 @@ function firstOfMonthISO(): string {
 function lastOfMonthISO(): string {
   const d = new Date();
   const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return last.toISOString().split("T")[0];
+  return lastDayOfMonth(d.getFullYear(), d.getMonth() + 1);
 }
 
 type FilterMode = "month" | "range";
@@ -83,11 +84,9 @@ export default function FeesReport({
   // ফিল্টার করা পেমেন্ট
   const filteredPayments = useMemo(() => {
     if (filterMode === "month") {
-      return payments.filter((p) => p.month === month && p.year === year);
+      return payments.filter((p) => isFeePaymentForMonth(p, month, year));
     } else {
-      return payments.filter(
-        (p) => p.payment_date >= fromDate && p.payment_date <= toDate
-      );
+      return payments.filter((p) => isFeePaymentForPeriodRange(p, fromDate, toDate));
     }
   }, [payments, filterMode, month, year, fromDate, toDate]);
 
@@ -100,16 +99,16 @@ export default function FeesReport({
       // প্রাপ্য হিসাব — মাস অনুযায়ী বা মাস সংখ্যা × বেতন
       let payable: number;
       if (filterMode === "month") {
-        payable = Number(s.monthly_fee || 0) - Number(s.discount || 0);
+        payable = Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0));
       } else {
         const months = countMonths(fromDate, toDate);
-        payable = (Number(s.monthly_fee || 0) - Number(s.discount || 0)) * months;
+        payable = Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0)) * months;
       }
 
-      const due = payable - paid;
+      const due = Math.max(0, payable - paid);
 
       let status: "paid" | "unpaid" | "partial";
-      if (paid >= payable && payable > 0) status = "paid";
+      if (payable <= 0 || paid >= payable) status = "paid";
       else if (paid === 0) status = "unpaid";
       else status = "partial";
 
