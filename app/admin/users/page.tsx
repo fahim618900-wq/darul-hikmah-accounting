@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UserApprovalList from "./user-approval-list";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({ searchParams }: { searchParams: { highlight?: string } }) {
   const supabase = await createClient();
 
   const {
@@ -35,7 +35,8 @@ export default async function AdminUsersPage() {
         </p>
       </div>
 
-      <UserApprovalList initialProfiles={profiles || []} currentUserId={user.id} />
+      <UserApprovalList initialProfiles={profiles || []} currentUserId={user.id}
+        highlight={searchParams.highlight || ""} />
     </main>
   );
 }
