@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { isDateInMonth, isDateInRange } from "@/lib/financial";
+import { isDateInMonth, isDateInRange, lastDayOfMonth, todayDateKey } from "@/lib/financial";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -35,7 +35,7 @@ function formatDate(dateStr: string): string {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  return todayDateKey();
 }
 
 function todayBangla(): string {
@@ -50,8 +50,7 @@ function firstOfMonthISO(): string {
 
 function lastOfMonthISO(): string {
   const d = new Date();
-  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return last.toISOString().split("T")[0];
+  return lastDayOfMonth(d.getFullYear(), d.getMonth() + 1);
 }
 
 function methodLabel(m: string): string {
@@ -107,9 +106,7 @@ export default function IncomeClient({
   const filtered = useMemo(() => {
     return incomes.filter((i) => {
       if (filterMode === "month") {
-        const d = new Date(i.entry_date);
-        if (d.getMonth() + 1 !== selectedMonth) return false;
-        if (d.getFullYear() !== selectedYear) return false;
+        if (!isDateInMonth(i.entry_date, selectedMonth, selectedYear)) return false;
       } else {
         if (!isDateInRange(i.entry_date, fromDate, toDate)) return false;
       }
@@ -131,8 +128,7 @@ export default function IncomeClient({
   const total = filtered.reduce((sum, i) => sum + Number(i.amount), 0);
   const thisMonthTotal = incomes
     .filter((i) => {
-      const d = new Date(i.entry_date);
-      return d.getMonth() + 1 === now.getMonth() + 1 && d.getFullYear() === now.getFullYear();
+      return isDateInMonth(i.entry_date, now.getMonth() + 1, now.getFullYear());
     })
     .reduce((sum, i) => sum + Number(i.amount), 0);
 
