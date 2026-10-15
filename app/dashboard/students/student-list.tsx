@@ -224,7 +224,7 @@ export default function StudentList({
         {/* সারাংশ */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#2563eb" }}>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">মোট</div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Total</div>
             <div className="text-base font-bold text-brand-600">{toBangla(students.length)}</div>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-2.5 border border-slate-200 dark:border-slate-800 shadow-sm" style={{ borderLeftWidth: "3px", borderLeftColor: "#15803d" }}>
@@ -273,7 +273,7 @@ export default function StudentList({
 
         {classFilter && (
           <div className="mb-3 text-xs text-slate-500 dark:text-slate-400 text-center">
-            <strong>{classFilter}</strong> শ্রেণিতে <strong>{toBangla(filtered.length)}</strong> জন
+            <strong>{classFilter}</strong> in class <strong>{toBangla(filtered.length)}</strong> জন
           </div>
         )}
       </div>
@@ -344,18 +344,18 @@ export default function StudentList({
           {sorted.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               {students.length === 0
-                ? "এখনো কোনো শিক্ষার্থী যোগ করা হয়নি। উপরে '+ Add New' বাটনে ক্লিক করুন।"
-                : "কোনো ফলাফল পাওয়া যায়নি।"}
+                ? "No students added yet। Click “Add New” above."
+                : "No results found।"}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">আইডি</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Student ID</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">নাম</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">শ্রেণি</th>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">রোল</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Class</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Roll</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs">Guardian</th>
                     <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Monthly Fee</th>
                     <th className="px-4 py-3 text-right font-semibold text-slate-600 dark:text-slate-300 text-xs">Discount</th>
