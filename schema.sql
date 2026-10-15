@@ -781,6 +781,20 @@ CREATE OR REPLACE VIEW "public"."transactions_all" AS
      LEFT JOIN "public"."income_categories" "ic" ON (("ic"."id" = "i"."category_id")))
   WHERE (("i"."is_deleted" = false) OR ("i"."is_deleted" IS NULL))
 UNION ALL
+ SELECT 'income'::"text" AS "type",
+    "fp"."id",
+    "fp"."payment_date" AS "date",
+    'শিক্ষার্থীদের বেতন/ফি'::"text" AS "category",
+    "fp"."amount",
+    "fp"."receipt_no" AS "ref_no",
+    COALESCE(NULLIF("fp"."note", ''), CASE WHEN "s"."name" IS NOT NULL THEN 'শিক্ষার্থী: ' || "s"."name" ELSE 'শিক্ষার্থীর ফি আদায়' END) AS "description",
+    "fp"."payment_method",
+    "fp"."created_by",
+    "fp"."created_at"
+   FROM ("public"."fee_payments" "fp"
+     LEFT JOIN "public"."students" "s" ON (("s"."id" = "fp"."student_id")))
+  WHERE (("fp"."is_deleted" = false) OR ("fp"."is_deleted" IS NULL))
+UNION ALL
  SELECT 'expense'::"text" AS "type",
     "e"."id",
     "e"."entry_date" AS "date",
