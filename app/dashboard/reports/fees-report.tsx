@@ -122,9 +122,10 @@ export default function FeesReport({
   }, [students, filteredPayments, filterMode, fromDate, toDate]);
 
   function countMonths(from: string, to: string): number {
-    const f = new Date(from);
-    const t = new Date(to);
-    return (t.getFullYear() - f.getFullYear()) * 12 + (t.getMonth() - f.getMonth()) + 1;
+    if (!from || !to || from > to) return 0;
+    const first = Number(from.slice(0, 4)) * 12 + Number(from.slice(5, 7));
+    const last = Number(to.slice(0, 4)) * 12 + Number(to.slice(5, 7));
+    return Math.max(0, last - first + 1);
   }
 
   const filtered = rows.filter((r) => {
