@@ -67,19 +67,19 @@ export default function TransactionsReport({
 
   return (
     <>
-      <div className="no-print" style={{ background: "#ffffff", padding: "1rem", borderRadius: "8px", marginBottom: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
+      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label style={lbl}>শুরুর তারিখ</label>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} style={inp} />
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শুরুর তারিখ</label>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
           </div>
           <div>
-            <label style={lbl}>শেষের তারিখ</label>
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={inp} />
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শেষের তারিখ</label>
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
           </div>
           <div>
-            <label style={lbl}>ধরন</label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} style={inp}>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">ধরন</label>
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
               <option value="all">সব</option>
               <option value="income">শুধু আয়</option>
               <option value="expense">শুধু ব্যয়</option>
@@ -87,9 +87,9 @@ export default function TransactionsReport({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
+        <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label style={lbl}>🔍 রসিদ / ভাউচার নম্বর</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 রসিদ / ভাউচার নম্বর</label>
             <input
               type="text"
               value={receiptSearch}
@@ -99,48 +99,48 @@ export default function TransactionsReport({
             />
           </div>
           <div>
-            <label style={lbl}>🔍 খাত</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 খাত</label>
             <input
               type="text"
               value={categorySearch}
               onChange={(e) => setCategorySearch(e.target.value)}
               placeholder="বেতন, বিদ্যুৎ..."
-              style={inp}
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
           </div>
           <div>
-            <label style={lbl}>🔍 বিবরণ</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 বিবরণ</label>
             <input
               type="text"
               value={descSearch}
               onChange={(e) => setDescSearch(e.target.value)}
               placeholder="কোনো লেখা..."
-              style={inp}
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
           </div>
         </div>
 
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button onClick={() => window.print()} style={{ padding: "0.55rem 1.1rem", background: "#0f766e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "0.88rem", fontWeight: "500", cursor: "pointer" }}>
+          <button onClick={() => window.print()} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2">
             🖨️ Print / PDF
           </button>
-          <button onClick={clearFilters} style={{ padding: "0.55rem 1.1rem", background: "#ffffff", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.88rem", cursor: "pointer" }}>
+          <button onClick={clearFilters} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
             ফিল্টার মুছুন
           </button>
         </div>
       </div>
 
-      <div className="print-area">
+      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800">
         <div style={{ background: "#ffffff", padding: "1.25rem 1.5rem", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #0f766e" }}>
           <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ fontSize: "1.4rem", color: "#0f766e", marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
             <p style={{ fontSize: "0.85rem", color: "#64748b" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem", marginBottom: "0.35rem" }}>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>বিষয়:</strong> লেনদেনের রিপোর্ট</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.9rem" }}>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <div><strong>সময়কাল:</strong> {toBangla(fromDate)} — {toBangla(toDate)}</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
