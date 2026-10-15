@@ -167,7 +167,7 @@ export default function DashboardClient({
       ...filtered.fExpenses.map((e) => ({ source: "expense" as const, type: "expense" as const, date: e.entry_date, amount: Number(e.amount) || 0, id: 0, category: null, ref_no: null, description: null })),
     ];
     const financialTotals = calculateFinancialTotals(financialRows);
-    const totalIncome = financialTotals.directIncome;
+    const totalIncome = financialTotals.totalIncome;
     const totalExpense = financialTotals.totalExpense;
     const balance = financialTotals.balance;
 
