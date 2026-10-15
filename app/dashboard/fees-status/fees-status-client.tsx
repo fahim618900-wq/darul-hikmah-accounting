@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StudentDetailModal from "./student-detail-modal";
-import { getFeePaymentsForMonth, getFeePaymentsForDateRange, getFeePaymentsForFeeMonthRange, lastDayOfMonth, todayDateKey } from "@/lib/financial";
+import { getFeePaymentsForMonth, getFeePaymentsForFeeMonthRange, lastDayOfMonth, todayDateKey } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -115,7 +115,6 @@ export default function FeesStatusClient({
   );
   const [search, setSearch] = useState("");
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [rangePrintPayments, setRangePrintPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [preparedBy, setPreparedBy] = useState(userName);
@@ -124,6 +123,7 @@ export default function FeesStatusClient({
   const highlightToday = highlight === "today";
   const targetDate = highlightDate || todayDateKey();
 
+  // ফি-স্ট্যাটাসে নির্বাচিত মাস/মাসগুলোর জন্য ফি-পিরিয়ড অনুযায়ী পেমেন্ট গণনা করি।
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -131,7 +131,13 @@ export default function FeesStatusClient({
       try {
         const data = filterMode === "month"
           ? await getFeePaymentsForMonth(supabase, month, year)
-          : await getFeePaymentsForDateRange(supabase, fromDate, toDate);
+          : await getFeePaymentsForFeeMonthRange(
+              supabase,
+              Number(fromDate.slice(5, 7)),
+              Number(fromDate.slice(0, 4)),
+              Number(toDate.slice(5, 7)),
+              Number(toDate.slice(0, 4))
+            );
         if (!cancelled) setPayments(data || []);
       } catch (error) {
         console.error("Unable to load fee status payments", error);
@@ -144,43 +150,7 @@ export default function FeesStatusClient({
     return () => { cancelled = true; };
   }, [filterMode, month, year, fromDate, toDate]);
 
-  // শুধু Print রিপোর্টের জন্য: নির্বাচিত সময়ের ফি-মাসগুলোর সব পেমেন্ট আলাদা করে আনি।
-  // মূল পেজের payment-date ফিল্টার ও হিসাব অপরিবর্তিত থাকে।
-  useEffect(() => {
-    if (filterMode !== "range") {
-      setRangePrintPayments([]);
-      return;
-    }
-
-    let cancelled = false;
-    async function loadRangePrintPayments() {
-      const from = new Date(fromDate + "T12:00:00");
-      const to = new Date(toDate + "T12:00:00");
-      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
-        setRangePrintPayments([]);
-        return;
-      }
-
-      try {
-        const periodPayments = await getFeePaymentsForFeeMonthRange(
-          supabase,
-          from.getMonth() + 1,
-          from.getFullYear(),
-          to.getMonth() + 1,
-          to.getFullYear()
-        );
-        if (!cancelled) setRangePrintPayments(periodPayments);
-      } catch (error) {
-        console.error("Unable to load print fee payments", error);
-        if (!cancelled) setRangePrintPayments([]);
-      }
-    }
-
-    loadRangePrintPayments();
-    return () => { cancelled = true; };
-  }, [filterMode, fromDate, toDate]);
-
-  const printPayments = filterMode === "month" ? payments : rangePrintPayments;
+  const printPayments = payments;
 
   // হাইলাইটে স্ক্রল করি
   useEffect(() => {
@@ -707,7 +677,7 @@ export default function FeesStatusClient({
                         const to = new Date(toDate + "T12:00:00");
                         const cursor = new Date(from.getFullYear(), from.getMonth(), 1, 12);
                         const last = new Date(to.getFullYear(), to.getMonth(), 1, 12);
-                        while (cursor <= last && result.length < 24) {
+                        while (cursor <= last) {
                           result.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
                           cursor.setMonth(cursor.getMonth() + 1);
                         }
