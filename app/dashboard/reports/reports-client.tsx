@@ -145,7 +145,7 @@ export default function ReportsClient({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-5 pb-6">
+    <div className="mx-auto w-full min-w-0 max-w-7xl overflow-x-clip px-3 pt-5 pb-6 sm:px-4">
       {/* ==================== শিরোনাম ==================== */}
       <div className="mb-5">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1">
@@ -190,9 +190,14 @@ export default function ReportsClient({
 
       {/* ==================== ট্যাব ==================== */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-2 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+        <div role="tablist" aria-label="রিপোর্টের ধরন" className="grid min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-4">
           {TABS.map((t) => (
             <button
+              type="button"
+              role="tab"
+              id={`report-tab-${t.id}`}
+              aria-controls={`report-panel-${t.id}`}
+              aria-selected={tab === t.id}
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition ${
@@ -233,7 +238,12 @@ export default function ReportsClient({
       </div>
 
       {/* ==================== ট্যাব কনটেন্ট ==================== */}
-      <div>
+      <div
+        id={`report-panel-${tab}`}
+        role="tabpanel"
+        aria-labelledby={`report-tab-${tab}`}
+        className="w-full min-w-0 overflow-x-clip"
+      >
         {tab === "fees" && (
           <FeesReport
             students={students}
