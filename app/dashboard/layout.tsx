@@ -62,18 +62,18 @@ export default async function DashboardLayout({
   }
 
   const navLinks = [
-    { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
-    { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+    { href: "/dashboard", label: "Dashboard", roles: ["admin", "accountant", "viewer"] },
+    { href: "/dashboard/students", label: "Students", roles: ["admin", "accountant"] },
+    { href: "/dashboard/fees", label: "Fee Collection", roles: ["admin", "accountant"] },
     { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
-    { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
-    { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
-    { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
-    { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
-    { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
-    { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
+    { href: "/dashboard/income", label: "Income", roles: ["admin", "accountant"] },
+    { href: "/dashboard/expenses", label: "Expenses", roles: ["admin", "accountant"] },
+    { href: "/dashboard/reports", label: "Reports", roles: ["admin", "accountant", "viewer"] },
+    { href: "/admin/users", label: "Users", roles: ["admin"] },
+    { href: "/admin/audit-logs", label: "Audit Logs", roles: ["admin"] },
+    { href: "/admin/closed-months", label: "Closed Months", roles: ["admin"] },
+    { href: "/admin/settings", label: "Settings", roles: ["admin"] },
+    { href: "/admin/clear-data", label: "Data Management", roles: ["admin"] },
   ];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
