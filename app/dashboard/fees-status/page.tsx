@@ -16,7 +16,7 @@ export default async function FeesStatusPage({ searchParams }: { searchParams: {
 
   const { data: students } = await supabase
     .from("students")
-    .select("id, student_id, name, class_name, roll, section, monthly_fee, discount, status")
+    .select("id, student_id, name, class_name, roll, section, guardian_name, guardian_phone, monthly_fee, discount, status")
     .eq("status", "active")
     .order("class_name")
     .order("roll");
