@@ -172,17 +172,6 @@ export default function StudentList({
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
   <Link
-    href="/dashboard/students/id-cards"
-    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-medium shadow-md shadow-purple-500/25 transition flex items-center gap-1.5"
-  >
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <circle cx="9" cy="10" r="2" />
-      <path d="M15 8h3 M15 12h3 M6 17h12" />
-    </svg>
-    আইডি কার্ড
-  </Link>
-  <Link
     href="/dashboard/students/print"
     className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium shadow-sm transition flex items-center gap-1.5 hover:bg-slate-50"
   >
