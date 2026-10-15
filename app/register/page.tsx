@@ -89,7 +89,7 @@ export default function RegisterPage() {
     );
   }
 
-  /* ========== ২. নিবন্ধন বন্ধ অবস্থা ========== */
+  /* ========== ২. নিবন্ধন বন্ধ অবস্থা ========== */ ..............*.*.
   if (!signupEnabled) {
     return (
       <main className="reg-main">
