@@ -49,10 +49,10 @@ export default function MobileMenu({
   }
 
   const roleLabel: Record<string, string> = {
-    admin: "অ্যাডমিন",
-    accountant: "অ্যাকাউন্ট্যান্ট",
-    viewer: "দর্শক",
-    pending: "অপেক্ষমাণ",
+    admin: "Admin",
+    accountant: "Accountant",
+    viewer: "Viewer",
+    pending: "Pending",
   };
 
   return (
@@ -61,7 +61,7 @@ export default function MobileMenu({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="মেনু খুলুন"
+        aria-label="Open menu"
         aria-expanded={open}
         className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 transition"
       >
@@ -94,7 +94,7 @@ export default function MobileMenu({
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="মোবাইল নেভিগেশন মেনু"
+        aria-label="Mobile navigation menu"
         className={`fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl flex flex-col lg:hidden transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -104,13 +104,13 @@ export default function MobileMenu({
           <div className="flex items-center gap-2">
             <span className="w-1 h-4 rounded-full bg-teal-700 dark:bg-teal-500" />
             <span className="text-base font-bold text-slate-900 dark:text-white">
-              মেনু
+              Menu
             </span>
           </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="মেনু বন্ধ করুন"
+            aria-label="Close menu"
             className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
           >
             <svg
@@ -136,7 +136,7 @@ export default function MobileMenu({
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[11px] text-teal-700/70 dark:text-teal-400/70 leading-tight">
-                আসসালামু আলাইকুম
+                Assalamu Alaikum
               </div>
               <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
                 {fullName}
