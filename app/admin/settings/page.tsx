@@ -26,19 +26,19 @@ export default async function SettingsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
-      <h2 style={{ fontSize: "1.5rem", color: "#0f766e", marginBottom: "0.25rem" }}>
+    <section className="space-y-6">
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         সিস্টেম সেটিংস
       </h2>
-      <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
         সাইনআপ নিয়ন্ত্রণ, কর্মচারী ব্যবস্থাপনা ও অন্যান্য সেটিংস
       </p>
 
       <SettingsClient settings={settings || []} />
 
-      <div style={{ marginTop: "2.5rem" }}>
+      <div className="mt-8 rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:p-6">
         <StaffManagement staff={staff || []} currentUserId={user.id} />
       </div>
-    </main>
+    </section>
   );
 }
