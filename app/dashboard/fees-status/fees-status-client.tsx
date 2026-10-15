@@ -84,17 +84,20 @@ export default function FeesStatusClient({
   students,
   userName,
   highlight = "",
+  highlightDate = "",
   initialMonth,
   initialYear,
 }: {
   students: Student[];
   userName: string;
   highlight?: string;
+  highlightDate?: string;
   initialMonth?: number;
   initialYear?: number;
 }) {
   const supabase = createClient();
   const topRef = useRef<HTMLDivElement>(null);
+  const highlightRowRef = useRef<HTMLTableRowElement>(null);
 
   const now = new Date();
 
@@ -115,6 +118,7 @@ export default function FeesStatusClient({
 
   // হাইলাইট তারিখ
   const highlightToday = highlight === "today";
+  const targetDate = highlightDate || new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     async function load() {
@@ -141,10 +145,12 @@ export default function FeesStatusClient({
 
   // হাইলাইটে স্ক্রল করি
   useEffect(() => {
-    if (highlight && topRef.current) {
-      topRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [highlight]);
+    if (!highlight) return;
+    const timer = window.setTimeout(() => {
+      (highlightRowRef.current || topRef.current)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [highlight, payments.length]);
 
   const classes = Array.from(new Set(students.map((s) => s.class_name)));
 
@@ -194,13 +200,13 @@ export default function FeesStatusClient({
   // হাইলাইট করা আইডি (today এর জন্য)
   const todayPaymentIds = useMemo(() => {
     if (!highlightToday) return new Set<number>();
-    const today = new Date().toISOString().split("T")[0];
+    const today = targetDate;
     const ids = new Set<number>();
     payments
       .filter((p) => p.payment_date === today)
       .forEach((p) => ids.add(p.student_id));
     return ids;
-  }, [highlightToday, payments]);
+  }, [highlightToday, payments, targetDate]);
 
   const paidCount = rows.filter((r) => r.status === "paid").length;
   const partialCount = rows.filter((r) => r.status === "partial").length;
@@ -556,12 +562,13 @@ export default function FeesStatusClient({
                 <tbody>
                   {filtered.map((r, i) => {
                     const sc = statusColor(r.status);
-                    const isHighlighted = highlightToday && todayPaymentIds.has(r.student.id);
+                    const isHighlighted = (highlightToday && todayPaymentIds.has(r.student.id)) || (highlight === "due" && r.status !== "paid");
                     return (
                       <tr
                         key={r.student.id}
+                        ref={isHighlighted && !highlightRowRef.current ? highlightRowRef : undefined}
                         className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
-                          isHighlighted ? "bg-emerald-50 dark:bg-emerald-900/20" : ""
+                          isHighlighted ? (highlight === "due" ? "bg-amber-100 ring-1 ring-inset ring-amber-300 dark:bg-amber-900/30 dark:ring-amber-700" : "bg-emerald-100 ring-1 ring-inset ring-emerald-300 dark:bg-emerald-900/30 dark:ring-emerald-700") : ""
                         }`}
                       >
                         <td className="px-4 py-3 text-slate-500 text-xs">{toBangla(i + 1)}</td>
