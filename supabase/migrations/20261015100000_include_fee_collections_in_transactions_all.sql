@@ -16,7 +16,7 @@ SELECT
   i.created_at
 FROM public.incomes AS i
 LEFT JOIN public.income_categories AS ic ON ic.id = i.category_id
-WHERE i.is_deleted = false OR i.is_deleted IS NULL
+WHERE (i.is_deleted = false OR i.is_deleted IS NULL) AND i.deleted_at IS NULL
 
 UNION ALL
 
@@ -39,7 +39,7 @@ SELECT
   fp.created_at
 FROM public.fee_payments AS fp
 LEFT JOIN public.students AS s ON s.id = fp.student_id
-WHERE fp.is_deleted = false OR fp.is_deleted IS NULL
+WHERE (fp.is_deleted = false OR fp.is_deleted IS NULL) AND fp.deleted_at IS NULL
 
 UNION ALL
 
@@ -56,4 +56,4 @@ SELECT
   e.created_at
 FROM public.expenses AS e
 LEFT JOIN public.expense_categories AS ec ON ec.id = e.category_id
-WHERE e.is_deleted = false OR e.is_deleted IS NULL;
+WHERE (e.is_deleted = false OR e.is_deleted IS NULL) AND e.deleted_at IS NULL;
