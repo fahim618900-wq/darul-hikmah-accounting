@@ -22,15 +22,15 @@ export default async function AuditLogsPage() {
     .limit(500);
 
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "3rem" }}>
-      <h2 style={{ fontSize: "1.5rem", color: "#0f766e", marginBottom: "0.25rem" }}>
+    <section className="space-y-5">
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         অডিট লগ
       </h2>
-      <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
         কে, কখন, কী পরিবর্তন করেছে — তার পূর্ণ ইতিহাস
       </p>
 
       <AuditLogsClient initialLogs={logs || []} />
-    </main>
+    </section>
   );
 }
