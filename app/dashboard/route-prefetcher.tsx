@@ -8,14 +8,17 @@ type RoutePrefetcherProps = { routes: string[] };
 export default function RoutePrefetcher({ routes }: RoutePrefetcherProps) {
   const router = useRouter();
 
+  const routeKey = routes.join("|");
+
   useEffect(() => {
+    const routeList = routeKey ? routeKey.split("|") : [];
     let index = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
 
     const prefetchNext = () => {
-      if (cancelled || index >= routes.length) return;
-      const route = routes[index++];
+      if (cancelled || index >= routeList.length) return;
+      const route = routeList[index++];
       router.prefetch(route);
       timer = setTimeout(prefetchNext, 120);
     };
@@ -27,7 +30,7 @@ export default function RoutePrefetcher({ routes }: RoutePrefetcherProps) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [router, routes]);
+  }, [router, routeKey]);
 
   return null;
 }
