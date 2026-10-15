@@ -7,9 +7,6 @@ import {
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -58,8 +55,6 @@ const MONTHS_SHORT = [
   "জানু", "ফেব", "মার্চ", "এপ্রি", "মে", "জুন",
   "জুলাই", "আগ", "সেপ্ট", "অক্টো", "নভে", "ডিসে",
 ];
-
-const COLORS = ["#22d3ee", "#f472b6", "#a78bfa", "#60a5fa", "#34d399", "#fbbf24", "#ef4444"];
 
 function toBangla(input: string | number): string {
   const map: Record<string, string> = {
@@ -187,7 +182,7 @@ export default function DashboardClient({
     };
   }, [students, filtered]);
 
-  // লাইন চার্ট — মাসিক আদায় (সবসময় ১২ মাস, নির্বাচিত বছরের)
+  // লাইন চার্ট — মাসিক বেতন আদায়ের শতাংশ (সবসময় ১২ মাস, নির্বাচিত বছরের)
   const lineData = useMemo(() => {
     const monthly: Record<number, number> = {};
     for (let m = 1; m <= 12; m++) monthly[m] = 0;
@@ -200,21 +195,16 @@ export default function DashboardClient({
         monthly[p.month] = (monthly[p.month] || 0) + Number(p.amount);
       });
 
-    return Object.entries(monthly).map(([m, amt]) => ({
-      name: MONTHS_SHORT[Number(m) - 1],
-      collection: amt,
-    }));
-  }, [payments, filterMode, selectedYear, fromDate]);
+    const monthlyPayable = students.reduce(
+      (sum, student) => sum + (Number(student.monthly_fee) - Number(student.discount || 0)),
+      0
+    );
 
-  // ডোনাট — আয়ের খাত
-  const donutData = useMemo(() => {
-    const byCat: Record<string, number> = {};
-    filtered.fIncomes.forEach((i) => {
-      const name = i.income_categories?.name || "অন্যান্য";
-      byCat[name] = (byCat[name] || 0) + Number(i.amount);
-    });
-    return Object.entries(byCat).map(([name, value]) => ({ name, value }));
-  }, [filtered.fIncomes]);
+    return Object.entries(monthly).map(([m, amount]) => ({
+      name: MONTHS_SHORT[Number(m) - 1],
+      collectionRate: monthlyPayable > 0 ? Math.round((amount / monthlyPayable) * 100) : 0,
+    }));
+  }, [payments, students, filterMode, selectedYear, fromDate]);
 
   // বার — শ্রেণিভিত্তিক শিক্ষার্থী
   const barData = useMemo(() => {
@@ -454,7 +444,7 @@ export default function DashboardClient({
       {/* ============ লাইন চার্ট ============ */}
       <ChartCard
         title="মাসিক বেতন আদায়"
-        subtitle={`${toBangla(filterMode === "month" ? selectedYear : new Date(fromDate).getFullYear())} সালের ধারা`}
+        subtitle={`${toBangla(filterMode === "month" ? selectedYear : new Date(fromDate).getFullYear())} সালের মাসভিত্তিক আদায়ের হার (%)`}
         cardBg={cardBg}
         textPrimary={textPrimary}
         textMuted={textMuted}
@@ -470,7 +460,12 @@ export default function DashboardClient({
             </defs>
             <CartesianGrid strokeDasharray="4 4" stroke={gridColor} vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 10, fill: textMuted }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: textMuted }} axisLine={false} tickLine={false} />
+            <YAxis
+              tick={{ fontSize: 10, fill: textMuted }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(value: number) => `${toBangla(value)}%`}
+            />
             <Tooltip
               contentStyle={{
                 background: "#1e293b",
@@ -479,11 +474,12 @@ export default function DashboardClient({
                 color: "#fff",
                 fontSize: "0.8rem",
               }}
-              formatter={(v: number) => [formatTaka(v), "আদায়"]}
+              formatter={(v: number) => [`${toBangla(v)}%`, "বেতন আদায়ের হার"]}
             />
             <Line
               type="monotone"
-              dataKey="collection"
+              dataKey="collectionRate"
+              name="আদায়ের হার"
               stroke="url(#lineColor)"
               strokeWidth={3}
               dot={{ fill: "#22d3ee", r: 4, strokeWidth: 2, stroke: "#fff" }}
@@ -493,57 +489,11 @@ export default function DashboardClient({
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* ============ দুইটি চার্ট ============ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-        <ChartCard
-          title="আয়ের খাত"
-          subtitle={filterLabel}
-          cardBg={cardBg}
-          textPrimary={textPrimary}
-          textMuted={textMuted}
-          borderColor={gridColor}
-        >
-          {donutData.length === 0 ? (
-            <EmptyBox textMuted={textMuted} />
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={donutData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={85}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {donutData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "#1e293b",
-                    border: "none",
-                    borderRadius: "10px",
-                    color: "#fff",
-                    fontSize: "0.8rem",
-                  }}
-                  formatter={(v: number) => formatTaka(v)}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: "0.72rem", color: textMuted }}
-                  iconType="circle"
-                  iconSize={8}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-
+      {/* ============ শ্রেণিভিত্তিক শিক্ষার্থী ============ */}
+      <div className="grid grid-cols-1 gap-3 mt-3">
         <ChartCard
           title="শ্রেণিভিত্তিক শিক্ষার্থী"
-          subtitle="প্রতিটি শ্রেণিতে সংখ্যা"
+          subtitle="প্রতিটি শ্রেণিতে শিক্ষার্থীর সংখ্যা"
           cardBg={cardBg}
           textPrimary={textPrimary}
           textMuted={textMuted}
