@@ -3,18 +3,18 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 const links = [
-  { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
-  { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
-  { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+  { href: "/dashboard", label: "Dashboard", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/students", label: "Students", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees", label: "Fee Collection", roles: ["admin", "accountant"] },
   { href: "/dashboard/fees-status", label: "Paid / Unpaid", roles: ["admin", "accountant", "viewer"] },
-  { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
-  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
-  { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
-  { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
-  { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
-  { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
-  { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
-  { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
+  { href: "/dashboard/income", label: "Income", roles: ["admin", "accountant"] },
+  { href: "/dashboard/expenses", label: "Expenses", roles: ["admin", "accountant"] },
+  { href: "/dashboard/reports", label: "Reports", roles: ["admin", "accountant", "viewer"] },
+  { href: "/admin/users", label: "Users", roles: ["admin"] },
+  { href: "/admin/audit-logs", label: "Audit Logs", roles: ["admin"] },
+  { href: "/admin/closed-months", label: "Closed Months", roles: ["admin"] },
+  { href: "/admin/settings", label: "Settings", roles: ["admin"] },
+  { href: "/admin/clear-data", label: "Data Management", roles: ["admin"] },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -44,24 +44,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </svg>
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-extrabold text-slate-900 dark:text-white">দারুল হিকমাহ</span>
-              <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">মডেল মাদ্রাসা · ব্যবস্থাপনা</span>
+              <span className="block truncate text-sm font-extrabold text-slate-900 dark:text-white">Darul Hikmah</span>
+              <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">Model Madrasa · Management</span>
             </span>
           </Link>
           <div className="hidden text-right sm:block">
-            <p className="text-xs text-slate-500 dark:text-slate-400">আসসালামু আলাইকুম</p>
-            <p className="max-w-52 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">{profile?.full_name || user.email || "ব্যবহারকারী"}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Assalamu Alaikum</p>
+            <p className="max-w-52 truncate text-sm font-semibold text-slate-800 dark:text-slate-200">{profile?.full_name || user.email || "User"}</p>
           </div>
         </div>
-        <nav aria-label="প্রধান নেভিগেশন" className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 pb-3 sm:px-5">
+        <nav aria-label="প্রধান নেভিগেশন" className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 pb-3 sm:px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleLinks.map((item) => (
-            <Link key={item.href} href={item.href} className="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-teal-800 dark:hover:bg-teal-950/40 dark:hover:text-teal-300 sm:text-sm">
+            <Link key={item.href} href={item.href} className="whitespace-nowrap rounded-xl border border-slate-200/80 bg-white/80 px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-teal-800 dark:hover:bg-teal-950/40 dark:hover:text-teal-300 sm:text-sm">
               {item.label}
             </Link>
           ))}
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-5 sm:py-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-5 sm:py-8 lg:py-9">{children}</main>
     </div>
   );
 }
