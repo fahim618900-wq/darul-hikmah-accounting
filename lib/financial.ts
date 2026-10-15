@@ -51,6 +51,7 @@ export async function getFinancialData(supabase: SupabaseClient) {
         .or("is_deleted.eq.false,is_deleted.is.null")
         .is("deleted_at", null)
         .order("entry_date", { ascending: false })
+        .order("id", { ascending: true })
         .range(from, to)
     ),
     fetchAllRows<any>((from, to) =>
@@ -67,6 +68,7 @@ export async function getFinancialData(supabase: SupabaseClient) {
         .or("is_deleted.eq.false,is_deleted.is.null")
         .is("deleted_at", null)
         .order("payment_date", { ascending: false })
+        .order("id", { ascending: true })
         .range(from, to)
     ),
   ]);
@@ -178,6 +180,7 @@ export async function getFeePaymentsForFeeMonthRange(
       .order("year", { ascending: true })
       .order("month", { ascending: true })
       .order("payment_date", { ascending: false })
+      .order("id", { ascending: true })
       .range(from, to)
   );
   return rows.filter((row) => {
@@ -220,6 +223,27 @@ export function isDateInRange(value: string | Date | null | undefined, fromDate:
 export function isDateInMonth(value: string | Date | null | undefined, month: number, year: number): boolean {
   const key = toDateKey(value);
   return key.length >= 10 && Number(key.slice(5, 7)) === month && Number(key.slice(0, 4)) === year;
+}
+
+/** Fee-period allocation is distinct from the cash date used for income reports. */
+export function isFeePaymentForMonth(
+  payment: { month: number | string; year: number | string },
+  month: number,
+  year: number
+): boolean {
+  return Number(payment.month) === month && Number(payment.year) === year;
+}
+
+export function isFeePaymentForPeriodRange(
+  payment: { month: number | string; year: number | string },
+  fromDate: string,
+  toDate: string
+): boolean {
+  if (!fromDate || !toDate || fromDate > toDate) return false;
+  const start = Number(fromDate.slice(0, 4)) * 12 + Number(fromDate.slice(5, 7));
+  const end = Number(toDate.slice(0, 4)) * 12 + Number(toDate.slice(5, 7));
+  const period = Number(payment.year) * 12 + Number(payment.month);
+  return period >= start && period <= end;
 }
 
 export function sumAmounts<T extends { amount: number | string | null | undefined }>(rows: T[]): number {
