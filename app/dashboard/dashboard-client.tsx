@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import { Users, TrendingUp, Wallet, AlertCircle, DollarSign, BookOpen, Receipt, PlusCircle, FileText, ArrowUpRight } from "lucide-react";
-import { isDateInMonth, isDateInRange, lastDayOfMonth, calculateFinancialTotals } from "@/lib/financial";
+import { isDateInMonth, isDateInRange, lastDayOfMonth, calculateFinancialTotals, isFeePaymentForMonth, isFeePaymentForPeriodRange } from "@/lib/financial";
 
 type Student = {
   id: number;
@@ -128,6 +128,7 @@ export default function DashboardClient({
     let fIncomes: Income[] = [];
     let fExpenses: Expense[] = [];
     let fPayments: Payment[] = [];
+    let fFeePeriodPayments: Payment[] = [];
 
     if (filterMode === "month") {
       fIncomes = incomes.filter((i) => isDateInMonth(i.entry_date, selectedMonth, selectedYear));
@@ -135,31 +136,49 @@ export default function DashboardClient({
       fPayments = payments.filter(
         (p) => isDateInMonth(p.payment_date, selectedMonth, selectedYear)
       );
+      fFeePeriodPayments = payments.filter(
+        (p) => isFeePaymentForMonth(p, selectedMonth, selectedYear)
+      );
     } else {
       fIncomes = incomes.filter((i) => isDateInRange(i.entry_date, fromDate, toDate));
       fExpenses = expenses.filter((e) => isDateInRange(e.entry_date, fromDate, toDate));
       fPayments = payments.filter(
         (p) => isDateInRange(p.payment_date, fromDate, toDate)
       );
+      fFeePeriodPayments = payments.filter(
+        (p) => isFeePaymentForPeriodRange(p, fromDate, toDate)
+      );
     }
 
-    return { fIncomes, fExpenses, fPayments };
+    return { fIncomes, fExpenses, fPayments, fFeePeriodPayments };
   }, [filterMode, selectedMonth, selectedYear, fromDate, toDate, incomes, expenses, payments]);
 
   // হিসাব
   const stats = useMemo(() => {
     const activeStudents = students.length;
 
-    const totalPayable = students.reduce(
-      (sum, s) => sum + (Number(s.monthly_fee) - Number(s.discount || 0)),
+    const monthlyPayable = students.reduce(
+      (sum, s) => sum + Math.max(0, Number(s.monthly_fee || 0) - Number(s.discount || 0)),
       0
     );
+    const rangeMonthCount = (() => {
+      if (filterMode === "month") return 1;
+      if (!fromDate || !toDate || fromDate > toDate) return 0;
+      return Math.max(0, (Number(toDate.slice(0, 4)) - Number(fromDate.slice(0, 4))) * 12
+        + Number(toDate.slice(5, 7)) - Number(fromDate.slice(5, 7)) + 1);
+    })();
+    const totalPayable = monthlyPayable * rangeMonthCount;
 
+    // Cash collected this period uses payment_date; fee dues use month/year allocation.
     const totalCollected = filtered.fPayments.reduce(
-      (s, p) => s + Number(p.amount),
+      (s, p) => s + Number(p.amount || 0),
       0
     );
-    const totalDue = totalPayable - totalCollected;
+    const feePeriodCollected = filtered.fFeePeriodPayments.reduce(
+      (s, p) => s + Number(p.amount || 0),
+      0
+    );
+    const totalDue = totalPayable - feePeriodCollected;
 
     const financialRows = [
       ...filtered.fIncomes.map((i) => ({ source: "direct-income" as const, type: "income" as const, date: i.entry_date, amount: Number(i.amount) || 0, id: 0, category: null, ref_no: null, description: null })),
@@ -180,7 +199,7 @@ export default function DashboardClient({
       totalExpense,
       balance,
     };
-  }, [students, filtered]);
+  }, [students, filtered, filterMode, fromDate, toDate]);
 
   // লাইন চার্ট — মাসিক বেতন আদায়ের শতাংশ (সবসময় ১২ মাস, নির্বাচিত বছরের)
   const lineData = useMemo(() => {
