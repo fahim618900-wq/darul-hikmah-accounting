@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { lastDayOfMonth } from "@/lib/financial";
 
 type Transaction = {
   type: string;
@@ -34,7 +35,7 @@ export default function IncomeExpenseReport({
 }) {
   const now = new Date();
   const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  const lastOfMonth = lastDayOfMonth(now.getFullYear(), now.getMonth() + 1);
 
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(lastOfMonth);
