@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { isDateInMonth, isDateInRange } from "@/lib/financial";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -112,8 +113,7 @@ export default function ExpensesClient({
         if (d.getMonth() + 1 !== selectedMonth) return false;
         if (d.getFullYear() !== selectedYear) return false;
       } else {
-        if (e.entry_date < fromDate) return false;
-        if (e.entry_date > toDate) return false;
+        if (!isDateInRange(e.entry_date, fromDate, toDate)) return false;
       }
 
       if (categoryFilter && e.expense_categories?.name !== categoryFilter) return false;
