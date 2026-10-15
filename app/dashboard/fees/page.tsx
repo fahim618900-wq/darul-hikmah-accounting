@@ -8,6 +8,8 @@ export default async function FeesPage() {
     .from("students")
     .select("*")
     .eq("status", "active")
+    .or("is_deleted.eq.false,is_deleted.is.null")
+    .is("deleted_at", null)
     .order("class_name")
     .order("roll");
 
