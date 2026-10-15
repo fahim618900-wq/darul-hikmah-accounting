@@ -18,6 +18,8 @@ export default async function FeesStatusPage({ searchParams }: { searchParams: {
     .from("students")
     .select("id, student_id, name, class_name, roll, section, guardian_name, guardian_phone, monthly_fee, discount, status")
     .eq("status", "active")
+    .or("is_deleted.eq.false,is_deleted.is.null")
+    .is("deleted_at", null)
     .order("class_name")
     .order("roll");
 
