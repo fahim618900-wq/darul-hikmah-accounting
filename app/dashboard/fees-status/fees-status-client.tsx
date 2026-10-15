@@ -125,21 +125,23 @@ export default function FeesStatusClient({
   const targetDate = highlightDate || todayDateKey();
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       setLoading(true);
       try {
         const data = filterMode === "month"
           ? await getFeePaymentsForMonth(supabase, month, year)
           : await getFeePaymentsForDateRange(supabase, fromDate, toDate);
-        setPayments(data || []);
+        if (!cancelled) setPayments(data || []);
       } catch (error) {
         console.error("Unable to load fee status payments", error);
-        setPayments([]);
+        if (!cancelled) setPayments([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+    return () => { cancelled = true; };
   }, [filterMode, month, year, fromDate, toDate]);
 
   // শুধু Print রিপোর্টের জন্য: নির্বাচিত সময়ের ফি-মাসগুলোর সব পেমেন্ট আলাদা করে আনি।
@@ -159,14 +161,19 @@ export default function FeesStatusClient({
         return;
       }
 
-      const periodPayments = await getFeePaymentsForFeeMonthRange(
-        supabase,
-        from.getMonth() + 1,
-        from.getFullYear(),
-        to.getMonth() + 1,
-        to.getFullYear()
-      );
-      if (!cancelled) setRangePrintPayments(periodPayments);
+      try {
+        const periodPayments = await getFeePaymentsForFeeMonthRange(
+          supabase,
+          from.getMonth() + 1,
+          from.getFullYear(),
+          to.getMonth() + 1,
+          to.getFullYear()
+        );
+        if (!cancelled) setRangePrintPayments(periodPayments);
+      } catch (error) {
+        console.error("Unable to load print fee payments", error);
+        if (!cancelled) setRangePrintPayments([]);
+      }
     }
 
     loadRangePrintPayments();
