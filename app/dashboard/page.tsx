@@ -18,7 +18,8 @@ export default async function DashboardPage() {
       .from("students")
       .select("id, monthly_fee, discount, class_name, status")
       .eq("status", "active")
-      .or("is_deleted.eq.false,is_deleted.is.null"),
+      .or("is_deleted.eq.false,is_deleted.is.null")
+      .is("deleted_at", null),
     getFinancialData(supabase),
   ]);
 
