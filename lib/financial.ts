@@ -57,6 +57,7 @@ export async function getFinancialData(supabase: SupabaseClient) {
       (supabase as any).from("expenses")
         .select("id, amount, entry_date, category_id, payment_method, voucher_no, description, is_deleted, expense_categories(name)")
         .or("is_deleted.eq.false,is_deleted.is.null")
+        .is("deleted_at", null)
         .order("entry_date", { ascending: false })
         .range(from, to)
     ),
