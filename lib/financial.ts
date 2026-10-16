@@ -23,14 +23,22 @@ export type FinancialTotals = {
 };
 
 type QueryResult<T> = { data: T[] | null; error: { message: string } | null };
-type PagedQuery<T> = { range(from: number, to: number): PromiseLike<QueryResult<T>> };
+type PagedQuery<T> = {
+  range(from: number, to: number): PromiseLike<QueryResult<T>>;
+};
 
-/** Fetch every page instead of silently truncating financial records at 500/1000 rows. */
-async function fetchAllRows<T>(makeQuery: (from: number, to: number) => PagedQuery<T>): Promise<T[]> {
+/**
+ * Fetch every page instead of silently truncating financial records.
+ * `makeQuery(from, to)` returns a builder that still needs `.range(from, to)`.
+ */
+async function fetchAllRows<T>(
+  makeQuery: (from: number, to: number) => PagedQuery<T>
+): Promise<T[]> {
   const all: T[] = [];
   const pageSize = 1000;
   for (let from = 0; ; from += pageSize) {
-    const { data, error } = await makeQuery(from, from + pageSize - 1);
+    const builder = makeQuery(from, from + pageSize - 1);
+    const { data, error } = await builder.range(from, from + pageSize - 1);
     if (error) throw new Error(`Financial data query failed: ${error.message}`);
     const page = data ?? [];
     all.push(...page);
@@ -45,31 +53,37 @@ function relationOne(value: any): any {
 /** One canonical source for all non-deleted financial records. */
 export async function getFinancialData(supabase: SupabaseClient) {
   const [incomeRows, expenseRows, feeRows] = await Promise.all([
-    fetchAllRows<any>((from, to) =>
-      (supabase as any).from("incomes")
-        .select("id, amount, entry_date, category_id, student_id, payment_method, receipt_no, description, is_deleted, income_categories(name)")
+    fetchAllRows<any>((_from, _to) =>
+      (supabase as any)
+        .from("incomes")
+        .select(
+          "id, amount, entry_date, category_id, student_id, payment_method, receipt_no, description, is_deleted, income_categories(name)"
+        )
         .or("is_deleted.eq.false,is_deleted.is.null")
         .is("deleted_at", null)
         .order("entry_date", { ascending: false })
         .order("id", { ascending: true })
-        .range(from, to)
     ),
-    fetchAllRows<any>((from, to) =>
-      (supabase as any).from("expenses")
-        .select("id, amount, entry_date, category_id, payment_method, voucher_no, description, is_deleted, expense_categories(name)")
+    fetchAllRows<any>((_from, _to) =>
+      (supabase as any)
+        .from("expenses")
+        .select(
+          "id, amount, entry_date, category_id, payment_method, voucher_no, description, is_deleted, expense_categories(name)"
+        )
         .or("is_deleted.eq.false,is_deleted.is.null")
         .is("deleted_at", null)
         .order("entry_date", { ascending: false })
-        .range(from, to)
     ),
-    fetchAllRows<any>((from, to) =>
-      (supabase as any).from("fee_payments")
-        .select("id, student_id, month, year, amount, payment_date, payment_method, receipt_no, note, is_deleted, students(name, class_name, roll)")
+    fetchAllRows<any>((_from, _to) =>
+      (supabase as any)
+        .from("fee_payments")
+        .select(
+          "id, student_id, month, year, amount, payment_date, payment_method, receipt_no, note, is_deleted, students(name, class_name, roll)"
+        )
         .or("is_deleted.eq.false,is_deleted.is.null")
         .is("deleted_at", null)
         .order("payment_date", { ascending: false })
         .order("id", { ascending: true })
-        .range(from, to)
     ),
   ]);
 
@@ -107,7 +121,11 @@ export async function getFinancialData(supabase: SupabaseClient) {
       category: "শিক্ষার্থীদের বেতন/ফি",
       amount: Number(row.amount) || 0,
       ref_no: row.receipt_no ?? null,
-      description: row.note || (row.students?.name ? `শিক্ষার্থী: ${row.students.name}` : "শিক্ষার্থীর ফি আদায়"),
+      description:
+        row.note ||
+        (row.students?.name
+          ? `শিক্ষার্থী: ${row.students.name}`
+          : "শিক্ষার্থীর ফি আদায়"),
       payment_method: row.payment_method ?? null,
       student_id: row.student_id ?? null,
       student_name: row.students?.name ?? null,
@@ -128,17 +146,21 @@ export async function getFinancialData(supabase: SupabaseClient) {
   return { incomes, expenses, feePayments, transactions };
 }
 
-/** Fee-payment queries shared by fee pages; exclude soft-deleted rows and fetch every page. */
-export async function getFeePaymentsForMonth(supabase: SupabaseClient, month: number, year: number) {
-  return fetchAllRows<any>((from, to) =>
-    (supabase as any).from("fee_payments")
+/** Fee-payment queries shared by fee pages; exclude soft-deleted rows. */
+export async function getFeePaymentsForMonth(
+  supabase: SupabaseClient,
+  month: number,
+  year: number
+) {
+  return fetchAllRows<any>((_from, _to) =>
+    (supabase as any)
+      .from("fee_payments")
       .select("*")
       .eq("month", month)
       .eq("year", year)
       .or("is_deleted.eq.false,is_deleted.is.null")
       .is("deleted_at", null)
       .order("payment_date", { ascending: false })
-      .range(from, to)
   );
 }
 
@@ -147,15 +169,15 @@ export async function getFeePaymentsForDateRange(
   fromDate: string,
   toDate: string
 ) {
-  return fetchAllRows<any>((from, to) =>
-    (supabase as any).from("fee_payments")
+  return fetchAllRows<any>((_from, _to) =>
+    (supabase as any)
+      .from("fee_payments")
       .select("*")
       .gte("payment_date", fromDate)
       .lte("payment_date", toDate)
       .or("is_deleted.eq.false,is_deleted.is.null")
       .is("deleted_at", null)
       .order("payment_date", { ascending: false })
-      .range(from, to)
   );
 }
 
@@ -170,8 +192,9 @@ export async function getFeePaymentsForFeeMonthRange(
   const firstPeriod = firstYear * 12 + firstMonth;
   const lastPeriod = lastYear * 12 + lastMonth;
   if (firstPeriod > lastPeriod) return [];
-  const rows = await fetchAllRows<any>((from, to) =>
-    (supabase as any).from("fee_payments")
+  const rows = await fetchAllRows<any>((_from, _to) =>
+    (supabase as any)
+      .from("fee_payments")
       .select("*")
       .gte("year", firstYear)
       .lte("year", lastYear)
@@ -181,7 +204,6 @@ export async function getFeePaymentsForFeeMonthRange(
       .order("month", { ascending: true })
       .order("payment_date", { ascending: false })
       .order("id", { ascending: true })
-      .range(from, to)
   );
   return rows.filter((row) => {
     const period = Number(row.year) * 12 + Number(row.month);
@@ -196,11 +218,16 @@ export function todayDateKey(): string {
 
 export function lastDayOfMonth(year: number, month: number): string {
   const last = new Date(year, month, 0);
-  return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, "0")}-${String(last.getDate()).padStart(2, "0")}`;
+  return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(last.getDate()).padStart(2, "0")}`;
 }
 
-/** Date-only comparison: never parse YYYY-MM-DD as UTC and shift it to another local day. */
-export function toDateKey(value: string | Date | null | undefined): string {
+/** Date-only comparison: never parse YYYY-MM-DD as UTC. */
+export function toDateKey(
+  value: string | Date | null | undefined
+): string {
   if (!value) return "";
   if (value instanceof Date) {
     const y = value.getFullYear();
@@ -215,14 +242,30 @@ export function toDateKey(value: string | Date | null | undefined): string {
   return toDateKey(parsed);
 }
 
-export function isDateInRange(value: string | Date | null | undefined, fromDate: string, toDate: string): boolean {
+export function isDateInRange(
+  value: string | Date | null | undefined,
+  fromDate: string,
+  toDate: string
+): boolean {
   const key = toDateKey(value);
-  return Boolean(key && (!fromDate || key >= toDateKey(fromDate)) && (!toDate || key <= toDateKey(toDate)));
+  return Boolean(
+    key &&
+      (!fromDate || key >= toDateKey(fromDate)) &&
+      (!toDate || key <= toDateKey(toDate))
+  );
 }
 
-export function isDateInMonth(value: string | Date | null | undefined, month: number, year: number): boolean {
+export function isDateInMonth(
+  value: string | Date | null | undefined,
+  month: number,
+  year: number
+): boolean {
   const key = toDateKey(value);
-  return key.length >= 10 && Number(key.slice(5, 7)) === month && Number(key.slice(0, 4)) === year;
+  return (
+    key.length >= 10 &&
+    Number(key.slice(5, 7)) === month &&
+    Number(key.slice(0, 4)) === year
+  );
 }
 
 /** Fee-period allocation is distinct from the cash date used for income reports. */
@@ -240,26 +283,43 @@ export function isFeePaymentForPeriodRange(
   toDate: string
 ): boolean {
   if (!fromDate || !toDate || fromDate > toDate) return false;
-  const start = Number(fromDate.slice(0, 4)) * 12 + Number(fromDate.slice(5, 7));
+  const start =
+    Number(fromDate.slice(0, 4)) * 12 + Number(fromDate.slice(5, 7));
   const end = Number(toDate.slice(0, 4)) * 12 + Number(toDate.slice(5, 7));
   const period = Number(payment.year) * 12 + Number(payment.month);
   return period >= start && period <= end;
 }
 
-export function sumAmounts<T extends { amount: number | string | null | undefined }>(rows: T[]): number {
+export function sumAmounts<
+  T extends { amount: number | string | null | undefined }
+>(rows: T[]): number {
   return rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
 }
 
-/** Single financial rule used by dashboards and reports: direct income + paid fee collections. */
+/** Single financial rule: direct income + paid fee collections − expenses. */
 export function calculateFinancialTotals(
   transactions: FinancialTransaction[],
   fromDate = "",
   toDate = ""
 ): FinancialTotals {
-  const rows = transactions.filter((row) => isDateInRange(row.date, fromDate, toDate));
-  const directIncome = sumAmounts(rows.filter((row) => row.source === "direct-income"));
-  const feeIncome = sumAmounts(rows.filter((row) => row.source === "fee-collection"));
+  const rows = transactions.filter((row) =>
+    isDateInRange(row.date, fromDate, toDate)
+  );
+  const directIncome = sumAmounts(
+    rows.filter((row) => row.source === "direct-income")
+  );
+  const feeIncome = sumAmounts(
+    rows.filter((row) => row.source === "fee-collection")
+  );
   const totalIncome = directIncome + feeIncome;
-  const totalExpense = sumAmounts(rows.filter((row) => row.type === "expense"));
-  return { directIncome, feeIncome, totalIncome, totalExpense, balance: totalIncome - totalExpense };
+  const totalExpense = sumAmounts(
+    rows.filter((row) => row.type === "expense")
+  );
+  return {
+    directIncome,
+    feeIncome,
+    totalIncome,
+    totalExpense,
+    balance: totalIncome - totalExpense,
+  };
 }
