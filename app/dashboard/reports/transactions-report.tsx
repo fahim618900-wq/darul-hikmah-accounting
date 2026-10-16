@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { lastDayOfMonth, calculateFinancialTotals, isDateInRange, type FinancialTransaction } from "@/lib/financial";
 
 type Transaction = {
-  type: "income" | "expense";
-  source: "direct-income" | "fee-collection" | "expense";
+  type: string;
   id: number;
   date: string;
   category: string | null;
@@ -28,6 +26,12 @@ function todayBangla(): string {
   return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
 }
 
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
+}
+
 export default function TransactionsReport({
   transactions,
   preparedBy,
@@ -37,7 +41,9 @@ export default function TransactionsReport({
 }) {
   const now = new Date();
   const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  const lastOfMonth = lastDayOfMonth(now.getFullYear(), now.getMonth() + 1);
+  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split("T")[0];
 
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(lastOfMonth);
@@ -48,18 +54,45 @@ export default function TransactionsReport({
 
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
-      if (!isDateInRange(t.date, fromDate, toDate)) return false;
+      if (t.date < fromDate || t.date > toDate) return false;
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
-      if (receiptSearch && !(t.ref_no || "").toLowerCase().includes(receiptSearch.toLowerCase())) return false;
-      if (categorySearch && !(t.category || "").toLowerCase().includes(categorySearch.toLowerCase())) return false;
-      if (descSearch && !(t.description || "").toLowerCase().includes(descSearch.toLowerCase())) return false;
+      if (
+        receiptSearch &&
+        !(t.ref_no || "").toLowerCase().includes(receiptSearch.toLowerCase())
+      )
+        return false;
+      if (
+        categorySearch &&
+        !(t.category || "").toLowerCase().includes(categorySearch.toLowerCase())
+      )
+        return false;
+      if (
+        descSearch &&
+        !(t.description || "").toLowerCase().includes(descSearch.toLowerCase())
+      )
+        return false;
       return true;
     });
   }, [transactions, fromDate, toDate, typeFilter, receiptSearch, categorySearch, descSearch]);
 
-  const totals = calculateFinancialTotals(filtered as FinancialTransaction[]);
-  const totalIncome = totals.totalIncome;
-  const totalExpense = totals.totalExpense;
+  // সঠিক হিসাব — filtered থেকে
+  const totalIncome = useMemo(
+    () =>
+      filtered
+        .filter((t) => t.type === "income")
+        .reduce((s, t) => s + Number(t.amount || 0), 0),
+    [filtered]
+  );
+
+  const totalExpense = useMemo(
+    () =>
+      filtered
+        .filter((t) => t.type === "expense")
+        .reduce((s, t) => s + Number(t.amount || 0), 0),
+    [filtered]
+  );
+
+  const netBalance = totalIncome - totalExpense;
 
   function clearFilters() {
     setReceiptSearch("");
@@ -68,154 +101,250 @@ export default function TransactionsReport({
     setTypeFilter("all");
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
   return (
     <>
-      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ============ স্ক্রিনে ফিল্টার ============ */}
+      <div className="no-print bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শুরুর তারিখ</label>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              শুরুর তারিখ
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+            />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শেষের তারিখ</label>
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              শেষের তারিখ
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+            />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">ধরন</label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              ধরন
+            </label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as any)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+            >
               <option value="all">সব</option>
               <option value="income">শুধু আয়</option>
               <option value="expense">শুধু ব্যয়</option>
             </select>
           </div>
-        </div>
-
-        <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 রসিদ / ভাউচার নম্বর</label>
-            <input
-              type="text"
-              value={receiptSearch}
-              onChange={(e) => setReceiptSearch(e.target.value)}
-              placeholder="R-202610-..."
-              style={{ ...inp, borderColor: receiptSearch ? "#0f766e" : "#cbd5e1" }}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 খাত</label>
-            <input
-              type="text"
-              value={categorySearch}
-              onChange={(e) => setCategorySearch(e.target.value)}
-              placeholder="বেতন, বিদ্যুৎ..."
-              className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">🔍 বিবরণ</label>
-            <input
-              type="text"
-              value={descSearch}
-              onChange={(e) => setDescSearch(e.target.value)}
-              placeholder="কোনো লেখা..."
-              className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-            />
+          <div className="flex items-end">
+            <button
+              onClick={clearFilters}
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-200 transition"
+            >
+              ফিল্টার মুছুন
+            </button>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <button onClick={() => window.print()} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2">
-            🖨️ Print / PDF
-          </button>
-          <button onClick={clearFilters} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-            ফিল্টার মুছুন
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <input
+            type="text"
+            value={receiptSearch}
+            onChange={(e) => setReceiptSearch(e.target.value)}
+            placeholder="🔍 রসিদ / ভাউচার নম্বর"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+          />
+          <input
+            type="text"
+            value={categorySearch}
+            onChange={(e) => setCategorySearch(e.target.value)}
+            placeholder="🔍 খাত"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+          />
+          <input
+            type="text"
+            value={descSearch}
+            onChange={(e) => setDescSearch(e.target.value)}
+            placeholder="🔍 বিবরণ"
+            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex-1 flex flex-wrap gap-2">
+            <Badge label="মোট আয়" value={"৳" + toBangla(Math.round(totalIncome))} color="#15803d" />
+            <Badge label="মোট ব্যয়" value={"৳" + toBangla(Math.round(totalExpense))} color="#b91c1c" />
+            <Badge
+              label="ব্যালেন্স"
+              value={"৳" + toBangla(Math.round(netBalance))}
+              color={netBalance >= 0 ? "#15803d" : "#b91c1c"}
+            />
+            <Badge label="মোট লেনদেন" value={toBangla(filtered.length) + " টি"} color="#2563eb" />
+          </div>
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md transition flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Print / PDF
           </button>
         </div>
       </div>
 
-      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/10 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
-        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-5 sm:px-6 dark:border-teal-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950 print:bg-white" style={{ borderBottom: "2px solid #0f766e" }}>
-          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 className="mb-1 text-xl font-extrabold tracking-tight text-teal-800 sm:text-2xl dark:text-teal-300 print:text-teal-800" style={{ marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400 print:text-slate-600" style={{ fontSize: "0.85rem" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+      {/* ============ প্রিন্ট এরিয়া ============ */}
+      <div className="print-area">
+        {/* প্রিন্ট হেডার */}
+        <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 mb-4 border-b-2 border-brand-600">
+          <div className="text-center mb-3">
+            <h1 className="text-lg sm:text-xl font-bold text-brand-700 mb-1">
+              দারুল হিকমাহ মডেল মাদ্রাসা
+            </h1>
+            <p className="text-xs text-slate-500">
+              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
+            </p>
           </div>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
             <div><strong>বিষয়:</strong> লেনদেনের রিপোর্ট</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <div><strong>সময়কাল:</strong> {toBangla(fromDate)} — {toBangla(toDate)}</div>
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
+            <div><strong>সময়কাল:</strong> {formatDate(fromDate)} — {formatDate(toDate)}</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
-          {(receiptSearch || categorySearch || descSearch) && (
-            <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "0.35rem" }}>
-              {receiptSearch && <span>রসিদ: <strong>{receiptSearch}</strong> </span>}
-              {categorySearch && <span>| খাত: <strong>{categorySearch}</strong> </span>}
-              {descSearch && <span>| বিবরণ: <strong>{descSearch}</strong></span>}
+        </div>
+
+        {/* তালিকা */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4">
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              কোনো লেনদেন নেই
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800">
+                  <tr>
+                    <th className="excel-th w-12">নং</th>
+                    <th className="excel-th w-28">তারিখ</th>
+                    <th className="excel-th w-20">ধরন</th>
+                    <th className="excel-th">খাত</th>
+                    <th className="excel-th w-32">রসিদ / ভাউচার</th>
+                    <th className="excel-th">বিবরণ</th>
+                    <th className="excel-th w-24 text-right">পরিমাণ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((t, i) => (
+                    <tr key={`${t.type}-${t.id}`} className="border-b border-slate-100 dark:border-slate-800">
+                      <td className="excel-td text-center text-slate-400 text-xs">
+                        {toBangla(i + 1)}
+                      </td>
+                      <td className="excel-td text-xs">{formatDate(t.date)}</td>
+                      <td className="excel-td">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            t.type === "income"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {t.type === "income" ? "আয়" : "ব্যয়"}
+                        </span>
+                      </td>
+                      <td className="excel-td text-xs">{t.category || "-"}</td>
+                      <td className="excel-td text-[11px] font-mono text-brand-600">
+                        {t.ref_no || "-"}
+                      </td>
+                      <td className="excel-td text-xs">{t.description || "-"}</td>
+                      <td
+                        className={`excel-td text-right font-bold ${
+                          t.type === "income" ? "text-emerald-700" : "text-red-700"
+                        }`}
+                      >
+                        ৳{toBangla(Math.round(Number(t.amount)))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-slate-100 dark:bg-slate-800">
+                  <tr>
+                    <td colSpan={6} className="excel-td text-right font-bold">
+                      সর্বমোট আয়:
+                    </td>
+                    <td className="excel-td text-right font-bold text-emerald-700">
+                      ৳{toBangla(Math.round(totalIncome))}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={6} className="excel-td text-right font-bold">
+                      সর্বমোট ব্যয়:
+                    </td>
+                    <td className="excel-td text-right font-bold text-red-700">
+                      ৳{toBangla(Math.round(totalExpense))}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={6} className="excel-td text-right font-bold text-brand-700">
+                      নিট ব্যালেন্স:
+                    </td>
+                    <td
+                      className={`excel-td text-right font-bold text-lg ${
+                        netBalance >= 0 ? "text-emerald-700" : "text-red-700"
+                      }`}
+                    >
+                      ৳{toBangla(Math.round(netBalance))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           )}
         </div>
 
-        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", background: "#ffffff", fontSize: "0.8rem" }}>
-          <thead>
-            <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
-              <th style={th}>নং</th>
-              <th style={th}>তারিখ</th>
-              <th style={th}>ধরন</th>
-              <th style={th}>খাত</th>
-              <th style={th}>রসিদ / ভাউচার</th>
-              <th style={th}>বিবরণ</th>
-              <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ ...td, textAlign: "center", padding: "2rem", color: "#64748b" }}>
-                  কোনো লেনদেন নেই
-                </td>
-              </tr>
-            ) : (
-              filtered.map((t, i) => (
-                <tr key={`${t.source}-${t.id}`} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  <td style={td}>{toBangla(i + 1)}</td>
-                  <td style={td}>{toBangla(t.date)}</td>
-                  <td style={td}>
-                    <span style={{
-                      padding: "0.12rem 0.45rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "500",
-                      background: t.type === "income" ? "#dcfce7" : "#fee2e2",
-                      color: t.type === "income" ? "#15803d" : "#b91c1c",
-                    }}>
-                      {t.type === "income" ? "আয়" : "ব্যয়"}
-                    </span>
-                  </td>
-                  <td style={td}>{t.category || "-"}</td>
-                  <td style={{ ...td, fontSize: "0.72rem", fontWeight: "500", color: "#0f766e" }}>{t.ref_no || "-"}</td>
-                  <td style={td}>{t.description || "-"}</td>
-                  <td style={{ ...td, textAlign: "right", color: t.type === "income" ? "#15803d" : "#b91c1c", fontWeight: "500" }}>
-                    ৳ {toBangla(t.amount)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-          <tfoot>
-            <tr style={{ background: "#f1f5f9", borderTop: "2px solid #0f766e" }}>
-              <td colSpan={6} style={{ ...td, fontWeight: "600", textAlign: "right" }}>
-                মোট আয়: ৳ {toBangla(totalIncome)} | মোট ব্যয়: ৳ {toBangla(totalExpense)}
-              </td>
-              <td style={{ ...td, fontWeight: "700", textAlign: "right", color: (totalIncome - totalExpense) >= 0 ? "#15803d" : "#b91c1c" }}>
-                ৳ {toBangla(totalIncome - totalExpense)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+        {/* স্বাক্ষর */}
+        <div className="hidden print:flex justify-between mt-14 pt-2">
+          <div className="text-center" style={{ minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+              প্রস্তুতকারীর স্বাক্ষর
+            </div>
+          </div>
+          <div className="text-center" style={{ minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+              অনুমোদনকারীর স্বাক্ষর
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden print:block text-center text-[10px] text-slate-500 mt-6">
+          এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
+        </div>
       </div>
     </>
   );
 }
 
-const lbl: React.CSSProperties = { display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" };
-const inp: React.CSSProperties = { width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", background: "#ffffff", fontFamily: "inherit" };
-const th: React.CSSProperties = { padding: "0.6rem 0.7rem", textAlign: "left", fontWeight: "600", fontSize: "0.75rem", whiteSpace: "nowrap" };
-const td: React.CSSProperties = { padding: "0.55rem 0.7rem", color: "#1a1a1a" };
+function Badge({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      className="px-3 py-1.5 rounded-xl flex items-center gap-2"
+      style={{ background: `${color}10`, border: `1px solid ${color}30` }}
+    >
+      <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}:</span>
+      <span className="text-xs font-bold" style={{ color }}>{value}</span>
+    </div>
+  );
+}
