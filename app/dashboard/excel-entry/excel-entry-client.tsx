@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Category = { id: number; name: string };
 type ColumnTemplate = {
   id: number;
   column_key: string;
@@ -41,14 +40,10 @@ function makeEmptyRow(): Row {
 }
 
 export default function ExcelEntryClient({
-  incomeCategories,
-  expenseCategories,
   incomeColumns,
   expenseColumns,
   userName,
 }: {
-  incomeCategories: Category[];
-  expenseCategories: Category[];
   incomeColumns: ColumnTemplate[];
   expenseColumns: ColumnTemplate[];
   userName: string;
@@ -65,29 +60,14 @@ export default function ExcelEntryClient({
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [newColumnLabel, setNewColumnLabel] = useState("");
   const [customColumns, setCustomColumns] = useState<ColumnTemplate[]>([]);
-  const [showAddCategory, setShowAddCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
 
-  const currentCategories =
-    mode === "income" ? incomeCategories : expenseCategories;
-  const defaultColumns =
-    mode === "income" ? incomeColumns : expenseColumns;
+  const defaultColumns = mode === "income" ? incomeColumns : expenseColumns;
 
   const allColumns = useMemo(() => {
     return [...defaultColumns, ...customColumns].sort(
       (a, b) => a.column_order - b.column_order
     );
   }, [defaultColumns, customColumns]);
-
-  const allCategories = useMemo(() => {
-    const extra = allColumns
-      .filter((c) => !c.is_default)
-      .map((c, i) => ({
-        id: -1 - i,
-        name: c.column_label,
-      }));
-    return [...currentCategories, ...extra];
-  }, [currentCategories, allColumns]);
 
   const columnTotals = useMemo(() => {
     const totals: { [columnKey: string]: number } = {};
@@ -187,26 +167,6 @@ export default function ExcelEntryClient({
     setShowAddColumn(false);
   }
 
-  async function handleAddCategory() {
-    if (!newCategoryName.trim()) return;
-    if (mode === "select") return;
-
-    const table = mode === "income" ? "income_categories" : "expense_categories";
-
-    const { error: catError } = await supabase
-      .from(table)
-      .insert({ name: newCategoryName.trim() });
-
-    if (catError) {
-      setError("খাত যোগ করতে সমস্যা: " + catError.message);
-      return;
-    }
-
-    setNewCategoryName("");
-    setShowAddCategory(false);
-    router.refresh();
-  }
-
   async function handleSave() {
     if (mode === "select") return;
 
@@ -229,23 +189,31 @@ export default function ExcelEntryClient({
       data: { user },
     } = await supabase.auth.getUser();
 
+    // প্রতিটি সারির প্রতিটি ঘর আলাদা এন্ট্রি হবে
     for (const row of validRows) {
       for (const col of allColumns) {
         const amount = Number(row.values[col.column_key]) || 0;
         if (amount <= 0) continue;
 
         const categoryName = col.column_label;
-        let category = allCategories.find((c) => c.name === categoryName);
 
-        if (!category || category.id < 0) {
-          const table =
-            mode === "income" ? "income_categories" : "expense_categories";
+        // খাত খুঁজি বা তৈরি করি
+        const catTable =
+          mode === "income" ? "income_categories" : "expense_categories";
+
+        let { data: category } = await supabase
+          .from(catTable)
+          .select("id, name")
+          .eq("name", categoryName)
+          .single();
+
+        if (!category) {
           const { data: newCat } = await supabase
-            .from(table)
+            .from(catTable)
             .insert({ name: categoryName })
-            .select()
+            .select("id, name")
             .single();
-          category = newCat || undefined;
+          category = newCat;
         }
 
         if (!category) continue;
@@ -256,9 +224,6 @@ export default function ExcelEntryClient({
           entry_date: entryDate,
           payment_method: "cash",
           description: null,
-          voucher_no: row.values["voucher_no"] || null,
-          receipt_no: row.values["receipt_no"] || null,
-          extra_columns: {},
           created_by: user?.id,
         });
       }
@@ -350,7 +315,7 @@ export default function ExcelEntryClient({
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 pb-44">
-      {/* ============ Sticky হেডার ============ */}
+      {/* Sticky হেডার */}
       <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex-1 min-w-0">
@@ -421,16 +386,6 @@ export default function ExcelEntryClient({
           </svg>
           নতুন কলাম
         </button>
-        <button
-          onClick={() => setShowAddCategory(!showAddCategory)}
-          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 transition flex items-center gap-1.5"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          নতুন খাত
-        </button>
         <div className="ml-auto text-[11px] text-slate-500 flex items-center">
           {toBangla(allColumns.length)} টি কলাম • {toBangla(rows.length)} টি সারি
         </div>
@@ -454,25 +409,7 @@ export default function ExcelEntryClient({
         </div>
       )}
 
-      {showAddCategory && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-2">
-          <input
-            type="text"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder="নতুন খাতের নাম"
-            className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
-          />
-          <button
-            onClick={handleAddCategory}
-            className="px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-medium"
-          >
-            যোগ
-          </button>
-        </div>
-      )}
-
-      {/* ============ টেবিল ============ */}
+      {/* টেবিল */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm min-w-[700px]">
