@@ -188,8 +188,14 @@ export default function EventsReport({
   }, [filtered]);
 
   function handlePrint() {
+  document.body.classList.add("printing-events-report");
+  setTimeout(() => {
     window.print();
-  }
+    setTimeout(() => {
+      document.body.classList.remove("printing-events-report");
+    }, 500);
+  }, 100);
+}
 
   return (
     <>
@@ -276,224 +282,178 @@ export default function EventsReport({
         </div>
       ) : (
         <div className="print-area">
-          {/* প্রিন্ট হেডার */}
-          <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 mb-4 border-b-2 border-purple-600">
-            <div className="text-center mb-3">
-              <h1 className="text-lg sm:text-xl font-bold text-purple-700 mb-1">
-                দারুল হিকমাহ মডেল মাদ্রাসা
-              </h1>
-              <p className="text-xs text-slate-500">
-                ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
-              </p>
-            </div>
-            <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
-              <div><strong>বিষয়:</strong> {selectedEvent.name} — ইভেন্ট ফি রিপোর্ট</div>
-              <div><strong>তারিখ:</strong> {todayBangla()}</div>
-            </div>
-            <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
-              <div>
-                <strong>ইভেন্ট তারিখ:</strong> {formatDate(selectedEvent.start_date)}
-                {selectedEvent.end_date !== selectedEvent.start_date &&
-                  ` — ${formatDate(selectedEvent.end_date)}`}
-              </div>
-              <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
-            </div>
-          </div>
+  {/* ============ প্রিন্ট হেডার (শুধু প্রিন্টে) ============ */}
+  <div className="print-header-simple hidden print:block">
+    <h1>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
+    <p>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+  </div>
 
-          {/* ============ ১. ক্লাসভিত্তিক সারসংক্ষেপ ============ */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-              📊 ক্লাসভিত্তিক সারসংক্ষেপ
-            </h3>
+  {/* ============ প্রিন্ট ইনফো (শুধু প্রিন্টে) ============ */}
+  <div className="print-info-row hidden print:flex">
+    <div>
+      <strong>বিষয়:</strong> {selectedEvent.name} — ইভেন্ট ফি রিপোর্ট
+    </div>
+    <div>
+      <strong>শ্রেণি:</strong> {classFilter || "সব শ্রেণি"}
+    </div>
+  </div>
 
-            {/* মোবাইল কার্ড */}
-            <div className="md:hidden space-y-2">
-              {classSummary.map(([cls, data]) => (
-                <div
-                  key={cls}
-                  className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
-                >
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2 flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">{cls}</span>
-                    <span className="text-[10px] text-white opacity-90">
-                      {toBangla(data.totalStudents)} জন
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 p-3 text-xs">
-                    <div>
-                      <span className="text-slate-500">প্রাপ্য:</span>{" "}
-                      <strong className="text-blue-600">৳{toBangla(data.payable)}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">ছাড়:</span>{" "}
-                      <strong className="text-amber-600">৳{toBangla(data.discount)}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">জমা:</span>{" "}
-                      <strong className="text-emerald-600">৳{toBangla(data.paid)}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">বাকি:</span>{" "}
-                      <strong className="text-red-600">৳{toBangla(data.due)}</strong>
-                    </div>
-                    <div className="col-span-2 flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                        Paid: {toBangla(data.paidCount)}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
-                        Partial: {toBangla(data.partialCount)}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
-                        Unpaid: {toBangla(data.unpaidCount)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+  <div className="print-info-row hidden print:flex">
+    <div>
+      <strong>তারিখ:</strong> {todayBangla()}
+    </div>
+    <div>
+      <strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}
+    </div>
+  </div>
 
-            {/* ডেস্কটপ টেবিল */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-purple-600 text-white">
-                    <th className="border border-slate-300 px-3 py-2 text-left">শ্রেণি</th>
-                    <th className="border border-slate-300 px-3 py-2 text-center">শিক্ষার্থী</th>
-                    <th className="border border-slate-300 px-3 py-2 text-right">প্রাপ্য</th>
-                    <th className="border border-slate-300 px-3 py-2 text-right">ছাড়</th>
-                    <th className="border border-slate-300 px-3 py-2 text-right">জমা</th>
-                    <th className="border border-slate-300 px-3 py-2 text-right">বাকি</th>
-                    <th className="border border-slate-300 px-3 py-2 text-center">Paid</th>
-                    <th className="border border-slate-300 px-3 py-2 text-center">Partial</th>
-                    <th className="border border-slate-300 px-3 py-2 text-center">Unpaid</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classSummary.map(([cls, data]) => (
-                    <tr key={cls} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                      <td className="border border-slate-300 px-3 py-2 font-medium">{cls}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.totalStudents)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-right">৳{toBangla(data.payable)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-right text-amber-600">৳{toBangla(data.discount)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-right text-emerald-700 font-semibold">৳{toBangla(data.paid)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-right text-red-700 font-semibold">৳{toBangla(data.due)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.paidCount)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.partialCount)}</td>
-                      <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.unpaidCount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
-                    <td colSpan={2} className="border border-slate-300 px-3 py-2 text-right">সর্বমোট</td>
-                    <td className="border border-slate-300 px-3 py-2 text-right">৳{toBangla(totals.payable)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-right text-amber-600">৳{toBangla(totals.discount)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-right text-emerald-700">৳{toBangla(totals.paid)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-right text-red-700">৳{toBangla(totals.due)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.paidCount)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.partialCount)}</td>
-                    <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.unpaidCount)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
+  {/* ============ ১. ক্লাসভিত্তিক সারসংক্ষেপ ============ */}
+  <div className="print-summary-section">
+    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+      📊 ক্লাসভিত্তিক সারসংক্ষেপ
+    </h3>
 
-          {/* ============ ২. শিক্ষার্থীভিত্তিক বিস্তারিত ============ */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-              📋 শিক্ষার্থীভিত্তিক বিস্তারিত ({toBangla(filtered.length)} জন)
-            </h3>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="bg-purple-600 text-white">
+            <th className="border border-slate-300 px-3 py-2 text-left">শ্রেণি</th>
+            <th className="border border-slate-300 px-3 py-2 text-center">শিক্ষার্থী</th>
+            <th className="border border-slate-300 px-3 py-2 text-right">প্রাপ্য</th>
+            <th className="border border-slate-300 px-3 py-2 text-right">ছাড়</th>
+            <th className="border border-slate-300 px-3 py-2 text-right">জমা</th>
+            <th className="border border-slate-300 px-3 py-2 text-right">বাকি</th>
+            <th className="border border-slate-300 px-3 py-2 text-center">Paid</th>
+            <th className="border border-slate-300 px-3 py-2 text-center">Partial</th>
+            <th className="border border-slate-300 px-3 py-2 text-center">Unpaid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {classSummary.map(([cls, data]) => (
+            <tr key={cls}>
+              <td className="border border-slate-300 px-3 py-2 font-medium">{cls}</td>
+              <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.totalStudents)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-right">৳{toBangla(data.payable)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-right text-amber-600">৳{toBangla(data.discount)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-right text-emerald-700 font-semibold">৳{toBangla(data.paid)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-right text-red-700 font-semibold">৳{toBangla(data.due)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.paidCount)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.partialCount)}</td>
+              <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(data.unpaidCount)}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
+            <td colSpan={2} className="border border-slate-300 px-3 py-2 text-right">সর্বমোট</td>
+            <td className="border border-slate-300 px-3 py-2 text-right">৳{toBangla(totals.payable)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-right text-amber-600">৳{toBangla(totals.discount)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-right text-emerald-700">৳{toBangla(totals.paid)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-right text-red-700">৳{toBangla(totals.due)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.paidCount)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.partialCount)}</td>
+            <td className="border border-slate-300 px-3 py-2 text-center">{toBangla(totals.unpaidCount)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs border-collapse">
-                <thead>
-                  <tr className="bg-purple-600 text-white">
-                    <th className="border border-slate-300 px-2 py-2 text-left">নং</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">নাম</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">শ্রেণি</th>
-                    <th className="border border-slate-300 px-2 py-2 text-left">রোল</th>
-                    <th className="border border-slate-300 px-2 py-2 text-right">প্রাপ্য</th>
-                    <th className="border border-slate-300 px-2 py-2 text-right">ছাড়</th>
-                    <th className="border border-slate-300 px-2 py-2 text-right">জমা</th>
-                    <th className="border border-slate-300 px-2 py-2 text-right">বাকি</th>
-                    <th className="border border-slate-300 px-2 py-2 text-center">স্ট্যাটাস</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((r, i) => {
-                    const badge =
-                      r.status === "paid"
-                        ? { bg: "#dcfce7", text: "#15803d", label: "Paid" }
-                        : r.status === "partial"
-                        ? { bg: "#fef3c7", text: "#b45309", label: "Partial" }
-                        : { bg: "#fee2e2", text: "#b91c1c", label: "Unpaid" };
+  {/* ============ ২. শিক্ষার্থীভিত্তিক বিস্তারিত ============ */}
+  <div className="print-summary-section" style={{ marginTop: "16px" }}>
+    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+      📋 শিক্ষার্থীভিত্তিক বিস্তারিত ({toBangla(filtered.length)} জন)
+    </h3>
 
-                    return (
-                      <tr key={r.fee.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="border border-slate-300 px-2 py-1.5 text-center">{toBangla(i + 1)}</td>
-                        <td className="border border-slate-300 px-2 py-1.5 font-medium">{r.student?.name}</td>
-                        <td className="border border-slate-300 px-2 py-1.5">{r.student?.class_name}</td>
-                        <td className="border border-slate-300 px-2 py-1.5">{r.student?.roll || "-"}</td>
-                        <td className="border border-slate-300 px-2 py-1.5 text-right">৳{toBangla(r.fee.payable_amount)}</td>
-                        <td className="border border-slate-300 px-2 py-1.5 text-right text-amber-600">
-                          ৳{toBangla(r.discount)}
-                          {r.fee.discount_reason && (
-                            <div className="text-[9px] text-slate-400">{r.fee.discount_reason}</div>
-                          )}
-                        </td>
-                        <td className="border border-slate-300 px-2 py-1.5 text-right font-semibold text-emerald-700">
-                          ৳{toBangla(r.paid)}
-                        </td>
-                        <td className={`border border-slate-300 px-2 py-1.5 text-right font-semibold ${r.due > 0 ? "text-red-700" : "text-slate-400"}`}>
-                          ৳{toBangla(r.due)}
-                        </td>
-                        <td className="border border-slate-300 px-2 py-1.5 text-center">
-                          <span
-                            className="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold"
-                            style={{ background: badge.bg, color: badge.text }}
-                          >
-                            {badge.label}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
-                    <td colSpan={4} className="border border-slate-300 px-2 py-2 text-right">
-                      সর্বমোট ({toBangla(filtered.length)} জন):
-                    </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">৳{toBangla(totals.payable)}</td>
-                    <td className="border border-slate-300 px-2 py-2 text-right text-amber-600">৳{toBangla(totals.discount)}</td>
-                    <td className="border border-slate-300 px-2 py-2 text-right text-emerald-700">৳{toBangla(totals.paid)}</td>
-                    <td className="border border-slate-300 px-2 py-2 text-right text-red-700">৳{toBangla(totals.due)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs border-collapse">
+        <thead>
+          <tr className="bg-purple-600 text-white">
+            <th className="border border-slate-300 px-2 py-2 text-left">নং</th>
+            <th className="border border-slate-300 px-2 py-2 text-left">নাম</th>
+            <th className="border border-slate-300 px-2 py-2 text-left">শ্রেণি</th>
+            <th className="border border-slate-300 px-2 py-2 text-left">রোল</th>
+            <th className="border border-slate-300 px-2 py-2 text-right">প্রাপ্য</th>
+            <th className="border border-slate-300 px-2 py-2 text-right">ছাড়</th>
+            <th className="border border-slate-300 px-2 py-2 text-right">জমা</th>
+            <th className="border border-slate-300 px-2 py-2 text-right">বাকি</th>
+            <th className="border border-slate-300 px-2 py-2 text-center">স্ট্যাটাস</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((r, i) => {
+            const badge =
+              r.status === "paid"
+                ? { bg: "#dcfce7", text: "#15803d", label: "Paid" }
+                : r.status === "partial"
+                ? { bg: "#fef3c7", text: "#b45309", label: "Partial" }
+                : { bg: "#fee2e2", text: "#b91c1c", label: "Unpaid" };
 
-          {/* স্বাক্ষর */}
-          <div className="hidden print:flex justify-between mt-14 pt-2">
-            <div className="text-center" style={{ minWidth: "150px" }}>
-              <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
-                প্রস্তুতকারীর স্বাক্ষর
-              </div>
-            </div>
-            <div className="text-center" style={{ minWidth: "150px" }}>
-              <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
-                অনুমোদনকারীর স্বাক্ষর
-              </div>
-            </div>
-          </div>
+            return (
+              <tr key={r.fee.id}>
+                <td className="border border-slate-300 px-2 py-1.5 text-center">{toBangla(i + 1)}</td>
+                <td className="border border-slate-300 px-2 py-1.5 font-medium">{r.student?.name}</td>
+                <td className="border border-slate-300 px-2 py-1.5">{r.student?.class_name}</td>
+                <td className="border border-slate-300 px-2 py-1.5">{r.student?.roll || "-"}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-right">৳{toBangla(r.fee.payable_amount)}</td>
+                <td className="border border-slate-300 px-2 py-1.5 text-right text-amber-600">
+                  ৳{toBangla(r.discount)}
+                  {r.fee.discount_reason && (
+                    <div className="text-[9px] text-slate-400">{r.fee.discount_reason}</div>
+                  )}
+                </td>
+                <td className="border border-slate-300 px-2 py-1.5 text-right font-semibold text-emerald-700">
+                  ৳{toBangla(r.paid)}
+                </td>
+                <td className={`border border-slate-300 px-2 py-1.5 text-right font-semibold ${r.due > 0 ? "text-red-700" : "text-slate-400"}`}>
+                  ৳{toBangla(r.due)}
+                </td>
+                <td className="border border-slate-300 px-2 py-1.5 text-center">
+                  <span
+                    className="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold"
+                    style={{ background: badge.bg, color: badge.text }}
+                  >
+                    {badge.label}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
+            <td colSpan={4} className="border border-slate-300 px-2 py-2 text-right">
+              সর্বমোট ({toBangla(filtered.length)} জন):
+            </td>
+            <td className="border border-slate-300 px-2 py-2 text-right">৳{toBangla(totals.payable)}</td>
+            <td className="border border-slate-300 px-2 py-2 text-right text-amber-600">৳{toBangla(totals.discount)}</td>
+            <td className="border border-slate-300 px-2 py-2 text-right text-emerald-700">৳{toBangla(totals.paid)}</td>
+            <td className="border border-slate-300 px-2 py-2 text-right text-red-700">৳{toBangla(totals.due)}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 
-          <div className="hidden print:block text-center text-[10px] text-slate-500 mt-6">
-            এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
-          </div>
-        </div>
+  {/* স্বাক্ষর */}
+  <div className="hidden print:flex justify-between mt-14 pt-2">
+    <div className="text-center" style={{ minWidth: "150px" }}>
+      <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+        প্রস্তুতকারীর স্বাক্ষর
+      </div>
+    </div>
+    <div className="text-center" style={{ minWidth: "150px" }}>
+      <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+        অনুমোদনকারীর স্বাক্ষর
+      </div>
+    </div>
+  </div>
+
+  <div className="hidden print:block text-center text-[10px] text-slate-500 mt-6">
+    এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
+  </div>
+</div>
       )}
     </>
   );
