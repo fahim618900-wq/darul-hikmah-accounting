@@ -1,5 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap");
+
+@layer base {
+  html {
+    font-family: "Inter", "Noto Sans Bengali", system-ui, -apple-system,
+      sans-serif;
+  }
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+}
+
 /* ============================================
-   ইভেন্ট রিপোর্ট প্রিন্ট স্টাইল
+   ১. সাধারণ প্রিন্ট স্টাইল (সব পেজের জন্য)
+   ============================================ */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  /* no-print এলিমেন্ট লুকাও */
+  .no-print,
+  .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* print:hidden ক্লাসযুক্ত সব লুকাও */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* print:block ক্লাসযুক্ত দেখাও */
+  .print\:block {
+    display: block !important;
+  }
+
+  /* ছায়া/বর্ডার ছাড়া */
+  .print-area {
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  /* টেবিল প্রিন্টে */
+  .print-area table,
+  table {
+    border-collapse: collapse !important;
+    font-size: 10px !important;
+  }
+
+  .print-area th,
+  .print-area td,
+  table th,
+  table td {
+    border: 1px solid #999999 !important;
+    padding: 4px 6px !important;
+  }
+
+  .print-area th,
+  table th {
+    background: #0f766e !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  a[href]:after {
+    content: "";
+  }
+}
+
+/* ============================================
+   ২. print-only-inline (প্রিন্টে দেখা যাবে)
+   ============================================ */
+.print-only-inline {
+  display: none;
+}
+
+@media print {
+  .print-only-inline {
+    display: inline !important;
+  }
+}
+
+/* ============================================
+   ৩. Paid/Unpaid প্রিন্ট-অনলি লেজার
+   ============================================ */
+.fees-status-print-summary {
+  display: none !important;
+}
+
+@media print {
+  .fees-status-print-summary {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  .fees-status-print-summary table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .fees-status-print-summary thead {
+    display: table-header-group !important;
+  }
+
+  .fees-status-print-summary tbody {
+    display: table-row-group !important;
+  }
+
+  .fees-status-print-summary tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .fees-status-print-summary th,
+  .fees-status-print-summary td {
+    visibility: visible !important;
+    overflow-wrap: anywhere !important;
+    vertical-align: middle !important;
+  }
+
+  .fees-status-print-summary .print-checkbox {
+    display: inline-block !important;
+    width: 14px !important;
+    height: 14px !important;
+    border: 1px solid #111827 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ============================================
+   ৪. Excel Entry Table
+   ============================================ */
+.excel-th {
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+  background: #f8fafc;
+}
+
+.dark .excel-th {
+  color: #cbd5e1;
+  background: #1e293b;
+  border-right-color: #334155;
+  border-bottom-color: #475569;
+}
+
+.excel-td {
+  padding: 0.35rem;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.dark .excel-td {
+  border-right-color: #1e293b;
+  border-bottom-color: #1e293b;
+}
+
+.excel-input {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.82rem;
+  color: #0f172a;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dark .excel-input {
+  color: #f1f5f9;
+}
+
+.excel-input:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.dark .excel-input:hover {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.excel-input:focus {
+  background: #ffffff;
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+}
+
+.dark .excel-input:focus {
+  background: #0f172a;
+}
+
+.excel-input::placeholder {
+  color: #94a3b8;
+}
+
+/* ============================================
+   ৫. ইভেন্ট রিপোর্ট প্রিন্ট স্টাইল
    ============================================ */
 @media print {
   /* রিপোর্ট পেজে সব লুকাও, শুধু print-area দেখাও */
@@ -19,13 +270,14 @@
     width: 100%;
     background: #ffffff !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
 
   /* ছায়া ও বর্ডার ছাড়া */
   body.printing-events-report .print-area > div {
     box-shadow: none !important;
     border-radius: 0 !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 10px !important;
     border: none !important;
     padding: 0 !important;
   }
@@ -39,7 +291,7 @@
 
   body.printing-events-report .print-area table th,
   body.printing-events-report .print-area table td {
-    border: 1px solid #333 !important;
+    border: 1px solid #333333 !important;
     padding: 3px 4px !important;
   }
 
@@ -50,7 +302,7 @@
     print-color-adjust: exact;
   }
 
-  /* প্রিন্টে শুধু হেডার ও টেবিল */
+  /* প্রিন্ট হেডার (শুধু প্রিন্টে) */
   body.printing-events-report .print-header-simple {
     display: block !important;
     text-align: center;
@@ -71,27 +323,60 @@
     margin: 0 !important;
   }
 
+  /* প্রিন্ট ইনফো (শুধু প্রিন্টে) */
   body.printing-events-report .print-info-row {
     display: flex !important;
     justify-content: space-between;
     font-size: 10px !important;
-    margin-bottom: 10px;
+    margin-bottom: 6px !important;
     padding: 0 4px;
   }
 
-  /* প্রিন্টে হেডার ছাড়া বাকি সব লুকাও */
+  /* স্ক্রিনে no-print সব লুকাও */
   body.printing-events-report .no-print,
   body.printing-events-report .no-print * {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  /* ডেস্কটপ টেবিল প্রিন্টে দেখাও */
-  body.printing-events-report .hidden.md\:block {
+  /* ডেস্কটপ টেবিল (hidden md:block) প্রিন্টে দেখাও */
+  body.printing-events-report .print-area .hidden.md\:block {
     display: block !important;
+    visibility: visible !important;
   }
 
-  /* মোবাইল কার্ড প্রিন্টে লুকাও */
-  body.printing-events-report .md\:hidden {
+  /* মোবাইল কার্ড (md:hidden) প্রিন্টে লুকাও */
+  body.printing-events-report .print-area .md\:hidden {
     display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* সারাংশ সেকশন */
+  body.printing-events-report .print-summary-section {
+    display: block !important;
+    margin-bottom: 14px !important;
+  }
+
+  body.printing-events-report .print-summary-section h3 {
+    font-size: 11px !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+  }
+}
+
+/* ============================================
+   ৬. মোবাইলে Excel ফন্ট ছোট
+   ============================================ */
+@media (max-width: 640px) {
+  .excel-th {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.68rem;
+  }
+  .excel-td {
+    padding: 0.25rem;
+  }
+  .excel-input {
+    padding: 0.4rem 0.45rem;
+    font-size: 0.78rem;
   }
 }
