@@ -60,14 +60,14 @@ const ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   event: (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-    <path d="M9 14l2 2 4-4" />
-  </svg>
-),
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <path d="M9 14l2 2 4-4" />
+    </svg>
+  ),
   income: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
@@ -137,13 +137,14 @@ const PRIMARY_LINKS: { href: string; label: string; icon: string; roles: string[
 
 const MORE_LINKS: { href: string; label: string; icon: string; roles: string[] }[] = [
   { href: "/dashboard/excel-entry", label: "এক্সেল এন্ট্রি", icon: "excel", roles: ["admin", "accountant"] },
+  { href: "/dashboard/events", label: "ইভেন্ট ফি", icon: "event", roles: ["admin", "accountant", "viewer"] },
   { href: "/dashboard/income", label: "আয়", icon: "income", roles: ["admin", "accountant"] },
   { href: "/dashboard/expenses", label: "ব্যয়", icon: "expense", roles: ["admin", "accountant"] },
   { href: "/admin/users", label: "ব্যবহারকারী", icon: "users", roles: ["admin"] },
   { href: "/admin/audit-logs", label: "অডিট লগ", icon: "history", roles: ["admin"] },
   { href: "/admin/closed-months", label: "মাস বন্ধ", icon: "lock", roles: ["admin"] },
   { href: "/admin/settings", label: "সেটিংস", icon: "settings", roles: ["admin"] },
-  { href: "/admin/clear-data", label: "ডেটা মুছুন", icon: "trash", roles: ["admin"] },  { href: "/dashboard/events", label: "ইভেন্ট ফি", icon: "event", roles: ["admin", "accountant", "viewer"] },
+  { href: "/admin/clear-data", label: "ডেটা মুছুন", icon: "trash", roles: ["admin"] },
 ];
 
 /* ==================== Active Check ==================== */
@@ -172,12 +173,12 @@ function isLinkActive(pathname: string, href: string): boolean {
   }
 
   if (href === "/dashboard/excel-entry") {
-  return pathname.startsWith("/dashboard/excel-entry");
-}
+    return pathname.startsWith("/dashboard/excel-entry");
+  }
 
-if (href === "/dashboard/events") {
-  return pathname.startsWith("/dashboard/events");
-}
+  if (href === "/dashboard/events") {
+    return pathname.startsWith("/dashboard/events");
+  }
 
   if (href === "/dashboard/income") {
     if (pathname === "/dashboard/income") return true;
@@ -247,7 +248,6 @@ export default function MobileBottomNav({
             className="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
           />
           <div className="lg:hidden fixed bottom-[68px] left-2 right-2 z-50 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            {/* ইউজার প্রোফাইল হেডার */}
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-brand-50 to-purple-50 dark:from-brand-900/20 dark:to-purple-900/20">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 {fullName.charAt(0).toUpperCase()}
@@ -262,7 +262,6 @@ export default function MobileBottomNav({
               </div>
             </div>
 
-            {/* লিংক তালিকা */}
             <div className="p-1.5 max-h-[55vh] overflow-y-auto">
               {moreLinks.map((link) => {
                 const active = isLinkActive(pathname, link.href);
@@ -289,7 +288,6 @@ export default function MobileBottomNav({
               })}
             </div>
 
-            {/* লগআউট বাটন */}
             <div className="p-1.5 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={handleLogout}
