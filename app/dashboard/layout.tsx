@@ -5,8 +5,6 @@ import NotificationBell from "./notification-bell";
 import ThemeToggle from "./theme-toggle";
 import MobileMenu from "./mobile-menu";
 import MobileBottomNav from "./mobile-bottom-nav";
-import RoutePrefetcher from "./route-prefetcher";
-import RoutePrefetcher from "./route-prefetcher";
 
 export default async function DashboardLayout({
   children,
