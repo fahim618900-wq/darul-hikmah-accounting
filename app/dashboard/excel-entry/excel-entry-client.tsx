@@ -74,26 +74,22 @@ export default function ExcelEntryClient({
   const defaultColumns =
     mode === "income" ? incomeColumns : expenseColumns;
 
-  // সব কলাম = ডিফল্ট + কাস্টম
   const allColumns = useMemo(() => {
     return [...defaultColumns, ...customColumns].sort(
       (a, b) => a.column_order - b.column_order
     );
   }, [defaultColumns, customColumns]);
 
-  // সব খাত = ডিফল্ট + কাস্টম
   const allCategories = useMemo(() => {
     const extra = allColumns
       .filter((c) => !c.is_default)
       .map((c, i) => ({
         id: -1 - i,
         name: c.column_label,
-        column_key: c.column_key,
       }));
     return [...currentCategories, ...extra];
   }, [currentCategories, allColumns]);
 
-  // কলাম মোট
   const columnTotals = useMemo(() => {
     const totals: { [columnKey: string]: number } = {};
     allColumns.forEach((col) => {
@@ -105,7 +101,6 @@ export default function ExcelEntryClient({
     return totals;
   }, [rows, allColumns]);
 
-  // সারির মোট ও সর্বমোট
   const rowTotals = useMemo(() => {
     return rows.map((r) =>
       allColumns.reduce(
@@ -120,12 +115,10 @@ export default function ExcelEntryClient({
     [rowTotals]
   );
 
-  // নতুন সারি
   function addRow() {
     setRows((prev) => [...prev, makeEmptyRow()]);
   }
 
-  // সারি ডিলিট
   function removeRow(id: string) {
     setRows((prev) => {
       if (prev.length === 1) return prev;
@@ -133,7 +126,6 @@ export default function ExcelEntryClient({
     });
   }
 
-  // সেল আপডেট
   function updateCell(rowId: string, columnKey: string, value: string) {
     setRows((prev) =>
       prev.map((r) =>
@@ -144,14 +136,12 @@ export default function ExcelEntryClient({
     );
   }
 
-  // তারিখ আপডেট
   function updateDate(rowId: string, date: string) {
     setRows((prev) =>
       prev.map((r) => (r.id === rowId ? { ...r, date } : r))
     );
   }
 
-  // Enter চাপলে নতুন সারি
   function handleKeyDown(
     e: React.KeyboardEvent,
     rowId: string,
@@ -172,7 +162,6 @@ export default function ExcelEntryClient({
     }
   }
 
-  // নতুন কলাম যোগ
   async function handleAddColumn() {
     if (!newColumnLabel.trim()) return;
     if (mode === "select") return;
@@ -205,33 +194,26 @@ export default function ExcelEntryClient({
     setShowAddColumn(false);
   }
 
-  // নতুন খাত যোগ
   async function handleAddCategory() {
     if (!newCategoryName.trim()) return;
     if (mode === "select") return;
 
     const table = mode === "income" ? "income_categories" : "expense_categories";
 
-    const { data, error: catError } = await supabase
+    const { error: catError } = await supabase
       .from(table)
-      .insert({ name: newCategoryName.trim() })
-      .select()
-      .single();
+      .insert({ name: newCategoryName.trim() });
 
     if (catError) {
       setError("খাত যোগ করতে সমস্যা: " + catError.message);
       return;
     }
 
-    if (data) {
-      // locale state আপডেট — reload ছাড়াই
-      router.refresh();
-    }
     setNewCategoryName("");
     setShowAddCategory(false);
+    router.refresh();
   }
 
-  // সেভ
   async function handleSave() {
     if (mode === "select") return;
 
@@ -239,7 +221,6 @@ export default function ExcelEntryClient({
     setError("");
     setMessage("");
 
-    // যে সারিগুলোতে কমপক্ষে একটি মান আছে
     const validRows = rows.filter((r) =>
       Object.values(r.values).some((v) => v && Number(v) > 0)
     );
@@ -250,7 +231,6 @@ export default function ExcelEntryClient({
       return;
     }
 
-    // প্রতিটি সারির প্রতিটি ঘর আলাদা এন্ট্রি হবে
     const entries: any[] = [];
     const {
       data: { user },
@@ -261,12 +241,9 @@ export default function ExcelEntryClient({
         const amount = Number(row.values[col.column_key]) || 0;
         if (amount <= 0) continue;
 
-        // কলামের নাম = খাতের নাম
         const categoryName = col.column_label;
-        // খাত খুঁজি
         let category = allCategories.find((c) => c.name === categoryName);
 
-        // যদি না থাকে — তৈরি করি
         if (!category || category.id < 0) {
           const table =
             mode === "income" ? "income_categories" : "expense_categories";
@@ -319,7 +296,6 @@ export default function ExcelEntryClient({
     setTimeout(() => setMessage(""), 5000);
   }
 
-  // মোড পরিবর্তন
   function selectMode(newMode: "income" | "expense") {
     setMode(newMode);
     setRows([makeEmptyRow()]);
@@ -353,7 +329,7 @@ export default function ExcelEntryClient({
                 <path d="M15 9.5H10.5a2 2 0 0 0 0 4h3a2 2 0 0 1 0 4H9" />
               </svg>
             </div>
-            <div className="text-2xl font-bold mb-1">আয়</h3>
+            <div className="text-2xl font-bold mb-1">আয়</div>
             <p className="text-sm opacity-90">আয়ের এন্ট্রি করুন</p>
           </button>
 
@@ -376,12 +352,10 @@ export default function ExcelEntryClient({
     );
   }
 
-  // ==================== আয়/ব্যয় টেবিল ====================
   const isIncome = mode === "income";
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 pb-40">
-      {/* হেডার */}
       <div className="mb-4 flex items-start justify-between gap-3 flex-wrap">
         <div>
           <button
@@ -403,7 +377,6 @@ export default function ExcelEntryClient({
         </div>
       </div>
 
-      {/* সারসংক্ষেপ কার্ড */}
       <div
         className={`rounded-3xl p-5 mb-4 text-white shadow-xl ${
           isIncome
@@ -427,7 +400,6 @@ export default function ExcelEntryClient({
         </div>
       </div>
 
-      {/* মেসেজ */}
       {error && (
         <div className="mb-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
@@ -439,7 +411,6 @@ export default function ExcelEntryClient({
         </div>
       )}
 
-      {/* টুলবার */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap gap-2">
         <button
           onClick={() => setShowAddColumn(!showAddColumn)}
@@ -466,7 +437,6 @@ export default function ExcelEntryClient({
         </div>
       </div>
 
-      {/* নতুন কলাম ফর্ম */}
       {showAddColumn && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-2">
           <input
@@ -485,7 +455,6 @@ export default function ExcelEntryClient({
         </div>
       )}
 
-      {/* নতুন খাত ফর্ম */}
       {showAddCategory && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-200 dark:border-slate-800 shadow-sm flex gap-2">
           <input
@@ -504,7 +473,6 @@ export default function ExcelEntryClient({
         </div>
       )}
 
-      {/* টেবিল */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm min-w-[800px]">
@@ -603,7 +571,6 @@ export default function ExcelEntryClient({
         </button>
       </div>
 
-      {/* সারসংক্ষেপ */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
           📊 সারসংক্ষেপ
@@ -633,7 +600,6 @@ export default function ExcelEntryClient({
         </div>
       </div>
 
-      {/* Sticky সেভ বার */}
       <div className="fixed bottom-[68px] lg:bottom-4 left-0 right-0 z-30 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 flex flex-wrap items-center gap-3">
           <div className="flex-1 flex flex-wrap items-center gap-x-4 gap-y-1">
