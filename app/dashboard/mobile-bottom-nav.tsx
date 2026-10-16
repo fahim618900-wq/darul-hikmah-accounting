@@ -50,6 +50,15 @@ const ICONS: Record<string, React.ReactNode> = {
       <circle cx="19" cy="12" r="1.5" />
     </svg>
   ),
+  excel: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <line x1="9" y1="3" x2="9" y2="21" />
+      <line x1="15" y1="3" x2="15" y2="21" />
+    </svg>
+  ),
   income: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
@@ -118,6 +127,7 @@ const PRIMARY_LINKS: { href: string; label: string; icon: string; roles: string[
 ];
 
 const MORE_LINKS: { href: string; label: string; icon: string; roles: string[] }[] = [
+  { href: "/dashboard/excel-entry", label: "এক্সেল এন্ট্রি", icon: "excel", roles: ["admin", "accountant"] },
   { href: "/dashboard/income", label: "আয়", icon: "income", roles: ["admin", "accountant"] },
   { href: "/dashboard/expenses", label: "ব্যয়", icon: "expense", roles: ["admin", "accountant"] },
   { href: "/admin/users", label: "ব্যবহারকারী", icon: "users", roles: ["admin"] },
@@ -152,11 +162,14 @@ function isLinkActive(pathname: string, href: string): boolean {
     );
   }
 
+  if (href === "/dashboard/excel-entry") {
+    return pathname.startsWith("/dashboard/excel-entry");
+  }
+
   if (href === "/dashboard/income") {
-    return (
-      pathname === "/dashboard/income" ||
-      pathname.startsWith("/dashboard/income/")
-    );
+    if (pathname === "/dashboard/income") return true;
+    if (pathname.startsWith("/dashboard/income/")) return true;
+    return false;
   }
 
   if (href === "/dashboard/expenses") {
@@ -209,7 +222,6 @@ export default function MobileBottomNav({
     router.refresh();
   }
 
-  // আরও ড্রয়ারে কোনো লিংক active কি না
   const hasActiveInMore = moreLinks.some((l) => isLinkActive(pathname, l.href));
 
   return (
