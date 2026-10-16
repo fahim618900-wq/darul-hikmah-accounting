@@ -134,7 +134,7 @@ const MORE_LINKS: { href: string; label: string; icon: string; roles: string[] }
   { href: "/admin/audit-logs", label: "অডিট লগ", icon: "history", roles: ["admin"] },
   { href: "/admin/closed-months", label: "মাস বন্ধ", icon: "lock", roles: ["admin"] },
   { href: "/admin/settings", label: "সেটিংস", icon: "settings", roles: ["admin"] },
-  { href: "/admin/clear-data", label: "ডেটা মুছুন", icon: "trash", roles: ["admin"] },
+  { href: "/admin/clear-data", label: "ডেটা মুছুন", icon: "trash", roles: ["admin"] },  { href: "/dashboard/events", label: "ইভেন্ট ফি", icon: "event", roles: ["admin", "accountant", "viewer"] },
 ];
 
 /* ==================== Active Check ==================== */
