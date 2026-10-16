@@ -6,6 +6,7 @@ import ThemeToggle from "./theme-toggle";
 import MobileMenu from "./mobile-menu";
 import MobileBottomNav from "./mobile-bottom-nav";
 import RoutePrefetcher from "./route-prefetcher";
+import RoutePrefetcher from "./route-prefetcher";
 
 export default async function DashboardLayout({
   children,
@@ -62,26 +63,27 @@ export default async function DashboardLayout({
   }
 
   const navLinks = [
-    { href: "/dashboard", label: "Dashboard", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/students", label: "Students", roles: ["admin", "accountant"] },
-    { href: "/dashboard/fees", label: "Fee Collection", roles: ["admin", "accountant"] },
-    { href: "/dashboard/events", label: "Event Fees", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
-    { href: "/dashboard/income", label: "Income", roles: ["admin", "accountant"] },
-    { href: "/dashboard/expenses", label: "Expenses", roles: ["admin", "accountant"] },
-    { href: "/dashboard/reports", label: "Reports", roles: ["admin", "accountant", "viewer"] },
-    { href: "/admin/users", label: "Users", roles: ["admin"] },
-    { href: "/admin/audit-logs", label: "Audit Logs", roles: ["admin"] },
-    { href: "/admin/closed-months", label: "Closed Months", roles: ["admin"] },
-    { href: "/admin/settings", label: "Settings", roles: ["admin"] },
-    { href: "/admin/clear-data", label: "Data Management", roles: ["admin"] },
-  ];
+  { href: "/dashboard", label: "ড্যাশবোর্ড", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/students", label: "শিক্ষার্থী", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees", label: "বেতন আদায়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/fees-status", label: "Paid/Unpaid", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/excel-entry", label: "এক্সেল এন্ট্রি", roles: ["admin", "accountant"] },
+  { href: "/dashboard/events", label: "ইভেন্ট ফি", roles: ["admin", "accountant", "viewer"] },
+  { href: "/dashboard/income", label: "আয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/expenses", label: "ব্যয়", roles: ["admin", "accountant"] },
+  { href: "/dashboard/reports", label: "রিপোর্ট", roles: ["admin", "accountant", "viewer"] },
+  { href: "/admin/users", label: "ব্যবহারকারী", roles: ["admin"] },
+  { href: "/admin/audit-logs", label: "অডিট লগ", roles: ["admin"] },
+  { href: "/admin/closed-months", label: "মাস বন্ধ", roles: ["admin"] },
+  { href: "/admin/settings", label: "সেটিংস", roles: ["admin"] },
+  { href: "/admin/clear-data", label: "ডেটা মুছুন", roles: ["admin"] },
+];
 
   const visibleLinks = navLinks.filter((link) => link.roles.includes(role));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <RoutePrefetcher routes={visibleLinks.map((link) => link.href)} />
+    
       {/* ============ ডেস্কটপ হেডার (শুধু lg-এ দেখাবে) ============ */}
       <div className="no-print hidden lg:block">
         <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
