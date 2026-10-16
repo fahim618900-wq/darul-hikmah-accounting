@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -33,6 +33,8 @@ type EventStudentFee = {
   event_id: number;
   student_id: number;
   payable_amount: number;
+  discount: number;
+  discount_reason: string | null;
   students: Student | null;
 };
 
@@ -46,11 +48,6 @@ type EventPayment = {
   receipt_no: string | null;
   note: string | null;
 };
-
-const MONTHS = [
-  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
-  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
-];
 
 const PAYMENT_METHODS = [
   { value: "cash", label: "নগদ" },
@@ -77,10 +74,6 @@ function formatDate(dateStr: string | null): string {
 function todayISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function paymentMethodLabel(m: string): string {
-  return PAYMENT_METHODS.find((p) => p.value === m)?.label || m;
 }
 
 export default function EventsClient({
@@ -134,11 +127,17 @@ export default function EventsClient({
   const [paymentForm, setPaymentForm] = useState({
     student_id: "",
     amount: "",
+    discount: "",
+    discount_reason: "",
     payment_date: todayISO(),
     payment_method: "cash",
     receipt_no: "",
     note: "",
   });
+
+  // শিক্ষার্থী সার্চ (ইভেন্ট তৈরি)
+  const [studentSearch, setStudentSearch] = useState("");
+  const [selectedClassForPick, setSelectedClassForPick] = useState("");
 
   const selectedEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) || null,
@@ -158,7 +157,7 @@ export default function EventsClient({
   // ইভেন্টের হিসাব
   const eventStats = useMemo(() => {
     const totalPayable = currentEventFees.reduce(
-      (s, f) => s + Number(f.payable_amount),
+      (s, f) => s + Number(f.payable_amount) - Number(f.discount || 0),
       0
     );
     const totalPaid = currentEventPayments.reduce(
@@ -166,22 +165,65 @@ export default function EventsClient({
       0
     );
     const totalDue = totalPayable - totalPaid;
+
     const paidCount = currentEventFees.filter((f) => {
       const paid = currentEventPayments
         .filter((p) => p.student_id === f.student_id)
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      return paid >= Number(f.payable_amount);
+      const payable = Number(f.payable_amount) - Number(f.discount || 0);
+      return paid >= payable && payable > 0;
     }).length;
+
     const partialCount = currentEventFees.filter((f) => {
       const paid = currentEventPayments
         .filter((p) => p.student_id === f.student_id)
         .reduce((sum, p) => sum + Number(p.amount), 0);
-      return paid > 0 && paid < Number(f.payable_amount);
+      const payable = Number(f.payable_amount) - Number(f.discount || 0);
+      return paid > 0 && paid < payable;
     }).length;
+
     const unpaidCount = currentEventFees.length - paidCount - partialCount;
 
     return { totalPayable, totalPaid, totalDue, paidCount, partialCount, unpaidCount };
   }, [currentEventFees, currentEventPayments]);
+
+  // শিক্ষার্থী ফিল্টার (ইভেন্ট তৈরি)
+  const filteredPickStudents = useMemo(() => {
+    let list = students;
+    if (selectedClassForPick) {
+      list = list.filter((s) => s.class_name === selectedClassForPick);
+    }
+    if (studentSearch) {
+      const q = studentSearch.toLowerCase();
+      list = list.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          (s.roll || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [students, selectedClassForPick, studentSearch]);
+
+  // সব দেখাও / কিছু দেখাও
+  function selectAllInClass() {
+    const ids = filteredPickStudents.map((s) => s.id);
+    const allSelected = ids.every((id) => form.selected_students.includes(id));
+    if (allSelected) {
+      setForm({
+        ...form,
+        selected_students: form.selected_students.filter(
+          (id) => !ids.includes(id)
+        ),
+      });
+    } else {
+      const merged = new Set([...form.selected_students, ...ids]);
+      setForm({ ...form, selected_students: Array.from(merged) });
+    }
+  }
+
+  function clearAllSelected() {
+    setForm({ ...form, selected_students: [] });
+  }
 
   // ইভেন্ট তৈরি
   async function handleCreateEvent(e: React.FormEvent) {
@@ -196,7 +238,6 @@ export default function EventsClient({
       return;
     }
 
-    // ফি মোড চেক
     if (form.fee_mode === "same" && !form.default_fee) {
       setError("ডিফল্ট ফি দিন");
       setSaving(false);
@@ -212,7 +253,6 @@ export default function EventsClient({
       }
     }
 
-    // class_fees তৈরি
     const classFeesObj: Record<string, number> = {};
     if (form.fee_mode === "per_class") {
       classes.forEach((c) => {
@@ -243,7 +283,6 @@ export default function EventsClient({
       return;
     }
 
-    // শিক্ষার্থী নির্বাচন
     let targetStudents: Student[] = [];
     if (form.applies_to === "all") {
       targetStudents = students;
@@ -263,7 +302,6 @@ export default function EventsClient({
       return;
     }
 
-    // ফি অ্যাসাইন
     const feeRows = targetStudents.map((s) => {
       let fee = 0;
       if (form.fee_mode === "same") {
@@ -288,6 +326,20 @@ export default function EventsClient({
       return;
     }
 
+    // লোকাল state আপডেট — reload ছাড়াই
+    const { data: freshEvents } = await supabase
+      .from("madrasah_events")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const { data: freshFees } = await supabase
+      .from("event_student_fees")
+      .select("*, students(id, name, class_name, roll, section, photo_url, guardian_phone)")
+      .order("created_at", { ascending: false });
+
+    if (freshEvents) setEvents(freshEvents);
+    if (freshFees) setEventFees(freshFees);
+
     setMessage("ইভেন্ট সফলভাবে তৈরি হয়েছে");
     setSaving(false);
     setForm({
@@ -302,10 +354,9 @@ export default function EventsClient({
       applies_to_value: "",
       selected_students: [],
     });
-    setTab("list");
+    setTab("manage");
     setSelectedEventId(newEvent.id);
     router.refresh();
-    window.location.reload();
   }
 
   // ফি জমা
@@ -318,9 +369,33 @@ export default function EventsClient({
 
     const studentId = Number(paymentForm.student_id);
     const amount = Number(paymentForm.amount);
+    const discount = Number(paymentForm.discount) || 0;
 
     if (!studentId || !amount || amount <= 0) {
       setError("শিক্ষার্থী ও পরিমাণ দিন");
+      setSaving(false);
+      return;
+    }
+
+    // শিক্ষার্থীর প্রাপ্য যাচাই
+    const fee = currentEventFees.find((f) => f.student_id === studentId);
+    if (!fee) {
+      setError("এই শিক্ষার্থীর জন্য এই ইভেন্টে কোনো ফি নেই");
+      setSaving(false);
+      return;
+    }
+
+    const alreadyPaid = currentEventPayments
+      .filter((p) => p.student_id === studentId)
+      .reduce((s, p) => s + Number(p.amount), 0);
+
+    const payable = Number(fee.payable_amount) - Number(fee.discount || 0);
+    const remaining = payable - alreadyPaid;
+
+    if (amount > remaining) {
+      setError(
+        `প্রাপ্যের বেশি টাকা নেওয়া যাবে না। বাকি আছে ৳${toBangla(Math.max(0, remaining))}`
+      );
       setSaving(false);
       return;
     }
@@ -329,15 +404,19 @@ export default function EventsClient({
       paymentForm.receipt_no ||
       `EVT-${selectedEventId}-${Date.now().toString().slice(-6)}`;
 
-    const { error: payError } = await supabase.from("event_payments").insert({
-      event_id: selectedEventId,
-      student_id: studentId,
-      amount,
-      payment_date: paymentForm.payment_date,
-      payment_method: paymentForm.payment_method,
-      receipt_no: receiptNo,
-      note: paymentForm.note || null,
-    });
+    const { data: newPayment, error: payError } = await supabase
+      .from("event_payments")
+      .insert({
+        event_id: selectedEventId,
+        student_id: studentId,
+        amount,
+        payment_date: paymentForm.payment_date,
+        payment_method: paymentForm.payment_method,
+        receipt_no: receiptNo,
+        note: paymentForm.note || null,
+      })
+      .select()
+      .single();
 
     if (payError) {
       setError("পেমেন্ট সংরক্ষণে সমস্যা: " + payError.message);
@@ -345,21 +424,49 @@ export default function EventsClient({
       return;
     }
 
+    // ছাড় থাকলে update
+    if (discount > 0) {
+      await supabase
+        .from("event_student_fees")
+        .update({
+          discount,
+          discount_reason: paymentForm.discount_reason || null,
+        })
+        .eq("id", fee.id);
+
+      setEventFees((prev) =>
+        prev.map((f) =>
+          f.id === fee.id
+            ? {
+                ...f,
+                discount,
+                discount_reason: paymentForm.discount_reason || null,
+              }
+            : f
+        )
+      );
+    }
+
+    // লোকাল state আপডেট — reload ছাড়াই
+    if (newPayment) {
+      setPayments((prev) => [newPayment, ...prev]);
+    }
+
     setMessage(`ফি জমা সফল। রসিদ: ${receiptNo}`);
     setSaving(false);
     setPaymentForm({
       student_id: "",
       amount: "",
+      discount: "",
+      discount_reason: "",
       payment_date: todayISO(),
       payment_method: "cash",
       receipt_no: "",
       note: "",
     });
     router.refresh();
-    window.location.reload();
   }
 
-  // ইভেন্ট ক্লোজ/রিওপেন
   async function toggleEventClose() {
     if (!selectedEvent) return;
     const action = selectedEvent.is_closed ? "রিওপেন" : "ক্লোজ";
@@ -383,7 +490,6 @@ export default function EventsClient({
     router.refresh();
   }
 
-  // ইভেন্ট ডিলিট
   async function deleteEvent() {
     if (!selectedEvent) return;
     if (!confirm(`"${selectedEvent.name}" ইভেন্টটি ডিলিট করতে চান?`)) return;
@@ -408,6 +514,25 @@ export default function EventsClient({
     window.print();
   }
 
+  // ফি জমার সময় বাকি হিসাব
+  const selectedPaymentFee = useMemo(() => {
+    if (!paymentForm.student_id) return null;
+    const fee = currentEventFees.find(
+      (f) => f.student_id === Number(paymentForm.student_id)
+    );
+    if (!fee) return null;
+    const paid = currentEventPayments
+      .filter((p) => p.student_id === fee.student_id)
+      .reduce((s, p) => s + Number(p.amount), 0);
+    const payable = Number(fee.payable_amount) - Number(fee.discount || 0);
+    return {
+      payable,
+      paid,
+      remaining: payable - paid,
+      discount: Number(fee.discount || 0),
+    };
+  }, [paymentForm.student_id, currentEventFees, currentEventPayments]);
+
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-5 pb-6">
       {/* শিরোনাম */}
@@ -423,30 +548,13 @@ export default function EventsClient({
         {canManage && (
           <button
             onClick={() => setTab(tab === "create" ? "list" : "create")}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md shadow-purple-500/25 transition flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold shadow-md transition flex items-center gap-2"
           >
-            {tab === "create" ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="19" y1="12" x2="5" y2="12" />
-                  <polyline points="12 19 5 12 12 5" />
-                </svg>
-                তালিকায় ফিরে যান
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                নতুন ইভেন্ট
-              </>
-            )}
+            {tab === "create" ? "← তালিকায় ফিরে যান" : "+ নতুন ইভেন্ট"}
           </button>
         )}
       </div>
 
-      {/* মেসেজ */}
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
@@ -458,7 +566,7 @@ export default function EventsClient({
         </div>
       )}
 
-      {/* ============ ট্যাব ১: ইভেন্ট তৈরি ============ */}
+      {/* ============ ইভেন্ট তৈরি ============ */}
       {tab === "create" && canManage && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">
@@ -466,7 +574,6 @@ export default function EventsClient({
           </h2>
 
           <form onSubmit={handleCreateEvent} className="space-y-4">
-            {/* নাম ও বিবরণ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
@@ -478,7 +585,7 @@ export default function EventsClient({
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="যেমন: বার্ষিক ক্রীড়া প্রতিযোগিতা"
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
               <div>
@@ -489,13 +596,11 @@ export default function EventsClient({
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="সংক্ষিপ্ত বিবরণ"
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* তারিখ */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
@@ -505,7 +610,7 @@ export default function EventsClient({
                   type="date"
                   value={form.start_date}
                   onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                 />
               </div>
               <div>
@@ -516,7 +621,7 @@ export default function EventsClient({
                   type="date"
                   value={form.end_date}
                   onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                 />
               </div>
             </div>
@@ -532,8 +637,8 @@ export default function EventsClient({
                   onClick={() => setForm({ ...form, fee_mode: "same" })}
                   className={`py-2.5 rounded-xl text-sm font-semibold transition ${
                     form.fee_mode === "same"
-                      ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-slate-500 dark:text-slate-400"
+                      ? "bg-white dark:bg-slate-900 text-brand-600 shadow-sm"
+                      : "text-slate-500"
                   }`}
                 >
                   🔄 সব শ্রেণির জন্য একই
@@ -543,8 +648,8 @@ export default function EventsClient({
                   onClick={() => setForm({ ...form, fee_mode: "per_class" })}
                   className={`py-2.5 rounded-xl text-sm font-semibold transition ${
                     form.fee_mode === "per_class"
-                      ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-slate-500 dark:text-slate-400"
+                      ? "bg-white dark:bg-slate-900 text-brand-600 shadow-sm"
+                      : "text-slate-500"
                   }`}
                 >
                   📋 প্রতিটি শ্রেণির আলাদা
@@ -552,7 +657,6 @@ export default function EventsClient({
               </div>
             </div>
 
-            {/* সব শ্রেণির জন্য একই ফি */}
             {form.fee_mode === "same" && (
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
@@ -562,18 +666,13 @@ export default function EventsClient({
                   type="number"
                   value={form.default_fee}
                   onChange={(e) => setForm({ ...form, default_fee: e.target.value })}
-                  placeholder="যেমন: ১০০"
                   required
                   min={0}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  সব নির্বাচিত শিক্ষার্থীর জন্য এই ফি প্রযোজ্য হবে
-                </p>
               </div>
             )}
 
-            {/* প্রতিটি শ্রেণির আলাদা ফি */}
             {form.fee_mode === "per_class" && (
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
@@ -582,7 +681,7 @@ export default function EventsClient({
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[300px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
                   {classes.map((c) => (
                     <div key={c}>
-                      <label className="block text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+                      <label className="block text-[10px] font-medium text-slate-500 mb-1">
                         {c}
                       </label>
                       <input
@@ -594,20 +693,15 @@ export default function EventsClient({
                             class_fees: { ...form.class_fees, [c]: e.target.value },
                           })
                         }
-                        placeholder="০"
                         min={0}
-                        className="w-full px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none"
+                        className="w-full px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                       />
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  প্রতিটি শ্রেণির জন্য আলাদা ফি সেট করুন। একই রাখতে চাইলে একই সংখ্যা লিখুন।
-                </p>
               </div>
             )}
 
-            {/* শিক্ষার্থী নির্বাচন */}
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                 কাদের জন্য প্রযোজ্য? *
@@ -632,7 +726,7 @@ export default function EventsClient({
                     className={`py-2.5 rounded-xl text-xs font-semibold transition border-2 ${
                       form.applies_to === opt.v
                         ? "bg-brand-600 text-white border-brand-600"
-                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-600 border-transparent"
                     }`}
                   >
                     {opt.l}
@@ -641,7 +735,6 @@ export default function EventsClient({
               </div>
             </div>
 
-            {/* নির্দিষ্ট শ্রেণি */}
             {form.applies_to === "class" && (
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
@@ -652,7 +745,7 @@ export default function EventsClient({
                   onChange={(e) =>
                     setForm({ ...form, applies_to_value: e.target.value })
                   }
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                 >
                   <option value="">-- শ্রেণি --</option>
                   {classes.map((c) => (
@@ -662,51 +755,109 @@ export default function EventsClient({
               </div>
             )}
 
-            {/* নির্দিষ্ট শিক্ষার্থী */}
+            {/* নির্দিষ্ট শিক্ষার্থী — সহজ UI */}
             {form.applies_to === "selected" && (
-              <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                  শিক্ষার্থী নির্বাচন করুন ({toBangla(form.selected_students.length)} জন)
-                </label>
-                <div className="max-h-[300px] overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-2 bg-slate-50 dark:bg-slate-800">
-                  {students.map((s) => {
-                    const checked = form.selected_students.includes(s.id);
-                    return (
-                      <label
-                        key={s.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${
-                          checked ? "bg-brand-50 dark:bg-brand-900/20" : "hover:bg-white dark:hover:bg-slate-900"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setForm({
-                                ...form,
-                                selected_students: [...form.selected_students, s.id],
-                              });
-                            } else {
-                              setForm({
-                                ...form,
-                                selected_students: form.selected_students.filter(
-                                  (id) => id !== s.id
-                                ),
-                              });
-                            }
-                          }}
-                          className="w-4 h-4 accent-brand-600"
-                        />
-                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {s.name}
-                        </span>
-                        <span className="text-[10px] text-slate-500">
-                          ({s.class_name}{s.roll ? ` - ${s.roll}` : ""})
-                        </span>
-                      </label>
-                    );
-                  })}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    শিক্ষার্থী নির্বাচন ({toBangla(form.selected_students.length)} জন)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={clearAllSelected}
+                    className="text-[11px] text-red-600 hover:underline"
+                  >
+                    সব বাদ দিন
+                  </button>
+                </div>
+
+                {/* শ্রেণি ও সার্চ */}
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={selectedClassForPick}
+                    onChange={(e) => setSelectedClassForPick(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
+                  >
+                    <option value="">সব শ্রেণি</option>
+                    {classes.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    placeholder="নাম বা রোল..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
+                  />
+                </div>
+
+                {/* সব দেখাও / বাদ দাও */}
+                {selectedClassForPick && filteredPickStudents.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={selectAllInClass}
+                    className="w-full py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 text-xs font-semibold hover:bg-brand-100 transition"
+                  >
+                    {filteredPickStudents.every((s) =>
+                      form.selected_students.includes(s.id)
+                    )
+                      ? `❌ ${selectedClassForPick}-এর সব বাদ দিন`
+                      : `✅ ${selectedClassForPick}-এর সব সিলেক্ট করুন`}
+                  </button>
+                )}
+
+                <div className="max-h-[300px] overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-2 bg-slate-50 dark:bg-slate-800 space-y-1">
+                  {filteredPickStudents.length === 0 ? (
+                    <p className="text-center text-xs text-slate-400 py-4">
+                      কোনো শিক্ষার্থী নেই
+                    </p>
+                  ) : (
+                    filteredPickStudents.map((s) => {
+                      const checked = form.selected_students.includes(s.id);
+                      return (
+                        <label
+                          key={s.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${
+                            checked
+                              ? "bg-brand-50 dark:bg-brand-900/20"
+                              : "hover:bg-white dark:hover:bg-slate-900"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setForm({
+                                  ...form,
+                                  selected_students: [
+                                    ...form.selected_students,
+                                    s.id,
+                                  ],
+                                });
+                              } else {
+                                setForm({
+                                  ...form,
+                                  selected_students: form.selected_students.filter(
+                                    (id) => id !== s.id
+                                  ),
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 accent-brand-600"
+                          />
+                          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {s.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 ml-auto">
+                            {s.class_name}
+                            {s.roll ? ` - ${s.roll}` : ""}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -714,41 +865,23 @@ export default function EventsClient({
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-lg shadow-purple-500/25 transition flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  তৈরি হচ্ছে...
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  ইভেন্ট তৈরি করুন
-                </>
-              )}
+              {saving ? "তৈরি হচ্ছে..." : "ইভেন্ট তৈরি করুন"}
             </button>
           </form>
         </div>
       )}
 
-      {/* ============ ট্যাব ২: ইভেন্ট তালিকা ============ */}
+      {/* ============ ইভেন্ট তালিকা ============ */}
       {tab === "list" && (
         <>
           {events.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center text-slate-500 border border-slate-200 dark:border-slate-800">
-              <svg className="mx-auto mb-3" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
               <p className="text-sm mb-1">কোনো ইভেন্ট নেই</p>
               {canManage && (
                 <p className="text-xs text-slate-400">
-                  উপরের "নতুন ইভেন্ট" বাটনে ক্লিক করুন
+                  উপরে "নতুন ইভেন্ট" বাটনে ক্লিক করুন
                 </p>
               )}
             </div>
@@ -758,7 +891,7 @@ export default function EventsClient({
                 const fees = eventFees.filter((f) => f.event_id === ev.id);
                 const evPayments = payments.filter((p) => p.event_id === ev.id);
                 const totalPayable = fees.reduce(
-                  (s, f) => s + Number(f.payable_amount),
+                  (s, f) => s + Number(f.payable_amount) - Number(f.discount || 0),
                   0
                 );
                 const totalPaid = evPayments.reduce(
@@ -803,9 +936,7 @@ export default function EventsClient({
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                       <div>
                         <div className="text-[9px] text-slate-400">শিক্ষার্থী</div>
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          {toBangla(fees.length)}
-                        </div>
+                        <div className="text-xs font-bold">{toBangla(fees.length)}</div>
                       </div>
                       <div>
                         <div className="text-[9px] text-slate-400">প্রাপ্য</div>
@@ -828,10 +959,9 @@ export default function EventsClient({
         </>
       )}
 
-      {/* ============ ট্যাব ৩: ইভেন্ট ম্যানেজমেন্ট ============ */}
+      {/* ============ ইভেন্ট ম্যানেজমেন্ট ============ */}
       {tab === "manage" && selectedEvent && (
         <div className="space-y-4">
-          {/* ইভেন্ট হেডার */}
           <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-5 text-white shadow-lg">
             <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
               <div className="flex-1 min-w-0">
@@ -852,9 +982,7 @@ export default function EventsClient({
                 onClick={() => setTab("list")}
                 className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition shrink-0"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                ✕
               </button>
             </div>
 
@@ -874,45 +1002,38 @@ export default function EventsClient({
             </div>
           </div>
 
-          {/* সারাংশ */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 border border-emerald-100 dark:border-emerald-900/40 text-center">
-              <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mb-1">Paid</div>
-              <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 border border-emerald-100 text-center">
+              <div className="text-[10px] text-emerald-700 mb-1">Paid</div>
+              <div className="text-lg font-bold text-emerald-700">
                 {toBangla(eventStats.paidCount)}
               </div>
             </div>
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-3 border border-amber-100 dark:border-amber-900/40 text-center">
-              <div className="text-[10px] text-amber-700 dark:text-amber-400 mb-1">Partial</div>
-              <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-3 border border-amber-100 text-center">
+              <div className="text-[10px] text-amber-700 mb-1">Partial</div>
+              <div className="text-lg font-bold text-amber-700">
                 {toBangla(eventStats.partialCount)}
               </div>
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-3 border border-red-100 dark:border-red-900/40 text-center">
-              <div className="text-[10px] text-red-700 dark:text-red-400 mb-1">Unpaid</div>
-              <div className="text-lg font-bold text-red-700 dark:text-red-400">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-3 border border-red-100 text-center">
+              <div className="text-[10px] text-red-700 mb-1">Unpaid</div>
+              <div className="text-lg font-bold text-red-700">
                 {toBangla(eventStats.unpaidCount)}
               </div>
             </div>
           </div>
 
-          {/* অ্যাকশন বাটন */}
           {canManage && (
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handlePrint}
                 className="px-4 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold shadow-md transition flex items-center gap-2"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 6 2 18 2 18 9" />
-                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                  <rect x="6" y="14" width="12" height="8" />
-                </svg>
-                Print / PDF
+                🖨️ Print / PDF
               </button>
               <button
                 onClick={toggleEventClose}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition flex items-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition ${
                   selectedEvent.is_closed
                     ? "bg-emerald-600 text-white"
                     : "bg-amber-500 text-white"
@@ -922,7 +1043,7 @@ export default function EventsClient({
               </button>
               <button
                 onClick={deleteEvent}
-                className="px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold transition flex items-center gap-2"
+                className="px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-semibold transition"
               >
                 🗑️ ডিলিট
               </button>
@@ -937,42 +1058,80 @@ export default function EventsClient({
               </h3>
               <form onSubmit={handlePayment} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     শিক্ষার্থী *
                   </label>
                   <select
                     value={paymentForm.student_id}
                     onChange={(e) => {
                       const sid = e.target.value;
-                      setPaymentForm({ ...paymentForm, student_id: sid });
-                      // প্রাপ্য ফি অটো ফিল
                       const fee = currentEventFees.find(
                         (f) => f.student_id === Number(sid)
                       );
-                      if (fee) {
-                        setPaymentForm((prev) => ({
-                          ...prev,
-                          student_id: sid,
-                          amount: String(fee.payable_amount),
-                        }));
-                      }
+                      const paid = currentEventPayments
+                        .filter((p) => p.student_id === Number(sid))
+                        .reduce((s, p) => s + Number(p.amount), 0);
+                      const payable = fee
+                        ? Number(fee.payable_amount) - Number(fee.discount || 0)
+                        : 0;
+                      setPaymentForm({
+                        ...paymentForm,
+                        student_id: sid,
+                        amount: fee ? String(Math.max(0, payable - paid)) : "",
+                      });
                     }}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   >
                     <option value="">-- শিক্ষার্থী নির্বাচন --</option>
-                    {currentEventFees.map((f) => (
-                      <option key={f.id} value={f.student_id}>
-                        {f.students?.name} ({f.students?.class_name}
-                        {f.students?.roll ? ` - ${f.students.roll}` : ""}) — ৳
-                        {f.payable_amount}
-                      </option>
-                    ))}
+                    {currentEventFees.map((f) => {
+                      const paid = currentEventPayments
+                        .filter((p) => p.student_id === f.student_id)
+                        .reduce((s, p) => s + Number(p.amount), 0);
+                      const payable =
+                        Number(f.payable_amount) - Number(f.discount || 0);
+                      const remaining = payable - paid;
+                      return (
+                        <option key={f.id} value={f.student_id}>
+                          {f.students?.name} ({f.students?.class_name}
+                          {f.students?.roll ? ` - ${f.students.roll}` : ""}) — প্রাপ্য
+                          ৳{f.payable_amount}
+                          {Number(f.discount) > 0 && ` - ছাড় ৳${f.discount}`}
+                          {remaining > 0 && ` - বাকি ৳${remaining}`}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
+                {/* বাকি তথ্য */}
+                {selectedPaymentFee && (
+                  <div className="sm:col-span-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <div className="text-[10px] text-slate-500">প্রাপ্য</div>
+                        <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                          ৳{toBangla(selectedPaymentFee.payable)}
+                        </div>
+                      </div>
+                      <div className="border-x border-slate-200 dark:border-slate-700">
+                        <div className="text-[10px] text-slate-500">জমা</div>
+                        <div className="text-sm font-bold text-emerald-600">
+                          ৳{toBangla(selectedPaymentFee.paid)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500">বাকি</div>
+                        <div className="text-sm font-bold text-red-600">
+                          ৳{toBangla(selectedPaymentFee.remaining)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     পরিমাণ (৳) *
                   </label>
                   <input
@@ -983,12 +1142,51 @@ export default function EventsClient({
                     }
                     required
                     min={1}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    max={selectedPaymentFee?.remaining || undefined}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
+                  />
+                  {selectedPaymentFee && (
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      সর্বোচ্চ ৳{toBangla(selectedPaymentFee.remaining)} নিতে পারবেন
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                    ছাড় (৳)
+                  </label>
+                  <input
+                    type="number"
+                    value={paymentForm.discount}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, discount: e.target.value })
+                    }
+                    min={0}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                    ছাড়ের কারণ
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentForm.discount_reason}
+                    onChange={(e) =>
+                      setPaymentForm({
+                        ...paymentForm,
+                        discount_reason: e.target.value,
+                      })
+                    }
+                    placeholder="যেমন: এতিম, মেধাবী"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     তারিখ
                   </label>
                   <input
@@ -997,20 +1195,23 @@ export default function EventsClient({
                     onChange={(e) =>
                       setPaymentForm({ ...paymentForm, payment_date: e.target.value })
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     পেমেন্ট পদ্ধতি
                   </label>
                   <select
                     value={paymentForm.payment_method}
                     onChange={(e) =>
-                      setPaymentForm({ ...paymentForm, payment_method: e.target.value })
+                      setPaymentForm({
+                        ...paymentForm,
+                        payment_method: e.target.value,
+                      })
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   >
                     {PAYMENT_METHODS.map((m) => (
                       <option key={m.value} value={m.value}>{m.label}</option>
@@ -1019,7 +1220,7 @@ export default function EventsClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     রসিদ নম্বর (ঐচ্ছিক)
                   </label>
                   <input
@@ -1029,12 +1230,12 @@ export default function EventsClient({
                       setPaymentForm({ ...paymentForm, receipt_no: e.target.value })
                     }
                     placeholder="স্বয়ংক্রিয়"
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">
                     নোট
                   </label>
                   <input
@@ -1043,14 +1244,14 @@ export default function EventsClient({
                     onChange={(e) =>
                       setPaymentForm({ ...paymentForm, note: e.target.value })
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="sm:col-span-2 py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold transition flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="sm:col-span-2 py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold transition disabled:opacity-60"
                 >
                   {saving ? "সংরক্ষণ..." : "ফি জমা নিন"}
                 </button>
@@ -1058,7 +1259,7 @@ export default function EventsClient({
             </div>
           )}
 
-          {/* শিক্ষার্থীদের ফি তালিকা */}
+          {/* শিক্ষার্থীদের তালিকা */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -1072,10 +1273,10 @@ export default function EventsClient({
                 const paid = currentEventPayments
                   .filter((p) => p.student_id === f.student_id)
                   .reduce((s, p) => s + Number(p.amount), 0);
-                const due = Number(f.payable_amount) - paid;
+                const payable = Number(f.payable_amount) - Number(f.discount || 0);
+                const due = payable - paid;
                 let status: "paid" | "partial" | "unpaid" = "unpaid";
-                if (paid >= Number(f.payable_amount) && Number(f.payable_amount) > 0)
-                  status = "paid";
+                if (paid >= payable && payable > 0) status = "paid";
                 else if (paid > 0) status = "partial";
 
                 const sc =
@@ -1088,7 +1289,7 @@ export default function EventsClient({
                 return (
                   <div
                     key={f.id}
-                    className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
+                    className="rounded-2xl overflow-hidden border border-slate-200"
                     style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
                   >
                     <div className="p-3 flex items-start gap-3" style={{ background: sc.bg }}>
@@ -1113,6 +1314,12 @@ export default function EventsClient({
                           {f.students?.class_name}
                           {f.students?.roll && ` • রোল ${f.students.roll}`}
                         </div>
+                        {Number(f.discount) > 0 && (
+                          <div className="text-[10px] text-amber-600 mt-0.5">
+                            ছাড়: ৳{toBangla(f.discount)}
+                            {f.discount_reason && ` (${f.discount_reason})`}
+                          </div>
+                        )}
                       </div>
                       <span
                         className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
@@ -1124,11 +1331,9 @@ export default function EventsClient({
                     <div className="p-3 grid grid-cols-3 gap-2 bg-white dark:bg-slate-900">
                       <div className="text-center">
                         <div className="text-[9px] text-slate-400">প্রাপ্য</div>
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          ৳{toBangla(f.payable_amount)}
-                        </div>
+                        <div className="text-xs font-bold">{toBangla(payable)}</div>
                       </div>
-                      <div className="text-center border-x border-slate-100 dark:border-slate-800">
+                      <div className="text-center border-x border-slate-100">
                         <div className="text-[9px] text-slate-400">জমা</div>
                         <div className="text-xs font-bold text-emerald-600">
                           ৳{toBangla(paid)}
@@ -1149,15 +1354,16 @@ export default function EventsClient({
             {/* ডেস্কটপ টেবিল */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b">
                   <tr>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">নাম</th>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">শ্রেণি</th>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">রোল</th>
-                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">প্রাপ্য</th>
-                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">জমা</th>
-                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">বাকি</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-300">স্ট্যাটাস</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold">নাম</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold">শ্রেণি</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold">রোল</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold">প্রাপ্য</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold">ছাড়</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold">জমা</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold">বাকি</th>
+                    <th className="px-3 py-2.5 text-center text-xs font-semibold">স্ট্যাটাস</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1165,10 +1371,10 @@ export default function EventsClient({
                     const paid = currentEventPayments
                       .filter((p) => p.student_id === f.student_id)
                       .reduce((s, p) => s + Number(p.amount), 0);
-                    const due = Number(f.payable_amount) - paid;
+                    const payable = Number(f.payable_amount) - Number(f.discount || 0);
+                    const due = payable - paid;
                     let status: "paid" | "partial" | "unpaid" = "unpaid";
-                    if (paid >= Number(f.payable_amount) && Number(f.payable_amount) > 0)
-                      status = "paid";
+                    if (paid >= payable && payable > 0) status = "paid";
                     else if (paid > 0) status = "partial";
 
                     const badge =
@@ -1179,30 +1385,18 @@ export default function EventsClient({
                         : { bg: "#fee2e2", text: "#b91c1c", label: "Unpaid" };
 
                     return (
-                      <tr
-                        key={f.id}
-                        className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                      >
-                        <td className="px-3 py-2.5 font-medium text-slate-900 dark:text-white">
-                          {f.students?.name}
-                        </td>
-                        <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">
-                          {f.students?.class_name}
-                        </td>
-                        <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">
-                          {f.students?.roll || "-"}
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-slate-700 dark:text-slate-300">
-                          ৳{toBangla(f.payable_amount)}
+                      <tr key={f.id} className="border-b hover:bg-slate-50">
+                        <td className="px-3 py-2.5 font-medium">{f.students?.name}</td>
+                        <td className="px-3 py-2.5 text-slate-600">{f.students?.class_name}</td>
+                        <td className="px-3 py-2.5 text-slate-600">{f.students?.roll || "-"}</td>
+                        <td className="px-3 py-2.5 text-right">৳{toBangla(f.payable_amount)}</td>
+                        <td className="px-3 py-2.5 text-right text-amber-600">
+                          ৳{toBangla(f.discount || 0)}
                         </td>
                         <td className="px-3 py-2.5 text-right font-medium text-emerald-700">
                           ৳{toBangla(paid)}
                         </td>
-                        <td
-                          className={`px-3 py-2.5 text-right font-medium ${
-                            due > 0 ? "text-red-700" : "text-slate-400"
-                          }`}
-                        >
+                        <td className={`px-3 py-2.5 text-right font-medium ${due > 0 ? "text-red-700" : "text-slate-400"}`}>
                           ৳{toBangla(due)}
                         </td>
                         <td className="px-3 py-2.5 text-center">
@@ -1217,32 +1411,14 @@ export default function EventsClient({
                     );
                   })}
                 </tbody>
-                <tfoot>
-                  <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-purple-600">
-                    <td colSpan={3} className="px-3 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                      সর্বমোট ({toBangla(currentEventFees.length)} জন):
-                    </td>
-                    <td className="px-3 py-3 text-right font-bold text-slate-900 dark:text-white">
-                      ৳{toBangla(eventStats.totalPayable)}
-                    </td>
-                    <td className="px-3 py-3 text-right font-bold text-emerald-700">
-                      ৳{toBangla(eventStats.totalPaid)}
-                    </td>
-                    <td className="px-3 py-3 text-right font-bold text-red-700">
-                      ৳{toBangla(eventStats.totalDue)}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* ============ ট্যাব খালি অবস্থায় ============ */}
       {tab === "manage" && !selectedEvent && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center text-slate-500 border border-slate-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center text-slate-500 border border-slate-200">
           <p className="text-sm">কোনো ইভেন্ট নির্বাচন করা হয়নি</p>
         </div>
       )}
