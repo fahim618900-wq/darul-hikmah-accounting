@@ -7,7 +7,8 @@
 
 @layer base {
   html {
-    font-family: "Inter", "Noto Sans Bengali", system-ui, -apple-system, sans-serif;
+    font-family: "Inter", "Noto Sans Bengali", system-ui, -apple-system,
+      sans-serif;
   }
   body {
     @apply bg-slate-50 text-slate-800 antialiased;
@@ -29,7 +30,7 @@
 }
 
 /* ============================================
-   প্রিন্ট স্টাইল
+   প্রিন্ট স্টাইল — সম্পূর্ণ (একবারই)
    ============================================ */
 @media print {
   @page {
@@ -46,102 +47,6 @@
   }
 
   /* সব no-print এলিমেন্ট লুকাও */
-  .no-print,
-  .no-print * {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* শুধু print-area দেখাও */
-  body * {
-    visibility: hidden;
-  }
-
-  .print-area,
-  .print-area * {
-    visibility: visible;
-  }
-
-  .print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    background: #ffffff !important;
-  }
-
-  /* print-only এলিমেন্ট দেখাও */
-  .print\:block {
-    display: block !important;
-  }
-
-  .print\:hidden {
-    display: none !important;
-  }
-
-  /* ছায়া/বর্ডার ছাড়া */
-  .print-area {
-    box-shadow: none !important;
-  }
-
-  /* টেবিল প্রিন্টে */
-  .print-area table {
-    font-size: 10px !important;
-    border-collapse: collapse !important;
-  }
-
-  .print-area th,
-  .print-area td {
-    padding: 4px 6px !important;
-    border: 1px solid #999 !important;
-  }
-
-  .print-area th {
-    background: #0f766e !important;
-    color: #ffffff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* page break নিয়ন্ত্রণ */
-  .print-area tr {
-    page-break-inside: avoid;
-  }
-
-  .print-area thead {
-    display: table-header-group;
-  }
-
-  /* লিংক URL প্রিন্টে না দেখাও */
-  a[href]:after {
-    content: "";
-  }
-}
-
-/* ============================================
-   নন-প্রিন্ট বেস
-   ============================================ */
-.print-only-inline {
-  display: none;
-}
-
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
-
-  html,
-  body {
-    background: #ffffff !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: auto !important;
-  }
-
-  /* শুধু no-print এলিমেন্ট লুকাও */
   .no-print,
   .no-print * {
     display: none !important;
@@ -201,25 +106,25 @@
     content: "";
   }
 }
-@media (max-width: 640px) {
-  .excel-table {
-    font-size: 0.72rem;
-  }
-  .excel-th,
-  .excel-td {
-    padding: 0.45rem 0.5rem;
-  }
-  .excel-badge {
-    font-size: 0.62rem;
-    padding: 0.12rem 0.4rem;
+
+/* নন-প্রিন্ট: print-only-inline ক্লাস লুকানো */
+.print-only-inline {
+  display: none;
+}
+
+@media print {
+  .print-only-inline {
+    display: inline !important;
   }
 }
 
-
-/* Paid / Unpaid print-only ledger: screen-hidden, explicitly visible in print */
+/* ============================================
+   Paid/Unpaid প্রিন্ট-অনলি লেজার
+   ============================================ */
 .fees-status-print-summary {
   display: none !important;
 }
+
 @media print {
   .fees-status-print-summary {
     display: block !important;
@@ -260,7 +165,10 @@
     print-color-adjust: exact;
   }
 }
-/* Excel Entry Table */
+
+/* ============================================
+   Excel Entry Table
+   ============================================ */
 .excel-th {
   padding: 0.55rem 0.7rem;
   text-align: left;
@@ -333,7 +241,6 @@
   color: #94a3b8;
 }
 
-/* মোবাইলে ছোট ফন্ট */
 @media (max-width: 640px) {
   .excel-th {
     padding: 0.45rem 0.5rem;
