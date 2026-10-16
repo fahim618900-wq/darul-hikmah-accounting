@@ -25,18 +25,32 @@ export default async function ExcelEntryPage() {
     .select("id, name")
     .order("name");
 
-  // ডাইনামিক কলাম
-  const { data: columns } = await supabase
+  // ব্যয়ের খাত
+  const { data: expenseCategories } = await supabase
+    .from("expense_categories")
+    .select("id, name")
+    .order("name");
+
+  // আয়ের কলাম টেমপ্লেট
+  const { data: incomeColumns } = await supabase
     .from("excel_column_templates")
     .select("*")
     .eq("page_type", "income")
-    .eq("is_active", true)
+    .order("column_order");
+
+  // ব্যয়ের কলাম টেমপ্লেট
+  const { data: expenseColumns } = await supabase
+    .from("excel_column_templates")
+    .select("*")
+    .eq("page_type", "expense")
     .order("column_order");
 
   return (
     <ExcelEntryClient
       incomeCategories={incomeCategories || []}
-      initialColumns={columns || []}
+      expenseCategories={expenseCategories || []}
+      incomeColumns={incomeColumns || []}
+      expenseColumns={expenseColumns || []}
       userName={profile.full_name || user.email || ""}
     />
   );
