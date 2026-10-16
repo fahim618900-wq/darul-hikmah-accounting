@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { lastDayOfMonth, calculateFinancialTotals, isDateInRange, type FinancialTransaction } from "@/lib/financial";
 
 type Transaction = {
-  type: "income" | "expense";
-  source: "direct-income" | "fee-collection" | "expense";
+  type: string;
   id: number;
   date: string;
   category: string | null;
   amount: number;
   ref_no: string | null;
   description: string | null;
+  payment_method: string;
 };
 
 function toBangla(input: string | number): string {
@@ -27,6 +26,12 @@ function todayBangla(): string {
   return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
 }
 
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  return `${toBangla(d.getDate())}/${toBangla(d.getMonth() + 1)}/${toBangla(d.getFullYear())}`;
+}
+
 export default function IncomeExpenseReport({
   transactions,
   preparedBy,
@@ -36,143 +41,369 @@ export default function IncomeExpenseReport({
 }) {
   const now = new Date();
   const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  const lastOfMonth = lastDayOfMonth(now.getFullYear(), now.getMonth() + 1);
+  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split("T")[0];
 
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(lastOfMonth);
 
+  // ফিল্টার
   const filtered = useMemo(() => {
-    return transactions.filter((t) => isDateInRange(t.date, fromDate, toDate));
+    return transactions.filter((t) => t.date >= fromDate && t.date <= toDate);
   }, [transactions, fromDate, toDate]);
 
-  const incomeRows = filtered.filter((t) => t.type === "income");
-  const expenseRows = filtered.filter((t) => t.type === "expense");
+  const incomeRows = useMemo(
+    () => filtered.filter((t) => t.type === "income"),
+    [filtered]
+  );
+  const expenseRows = useMemo(
+    () => filtered.filter((t) => t.type === "expense"),
+    [filtered]
+  );
 
-  const totals = calculateFinancialTotals(filtered as FinancialTransaction[]);
-  const totalIncome = totals.totalIncome;
-  const totalExpense = totals.totalExpense;
-  const balance = totals.balance;
+  const totalIncome = useMemo(
+    () => incomeRows.reduce((s, t) => s + Number(t.amount || 0), 0),
+    [incomeRows]
+  );
+  const totalExpense = useMemo(
+    () => expenseRows.reduce((s, t) => s + Number(t.amount || 0), 0),
+    [expenseRows]
+  );
+  const balance = totalIncome - totalExpense;
 
-  // খাতভিত্তিক সারসংক্ষেপ
-  const incomeByCategory: Record<string, number> = {};
-  incomeRows.forEach((t) => {
-    const cat = t.category || "অন্যান্য";
-    incomeByCategory[cat] = (incomeByCategory[cat] || 0) + Number(t.amount);
-  });
+  // ==================== খাতভিত্তিক গ্রুপ (আয়) ====================
+  const incomeCategories = useMemo(() => {
+    const cats = new Set<string>();
+    incomeRows.forEach((t) => cats.add(t.category || "অন্যান্য"));
+    return Array.from(cats).sort();
+  }, [incomeRows]);
 
-  const expenseByCategory: Record<string, number> = {};
-  expenseRows.forEach((t) => {
-    const cat = t.category || "অন্যান্য";
-    expenseByCategory[cat] = (expenseByCategory[cat] || 0) + Number(t.amount);
-  });
+  // তারিখভিত্তিক গ্রুপ (আয়)
+  const incomeByDate = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {};
+    incomeRows.forEach((t) => {
+      const date = t.date;
+      const cat = t.category || "অন্যান্য";
+      if (!map[date]) map[date] = {};
+      map[date][cat] = (map[date][cat] || 0) + Number(t.amount || 0);
+    });
+    return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [incomeRows]);
+
+  // কলামের মোট (আয়)
+  const incomeColumnTotals = useMemo(() => {
+    const totals: Record<string, number> = {};
+    incomeCategories.forEach((cat) => {
+      totals[cat] = incomeRows
+        .filter((t) => (t.category || "অন্যান্য") === cat)
+        .reduce((s, t) => s + Number(t.amount || 0), 0);
+    });
+    return totals;
+  }, [incomeRows, incomeCategories]);
+
+  // ==================== খাতভিত্তিক গ্রুপ (ব্যয়) ====================
+  const expenseCategories = useMemo(() => {
+    const cats = new Set<string>();
+    expenseRows.forEach((t) => cats.add(t.category || "অন্যান্য"));
+    return Array.from(cats).sort();
+  }, [expenseRows]);
+
+  const expenseByDate = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {};
+    expenseRows.forEach((t) => {
+      const date = t.date;
+      const cat = t.category || "অন্যান্য";
+      if (!map[date]) map[date] = {};
+      map[date][cat] = (map[date][cat] || 0) + Number(t.amount || 0);
+    });
+    return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [expenseRows]);
+
+  const expenseColumnTotals = useMemo(() => {
+    const totals: Record<string, number> = {};
+    expenseCategories.forEach((cat) => {
+      totals[cat] = expenseRows
+        .filter((t) => (t.category || "অন্যান্য") === cat)
+        .reduce((s, t) => s + Number(t.amount || 0), 0);
+    });
+    return totals;
+  }, [expenseRows, expenseCategories]);
+
+  function handlePrint() {
+    window.print();
+  }
 
   return (
     <>
-      <div className="no-print mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* ============ স্ক্রিনে ফিল্টার ============ */}
+      <div className="no-print bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শুরুর তারিখ</label>
-            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              শুরুর তারিখ
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+            />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">শেষের তারিখ</label>
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            <label className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
+              শেষের তারিখ
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none"
+            />
           </div>
         </div>
-        <button onClick={() => window.print()} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2">
-          🖨️ Print / PDF
-        </button>
+
+        <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex-1 flex flex-wrap gap-2">
+            <Badge label="মোট আয়" value={"৳" + toBangla(Math.round(totalIncome))} color="#15803d" />
+            <Badge label="মোট ব্যয়" value={"৳" + toBangla(Math.round(totalExpense))} color="#b91c1c" />
+            <Badge
+              label="নিট উদ্বৃত্ত"
+              value={"৳" + toBangla(Math.round(balance))}
+              color={balance >= 0 ? "#15803d" : "#b91c1c"}
+            />
+          </div>
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md transition flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Print / PDF
+          </button>
+        </div>
       </div>
 
-      <div className="print-area min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/10 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
-        <div className="border-b border-teal-100 bg-gradient-to-r from-teal-50 via-white to-cyan-50 px-4 py-5 sm:px-6 dark:border-teal-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950 print:bg-white" style={{ borderBottom: "2px solid #0f766e" }}>
-          <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            <h1 className="mb-1 text-xl font-extrabold tracking-tight text-teal-800 sm:text-2xl dark:text-teal-300 print:text-teal-800" style={{ marginBottom: "0.25rem" }}>দারুল হিকমাহ মডেল মাদ্রাসা</h1>
-            <p className="text-xs text-slate-500 sm:text-sm dark:text-slate-400 print:text-slate-600" style={{ fontSize: "0.85rem" }}>ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ</p>
+      {/* ============ প্রিন্ট এরিয়া ============ */}
+      <div className="print-area">
+        {/* প্রিন্ট হেডার */}
+        <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 mb-4 border-b-2 border-brand-600">
+          <div className="text-center mb-3">
+            <h1 className="text-lg sm:text-xl font-bold text-brand-700 mb-1">
+              দারুল হিকমাহ মডেল মাদ্রাসা
+            </h1>
+            <p className="text-xs text-slate-500">
+              ইসলামী ব্যাংকের বিপরীত পার্শ্বে, ফুলপুর, ময়মনসিংহ
+            </p>
           </div>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <div><strong>বিষয়:</strong> আয়-ব্যয় রিপোর্ট</div>
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm mb-1">
+            <div><strong>বিষয়:</strong> আয়-ব্যয়ের রিপোর্ট</div>
             <div><strong>তারিখ:</strong> {todayBangla()}</div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <div><strong>সময়কাল:</strong> {toBangla(fromDate)} — {toBangla(toDate)}</div>
+          <div className="flex justify-between flex-wrap gap-2 text-xs sm:text-sm">
+            <div><strong>সময়কাল:</strong> {formatDate(fromDate)} — {formatDate(toDate)}</div>
             <div><strong>প্রস্তুতকারী:</strong> {preparedBy || "_______________"}</div>
           </div>
         </div>
 
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>সারসংক্ষেপ</h3>
-          <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+        {/* ============ ১. সারসংক্ষেপ ============ */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+            📊 সারসংক্ষেপ
+          </h3>
+          <table className="w-full border-collapse text-sm">
             <tbody>
-              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td className="font-medium text-slate-600 dark:text-slate-300" style={{ padding: "0.6rem 0", color: "#475569" }}>মোট আয়</td>
-                <td style={{ padding: "0.6rem 0", textAlign: "right", color: "#15803d", fontWeight: "600" }}>৳ {toBangla(totalIncome)}</td>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <td className="py-2.5 text-slate-600 dark:text-slate-400">মোট আয়</td>
+                <td className="py-2.5 text-right font-bold text-emerald-700">
+                  ৳{toBangla(Math.round(totalIncome))}
+                </td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td className="font-medium text-slate-600 dark:text-slate-300" style={{ padding: "0.6rem 0", color: "#475569" }}>মোট ব্যয়</td>
-                <td style={{ padding: "0.6rem 0", textAlign: "right", color: "#b91c1c", fontWeight: "600" }}>৳ {toBangla(totalExpense)}</td>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <td className="py-2.5 text-slate-600 dark:text-slate-400">মোট ব্যয়</td>
+                <td className="py-2.5 text-right font-bold text-red-700">
+                  ৳{toBangla(Math.round(totalExpense))}
+                </td>
               </tr>
-              <tr style={{ borderBottom: "2px solid #0f766e" }}>
-                <td className="font-bold text-teal-800 dark:text-teal-300" style={{ padding: "0.6rem 0", color: "#0f766e", fontWeight: "600" }}>নিট উদ্বৃত্ত</td>
-                <td style={{ padding: "0.6rem 0", textAlign: "right", color: balance >= 0 ? "#15803d" : "#b91c1c", fontWeight: "700" }}>৳ {toBangla(balance)}</td>
+              <tr className="border-b-2 border-brand-600">
+                <td className="py-2.5 text-brand-700 dark:text-brand-400 font-bold">
+                  নিট উদ্বৃত্ত
+                </td>
+                <td
+                  className={`py-2.5 text-right font-bold text-lg ${
+                    balance >= 0 ? "text-emerald-700" : "text-red-700"
+                  }`}
+                >
+                  ৳{toBangla(Math.round(balance))}
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>আয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
-          {Object.keys(incomeByCategory).length === 0 ? (
-            <p style={{ color: "#64748b", fontSize: "0.9rem" }}>কোনো আয় নেই</p>
-          ) : (
-            <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
-              <thead>
-                <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
-                  <th style={th}>খাত</th>
-                  <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(incomeByCategory).map(([cat, amt]) => (
-                  <tr key={cat} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
-                    <td style={td}>{cat}</td>
-                    <td style={{ ...td, textAlign: "right", color: "#15803d", fontWeight: "500" }}>৳ {toBangla(amt)}</td>
+        {/* ============ ২. আয়ের এক্সেল সারসংক্ষেপ ============ */}
+        {incomeByDate.length > 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-3 pb-2 border-b border-emerald-100 dark:border-emerald-900/40">
+              💰 আয়ের খাতভিত্তিক সারসংক্ষেপ
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr className="bg-emerald-600 text-white">
+                    <th className="border border-emerald-700 px-2 py-2 text-left w-24">তারিখ</th>
+                    {incomeCategories.map((cat) => (
+                      <th key={cat} className="border border-emerald-700 px-2 py-2 text-right">
+                        {cat}
+                      </th>
+                    ))}
+                    <th className="border border-emerald-700 px-2 py-2 text-right bg-emerald-700">
+                      মোট
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {incomeByDate.map(([date, cats]) => {
+                    const rowTotal = Object.values(cats).reduce((s, v) => s + v, 0);
+                    return (
+                      <tr key={date} className="border-b border-slate-200 dark:border-slate-800">
+                        <td className="border border-slate-300 px-2 py-1.5 font-medium">
+                          {formatDate(date)}
+                        </td>
+                        {incomeCategories.map((cat) => (
+                          <td
+                            key={cat}
+                            className="border border-slate-300 px-2 py-1.5 text-right"
+                          >
+                            {cats[cat] ? "৳" + toBangla(Math.round(cats[cat])) : "-"}
+                          </td>
+                        ))}
+                        <td className="border border-slate-300 px-2 py-1.5 text-right font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20">
+                          ৳{toBangla(Math.round(rowTotal))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-emerald-50 dark:bg-emerald-900/20 font-bold">
+                    <td className="border border-slate-300 px-2 py-2 text-right">মোট</td>
+                    {incomeCategories.map((cat) => (
+                      <td
+                        key={cat}
+                        className="border border-slate-300 px-2 py-2 text-right text-emerald-700"
+                      >
+                        ৳{toBangla(Math.round(incomeColumnTotals[cat] || 0))}
+                      </td>
+                    ))}
+                    <td className="border border-slate-300 px-2 py-2 text-right text-emerald-700 bg-emerald-100 dark:bg-emerald-900/40">
+                      ৳{toBangla(Math.round(totalIncome))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ============ ৩. ব্যয়ের এক্সেল সারসংক্ষেপ ============ */}
+        {expenseByDate.length > 0 && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-bold text-red-700 dark:text-red-400 mb-3 pb-2 border-b border-red-100 dark:border-red-900/40">
+              📉 ব্যয়ের খাতভিত্তিক সারসংক্ষেপ
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr className="bg-red-600 text-white">
+                    <th className="border border-red-700 px-2 py-2 text-left w-24">তারিখ</th>
+                    {expenseCategories.map((cat) => (
+                      <th key={cat} className="border border-red-700 px-2 py-2 text-right">
+                        {cat}
+                      </th>
+                    ))}
+                    <th className="border border-red-700 px-2 py-2 text-right bg-red-700">
+                      মোট
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenseByDate.map(([date, cats]) => {
+                    const rowTotal = Object.values(cats).reduce((s, v) => s + v, 0);
+                    return (
+                      <tr key={date} className="border-b border-slate-200 dark:border-slate-800">
+                        <td className="border border-slate-300 px-2 py-1.5 font-medium">
+                          {formatDate(date)}
+                        </td>
+                        {expenseCategories.map((cat) => (
+                          <td
+                            key={cat}
+                            className="border border-slate-300 px-2 py-1.5 text-right"
+                          >
+                            {cats[cat] ? "৳" + toBangla(Math.round(cats[cat])) : "-"}
+                          </td>
+                        ))}
+                        <td className="border border-slate-300 px-2 py-1.5 text-right font-bold text-red-700 bg-red-50 dark:bg-red-900/20">
+                          ৳{toBangla(Math.round(rowTotal))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-red-50 dark:bg-red-900/20 font-bold">
+                    <td className="border border-slate-300 px-2 py-2 text-right">মোট</td>
+                    {expenseCategories.map((cat) => (
+                      <td
+                        key={cat}
+                        className="border border-slate-300 px-2 py-2 text-right text-red-700"
+                      >
+                        ৳{toBangla(Math.round(expenseColumnTotals[cat] || 0))}
+                      </td>
+                    ))}
+                    <td className="border border-slate-300 px-2 py-2 text-right text-red-700 bg-red-100 dark:bg-red-900/40">
+                      ৳{toBangla(Math.round(totalExpense))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* স্বাক্ষর */}
+        <div className="hidden print:flex justify-between mt-14 pt-2">
+          <div className="text-center" style={{ minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+              প্রস্তুতকারীর স্বাক্ষর
+            </div>
+          </div>
+          <div className="text-center" style={{ minWidth: "150px" }}>
+            <div style={{ borderTop: "1px solid #475569", paddingTop: "4px", fontSize: "11px" }}>
+              অনুমোদনকারীর স্বাক্ষর
+            </div>
+          </div>
         </div>
 
-        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 dark:border-slate-800 print:bg-white" style={{ background: "#ffffff", padding: "1.25rem 1.5rem" }}>
-          <h3 className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-2 text-base font-bold text-slate-800 dark:border-slate-800 dark:text-slate-100 print:text-teal-800" style={{ fontSize: "1.05rem", color: "#0f766e", marginBottom: "0.75rem" }}>ব্যয়ের খাতভিত্তিক সারসংক্ষেপ</h3>
-          {Object.keys(expenseByCategory).length === 0 ? (
-            <p style={{ color: "#64748b", fontSize: "0.9rem" }}>কোনো ব্যয় নেই</p>
-          ) : (
-            <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
-              <thead>
-                <tr className="bg-teal-700 text-white" style={{ background: "#0f766e", color: "#fff" }}>
-                  <th style={th}>খাত</th>
-                  <th style={{ ...th, textAlign: "right" }}>পরিমাণ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(expenseByCategory).map(([cat, amt]) => (
-                  <tr key={cat} className="transition-colors odd:bg-slate-50/80 hover:bg-teal-50/70 dark:odd:bg-slate-900/60 dark:hover:bg-teal-950/40" style={{ borderBottom: "1px solid #e2e8f0" }}>
-                    <td style={td}>{cat}</td>
-                    <td style={{ ...td, textAlign: "right", color: "#b91c1c", fontWeight: "500" }}>৳ {toBangla(amt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="hidden print:block text-center text-[10px] text-slate-500 mt-6">
+          এই রিপোর্টটি কম্পিউটার দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
         </div>
       </div>
     </>
   );
 }
 
-const lbl: React.CSSProperties = { display: "block", marginBottom: "0.3rem", fontSize: "0.78rem", color: "#475569", fontWeight: "500" };
-const inp: React.CSSProperties = { width: "100%", padding: "0.5rem 0.7rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", background: "#ffffff", fontFamily: "inherit" };
-const th: React.CSSProperties = { padding: "0.6rem 0.8rem", textAlign: "left", fontWeight: "600", fontSize: "0.78rem" };
-const td: React.CSSProperties = { padding: "0.6rem 0.8rem", color: "#1a1a1a" };
+function Badge({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      className="px-3 py-1.5 rounded-xl flex items-center gap-2"
+      style={{ background: `${color}10`, border: `1px solid ${color}30` }}
+    >
+      <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}:</span>
+      <span className="text-xs font-bold" style={{ color }}>{value}</span>
+    </div>
+  );
+}
