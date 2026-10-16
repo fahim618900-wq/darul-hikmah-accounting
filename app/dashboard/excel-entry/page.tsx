@@ -19,26 +19,12 @@ export default async function ExcelEntryPage() {
     redirect("/dashboard");
   }
 
-  // আয়ের খাত
-  const { data: incomeCategories } = await supabase
-    .from("income_categories")
-    .select("id, name")
-    .order("name");
-
-  // ব্যয়ের খাত
-  const { data: expenseCategories } = await supabase
-    .from("expense_categories")
-    .select("id, name")
-    .order("name");
-
-  // আয়ের কলাম টেমপ্লেট
   const { data: incomeColumns } = await supabase
     .from("excel_column_templates")
     .select("*")
     .eq("page_type", "income")
     .order("column_order");
 
-  // ব্যয়ের কলাম টেমপ্লেট
   const { data: expenseColumns } = await supabase
     .from("excel_column_templates")
     .select("*")
@@ -47,8 +33,6 @@ export default async function ExcelEntryPage() {
 
   return (
     <ExcelEntryClient
-      incomeCategories={incomeCategories || []}
-      expenseCategories={expenseCategories || []}
       incomeColumns={incomeColumns || []}
       expenseColumns={expenseColumns || []}
       userName={profile.full_name || user.email || ""}
