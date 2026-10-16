@@ -17,7 +17,6 @@ type CellValue = { [columnKey: string]: string };
 
 type Row = {
   id: string;
-  date: string;
   values: CellValue;
 };
 
@@ -37,7 +36,6 @@ function todayISO(): string {
 function makeEmptyRow(): Row {
   return {
     id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    date: todayISO(),
     values: {},
   };
 }
@@ -59,6 +57,7 @@ export default function ExcelEntryClient({
   const supabase = createClient();
 
   const [mode, setMode] = useState<"select" | "income" | "expense">("select");
+  const [entryDate, setEntryDate] = useState(todayISO());
   const [rows, setRows] = useState<Row[]>([makeEmptyRow()]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -133,12 +132,6 @@ export default function ExcelEntryClient({
           ? { ...r, values: { ...r.values, [columnKey]: value } }
           : r
       )
-    );
-  }
-
-  function updateDate(rowId: string, date: string) {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, date } : r))
     );
   }
 
@@ -260,7 +253,7 @@ export default function ExcelEntryClient({
         entries.push({
           category_id: category.id,
           amount,
-          entry_date: row.date,
+          entry_date: entryDate,
           payment_method: "cash",
           description: null,
           voucher_no: row.values["voucher_no"] || null,
@@ -302,6 +295,7 @@ export default function ExcelEntryClient({
     setCustomColumns([]);
     setMessage("");
     setError("");
+    setEntryDate(todayISO());
   }
 
   // ==================== প্রথম স্ক্রিন — বাটন ====================
@@ -355,48 +349,52 @@ export default function ExcelEntryClient({
   const isIncome = mode === "income";
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 pb-40">
-      <div className="mb-4 flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <button
-            onClick={() => setMode("select")}
-            className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 text-sm font-medium mb-2 hover:gap-3 transition-all"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-            ফিরে যান
-          </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-            {isIncome ? "💰 আয়ের এন্ট্রি" : "📉 ব্যয়ের এন্ট্রি"}
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Excel-এর মতো একসাথে অনেক এন্ট্রি
-          </p>
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 pt-4 pb-44">
+      {/* ============ Sticky হেডার ============ */}
+      <div className="sticky top-0 z-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-3 p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <button
+              onClick={() => setMode("select")}
+              className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 text-xs font-medium mb-1.5 hover:gap-3 transition-all"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              ফিরে যান
+            </button>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+              {isIncome ? "💰 আয়ের এন্ট্রি" : "📉 ব্যয়ের এন্ট্রি"}
+            </h1>
+          </div>
 
-      <div
-        className={`rounded-3xl p-5 mb-4 text-white shadow-xl ${
-          isIncome
-            ? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20"
-            : "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20"
-        }`}
-      >
-        <div className="text-[11px] opacity-90 mb-1">
-          {isIncome ? "মোট আয়" : "মোট ব্যয়"}
-        </div>
-        <div className="text-3xl sm:text-4xl font-bold">
-          ৳{toBangla(Math.round(grandTotal))}
-        </div>
-        <div className="text-[11px] opacity-80 mt-1">
-          {toBangla(
-            rows.filter((r) =>
-              Object.values(r.values).some((v) => v && Number(v) > 0)
-            ).length
-          )}{" "}
-          টি সারি পূরণ হয়েছে
+          <div className="flex items-center gap-3 flex-wrap">
+            <div>
+              <label className="block text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-0.5">
+                তারিখ
+              </label>
+              <input
+                type="date"
+                value={entryDate}
+                onChange={(e) => setEntryDate(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none"
+              />
+            </div>
+
+            <div className="text-right">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                মোট {isIncome ? "আয়" : "ব্যয়"}
+              </div>
+              <div
+                className={`text-xl font-bold ${
+                  isIncome ? "text-emerald-600" : "text-red-600"
+                }`}
+              >
+                ৳{toBangla(Math.round(grandTotal))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -411,6 +409,7 @@ export default function ExcelEntryClient({
         </div>
       )}
 
+      {/* টুলবার */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap gap-2">
         <button
           onClick={() => setShowAddColumn(!showAddColumn)}
@@ -433,7 +432,7 @@ export default function ExcelEntryClient({
           নতুন খাত
         </button>
         <div className="ml-auto text-[11px] text-slate-500 flex items-center">
-          {toBangla(allColumns.length)} টি কলাম
+          {toBangla(allColumns.length)} টি কলাম • {toBangla(rows.length)} টি সারি
         </div>
       </div>
 
@@ -473,35 +472,30 @@ export default function ExcelEntryClient({
         </div>
       )}
 
+      {/* ============ টেবিল ============ */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4">
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm min-w-[800px]">
+          <table className="w-full border-collapse text-sm min-w-[700px]">
             <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th className="excel-th w-12">ক্রম</th>
-                <th className="excel-th w-36">তারিখ</th>
                 {allColumns.map((col) => (
                   <th key={col.id} className="excel-th min-w-[110px]">
                     {col.column_label}
                   </th>
                 ))}
-                <th className="excel-th w-20">মোট</th>
-                <th className="excel-th w-12"></th>
+                <th className="excel-th w-24">মোট</th>
+                <th className="excel-th w-10"></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, idx) => (
-                <tr key={row.id} className="border-b border-slate-100 dark:border-slate-800">
+                <tr
+                  key={row.id}
+                  className="border-b border-slate-100 dark:border-slate-800"
+                >
                   <td className="excel-td text-center text-slate-400 text-xs">
                     {toBangla(idx + 1)}
-                  </td>
-                  <td className="excel-td">
-                    <input
-                      type="date"
-                      value={row.date}
-                      onChange={(e) => updateDate(row.id, e.target.value)}
-                      className="excel-input"
-                    />
                   </td>
                   {allColumns.map((col) => (
                     <td key={col.id} className="excel-td">
@@ -531,7 +525,7 @@ export default function ExcelEntryClient({
                       disabled={rows.length === 1}
                       className="w-7 h-7 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition flex items-center justify-center disabled:opacity-30"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                       </svg>
@@ -540,23 +534,34 @@ export default function ExcelEntryClient({
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-slate-100 dark:bg-slate-800 sticky bottom-0">
-              <tr>
-                <td className="excel-td text-center text-xs font-bold" colSpan={2}>
-                  মোট
-                </td>
-                {allColumns.map((col) => (
-                  <td key={col.id} className="excel-td text-right font-bold text-emerald-700">
-                    ৳{toBangla(Math.round(columnTotals[col.column_key] || 0))}
-                  </td>
-                ))}
-                <td className="excel-td text-right font-bold text-brand-700 text-base">
-                  ৳{toBangla(Math.round(grandTotal))}
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
           </table>
+        </div>
+
+        {/* Sticky মোট সারি */}
+        <div className="sticky bottom-0 bg-slate-100 dark:bg-slate-800 border-t-2 border-brand-600 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm min-w-[700px]">
+              <tbody>
+                <tr>
+                  <td className="excel-td text-center text-xs font-bold w-12">
+                    মোট
+                  </td>
+                  {allColumns.map((col) => (
+                    <td
+                      key={col.id}
+                      className="excel-td text-right font-bold text-emerald-700 min-w-[110px]"
+                    >
+                      ৳{toBangla(Math.round(columnTotals[col.column_key] || 0))}
+                    </td>
+                  ))}
+                  <td className="excel-td text-right font-bold text-brand-700 text-base w-24">
+                    ৳{toBangla(Math.round(grandTotal))}
+                  </td>
+                  <td className="w-10"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <button
@@ -571,6 +576,7 @@ export default function ExcelEntryClient({
         </button>
       </div>
 
+      {/* সারসংক্ষেপ */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
           📊 সারসংক্ষেপ
@@ -600,19 +606,24 @@ export default function ExcelEntryClient({
         </div>
       </div>
 
+      {/* Sticky সেভ বার */}
       <div className="fixed bottom-[68px] lg:bottom-4 left-0 right-0 z-30 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 flex flex-wrap items-center gap-3">
           <div className="flex-1 flex flex-wrap items-center gap-x-4 gap-y-1">
             <div>
               <div className="text-[10px] text-slate-500">মোট</div>
-              <div className={`text-base font-bold ${isIncome ? "text-emerald-600" : "text-red-600"}`}>
+              <div
+                className={`text-base font-bold ${
+                  isIncome ? "text-emerald-600" : "text-red-600"
+                }`}
+              >
                 ৳{toBangla(Math.round(grandTotal))}
               </div>
             </div>
             <div className="border-l border-slate-200 dark:border-slate-700 pl-4">
-              <div className="text-[10px] text-slate-500">সারি</div>
-              <div className="text-base font-bold text-slate-900 dark:text-white">
-                {toBangla(rows.length)}
+              <div className="text-[10px] text-slate-500">তারিখ</div>
+              <div className="text-xs font-bold text-slate-900 dark:text-white">
+                {entryDate}
               </div>
             </div>
           </div>
