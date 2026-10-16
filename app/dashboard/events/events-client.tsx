@@ -781,4 +781,471 @@ export default function EventsClient({
                       </h3>
                       <span
                         className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          ev.is_cl
+                          ev.is_closed
+                            ? "bg-slate-100 text-slate-600"
+                            : "bg-emerald-100 text-emerald-700"
+                        }`}
+                      >
+                        {ev.is_closed ? "ক্লোজড" : "সক্রিয়"}
+                      </span>
+                    </div>
+                    {ev.description && (
+                      <p className="text-[11px] text-slate-500 mb-2 line-clamp-2">
+                        {ev.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-3">
+                      <span>📅 {formatDate(ev.start_date)}</span>
+                      {ev.end_date !== ev.start_date && (
+                        <span>— {formatDate(ev.end_date)}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div>
+                        <div className="text-[9px] text-slate-400">শিক্ষার্থী</div>
+                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {toBangla(fees.length)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-slate-400">প্রাপ্য</div>
+                        <div className="text-xs font-bold text-blue-600">
+                          ৳{toBangla(totalPayable)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-slate-400">আদায়</div>
+                        <div className="text-xs font-bold text-emerald-600">
+                          ৳{toBangla(totalPaid)}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ============ ট্যাব ৩: ইভেন্ট ম্যানেজমেন্ট ============ */}
+      {tab === "manage" && selectedEvent && (
+        <div className="space-y-4">
+          {/* ইভেন্ট হেডার */}
+          <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-5 text-white shadow-lg">
+            <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold mb-1 truncate">
+                  {selectedEvent.name}
+                </h2>
+                {selectedEvent.description && (
+                  <p className="text-xs opacity-90">{selectedEvent.description}</p>
+                )}
+                <div className="flex items-center gap-3 text-[11px] opacity-80 mt-2">
+                  <span>📅 {formatDate(selectedEvent.start_date)}</span>
+                  {selectedEvent.end_date !== selectedEvent.start_date && (
+                    <span>— {formatDate(selectedEvent.end_date)}</span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setTab("list")}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition shrink-0"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/20">
+              <div>
+                <div className="text-[10px] opacity-75 mb-0.5">মোট প্রাপ্য</div>
+                <div className="text-base font-bold">৳{toBangla(eventStats.totalPayable)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] opacity-75 mb-0.5">মোট আদায়</div>
+                <div className="text-base font-bold">৳{toBangla(eventStats.totalPaid)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] opacity-75 mb-0.5">মোট বাকি</div>
+                <div className="text-base font-bold">৳{toBangla(eventStats.totalDue)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* সারাংশ */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 border border-emerald-100 dark:border-emerald-900/40 text-center">
+              <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mb-1">Paid</div>
+              <div className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                {toBangla(eventStats.paidCount)}
+              </div>
+            </div>
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-3 border border-amber-100 dark:border-amber-900/40 text-center">
+              <div className="text-[10px] text-amber-700 dark:text-amber-400 mb-1">Partial</div>
+              <div className="text-lg font-bold text-amber-700 dark:text-amber-400">
+                {toBangla(eventStats.partialCount)}
+              </div>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-3 border border-red-100 dark:border-red-900/40 text-center">
+              <div className="text-[10px] text-red-700 dark:text-red-400 mb-1">Unpaid</div>
+              <div className="text-lg font-bold text-red-700 dark:text-red-400">
+                {toBangla(eventStats.unpaidCount)}
+              </div>
+            </div>
+          </div>
+
+          {/* অ্যাকশন বাটন */}
+          {canManage && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold shadow-md transition flex items-center gap-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print / PDF
+              </button>
+              <button
+                onClick={toggleEventClose}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition flex items-center gap-2 ${
+                  selectedEvent.is_closed
+                    ? "bg-emerald-600 text-white"
+                    : "bg-amber-500 text-white"
+                }`}
+              >
+                {selectedEvent.is_closed ? "🔄 রিওপেন" : "🔒 ক্লোজ"}
+              </button>
+              <button
+                onClick={deleteEvent}
+                className="px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-semibold transition flex items-center gap-2"
+              >
+                🗑️ ডিলিট
+              </button>
+            </div>
+          )}
+
+          {/* ফি জমা ফর্ম */}
+          {canManage && !selectedEvent.is_closed && (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                ফি জমা নিন
+              </h3>
+              <form onSubmit={handlePayment} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    শিক্ষার্থী *
+                  </label>
+                  <select
+                    value={paymentForm.student_id}
+                    onChange={(e) => {
+                      const sid = e.target.value;
+                      setPaymentForm({ ...paymentForm, student_id: sid });
+                      // প্রাপ্য ফি অটো ফিল
+                      const fee = currentEventFees.find(
+                        (f) => f.student_id === Number(sid)
+                      );
+                      if (fee) {
+                        setPaymentForm((prev) => ({
+                          ...prev,
+                          student_id: sid,
+                          amount: String(fee.payable_amount),
+                        }));
+                      }
+                    }}
+                    required
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    <option value="">-- শিক্ষার্থী নির্বাচন --</option>
+                    {currentEventFees.map((f) => (
+                      <option key={f.id} value={f.student_id}>
+                        {f.students?.name} ({f.students?.class_name}
+                        {f.students?.roll ? ` - ${f.students.roll}` : ""}) — ৳
+                        {f.payable_amount}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    পরিমাণ (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    value={paymentForm.amount}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, amount: e.target.value })
+                    }
+                    required
+                    min={1}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    তারিখ
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentForm.payment_date}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, payment_date: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    পেমেন্ট পদ্ধতি
+                  </label>
+                  <select
+                    value={paymentForm.payment_method}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, payment_method: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    {PAYMENT_METHODS.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    রসিদ নম্বর (ঐচ্ছিক)
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentForm.receipt_no}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, receipt_no: e.target.value })
+                    }
+                    placeholder="স্বয়ংক্রিয়"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                    নোট
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentForm.note}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, note: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="sm:col-span-2 py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold transition flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {saving ? "সংরক্ষণ..." : "ফি জমা নিন"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* শিক্ষার্থীদের ফি তালিকা */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                শিক্ষার্থীদের ফি তালিকা ({toBangla(currentEventFees.length)} জন)
+              </h3>
+            </div>
+
+            {/* মোবাইল কার্ড */}
+            <div className="md:hidden p-3 space-y-2">
+              {currentEventFees.map((f) => {
+                const paid = currentEventPayments
+                  .filter((p) => p.student_id === f.student_id)
+                  .reduce((s, p) => s + Number(p.amount), 0);
+                const due = Number(f.payable_amount) - paid;
+                let status: "paid" | "partial" | "unpaid" = "unpaid";
+                if (paid >= Number(f.payable_amount) && Number(f.payable_amount) > 0)
+                  status = "paid";
+                else if (paid > 0) status = "partial";
+
+                const sc =
+                  status === "paid"
+                    ? { bg: "#f0fdf4", text: "#15803d", badge: "#dcfce7", label: "Paid" }
+                    : status === "partial"
+                    ? { bg: "#fffbeb", text: "#b45309", badge: "#fef3c7", label: "Partial" }
+                    : { bg: "#fef2f2", text: "#b91c1c", badge: "#fee2e2", label: "Unpaid" };
+
+                return (
+                  <div
+                    key={f.id}
+                    className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
+                    style={{ borderLeftWidth: "4px", borderLeftColor: sc.text }}
+                  >
+                    <div className="p-3 flex items-start gap-3" style={{ background: sc.bg }}>
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-white">
+                        {f.students?.photo_url ? (
+                          <img
+                            src={f.students.photo_url}
+                            alt={f.students.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-slate-400 font-bold text-sm">
+                            {f.students?.name?.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 truncate">
+                          {f.students?.name}
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          {f.students?.class_name}
+                          {f.students?.roll && ` • রোল ${f.students.roll}`}
+                        </div>
+                      </div>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
+                        style={{ background: sc.badge, color: sc.text }}
+                      >
+                        {sc.label}
+                      </span>
+                    </div>
+                    <div className="p-3 grid grid-cols-3 gap-2 bg-white dark:bg-slate-900">
+                      <div className="text-center">
+                        <div className="text-[9px] text-slate-400">প্রাপ্য</div>
+                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          ৳{toBangla(f.payable_amount)}
+                        </div>
+                      </div>
+                      <div className="text-center border-x border-slate-100 dark:border-slate-800">
+                        <div className="text-[9px] text-slate-400">জমা</div>
+                        <div className="text-xs font-bold text-emerald-600">
+                          ৳{toBangla(paid)}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[9px] text-slate-400">বাকি</div>
+                        <div className={`text-xs font-bold ${due > 0 ? "text-red-600" : "text-slate-400"}`}>
+                          ৳{toBangla(due)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ডেস্কটপ টেবিল */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">নাম</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">শ্রেণি</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">রোল</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">প্রাপ্য</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">জমা</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">বাকি</th>
+                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-600 dark:text-slate-300">স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentEventFees.map((f) => {
+                    const paid = currentEventPayments
+                      .filter((p) => p.student_id === f.student_id)
+                      .reduce((s, p) => s + Number(p.amount), 0);
+                    const due = Number(f.payable_amount) - paid;
+                    let status: "paid" | "partial" | "unpaid" = "unpaid";
+                    if (paid >= Number(f.payable_amount) && Number(f.payable_amount) > 0)
+                      status = "paid";
+                    else if (paid > 0) status = "partial";
+
+                    const badge =
+                      status === "paid"
+                        ? { bg: "#dcfce7", text: "#15803d", label: "Paid" }
+                        : status === "partial"
+                        ? { bg: "#fef3c7", text: "#b45309", label: "Partial" }
+                        : { bg: "#fee2e2", text: "#b91c1c", label: "Unpaid" };
+
+                    return (
+                      <tr
+                        key={f.id}
+                        className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      >
+                        <td className="px-3 py-2.5 font-medium text-slate-900 dark:text-white">
+                          {f.students?.name}
+                        </td>
+                        <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">
+                          {f.students?.class_name}
+                        </td>
+                        <td className="px-3 py-2.5 text-slate-600 dark:text-slate-400">
+                          {f.students?.roll || "-"}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-slate-700 dark:text-slate-300">
+                          ৳{toBangla(f.payable_amount)}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-medium text-emerald-700">
+                          ৳{toBangla(paid)}
+                        </td>
+                        <td
+                          className={`px-3 py-2.5 text-right font-medium ${
+                            due > 0 ? "text-red-700" : "text-slate-400"
+                          }`}
+                        >
+                          ৳{toBangla(due)}
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          <span
+                            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
+                            style={{ background: badge.bg, color: badge.text }}
+                          >
+                            {badge.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-50 dark:bg-slate-800 border-t-2 border-purple-600">
+                    <td colSpan={3} className="px-3 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
+                      সর্বমোট ({toBangla(currentEventFees.length)} জন):
+                    </td>
+                    <td className="px-3 py-3 text-right font-bold text-slate-900 dark:text-white">
+                      ৳{toBangla(eventStats.totalPayable)}
+                    </td>
+                    <td className="px-3 py-3 text-right font-bold text-emerald-700">
+                      ৳{toBangla(eventStats.totalPaid)}
+                    </td>
+                    <td className="px-3 py-3 text-right font-bold text-red-700">
+                      ৳{toBangla(eventStats.totalDue)}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ ট্যাব খালি অবস্থায় ============ */}
+      {tab === "manage" && !selectedEvent && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center text-slate-500 border border-slate-200 dark:border-slate-800">
+          <p className="text-sm">কোনো ইভেন্ট নির্বাচন করা হয়নি</p>
+        </div>
+      )}
+    </div>
+  );
+}
