@@ -174,74 +174,63 @@ export default function ExcelEntryClient({
     setError("");
     setMessage("");
 
-    const validRows = rows.filter((r) =>
-      Object.values(r.values).some((v) => v && Number(v) > 0)
-    );
+    // ডেবাগ: কনসোল-এ কী আছে দেখি
+    console.log("Save triggered. Mode:", mode);
+    console.log("Rows:", rows);
+    console.log("All Columns:", allColumns);
+    console.log("Grand Total:", grandTotal);
 
-    if (validRows.length === 0) {
-      setError("অন্তত একটি সারিতে টাকা লিখুন");
+    if (grandTotal === 0) {
+      setError("অন্তত একটি ঘরে টাকা লিখুন");
       setSaving(false);
       return;
     }
 
-    const entries: any[] = [];
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // প্রতিটি সারির প্রতিটি ঘর আলাদা এন্ট্রি হবে
-    for (const row of validRows) {
-      for (const col of allColumns) {
-        const amount = Number(row.values[col.column_key]) || 0;
-        if (amount <= 0) continue;
+    const table = mode === "income" ? "incomes" : "expenses";
 
-        const categoryName = col.column_label;
+    // প্রতিটি সারির প্রতিটি ঘর যেখানে টাকা আছে
+    const entries: any[] = [];
 
-        // খাত খুঁজি বা তৈরি করি
-        const catTable =
-          mode === "income" ? "income_categories" : "expense_categories";
+    rows.forEach((row, rowIdx) => {
+      allColumns.forEach((col) => {
+        const rawValue = row.values[col.column_key];
+        const amount = Number(rawValue) || 0;
 
-        let { data: category } = await supabase
-          .from(catTable)
-          .select("id, name")
-          .eq("name", categoryName)
-          .single();
-
-        if (!category) {
-          const { data: newCat } = await supabase
-            .from(catTable)
-            .insert({ name: categoryName })
-            .select("id, name")
-            .single();
-          category = newCat;
+        if (amount > 0) {
+          entries.push({
+            amount,
+            entry_date: entryDate,
+            payment_method: "cash",
+            description: col.column_label,
+            created_by: user?.id,
+          });
         }
+      });
+    });
 
-        if (!category) continue;
-
-        entries.push({
-          category_id: category.id,
-          amount,
-          entry_date: entryDate,
-          payment_method: "cash",
-          description: null,
-          created_by: user?.id,
-        });
-      }
-    }
+    console.log("Final entries to save:", entries);
 
     if (entries.length === 0) {
-      setError("কোনো বৈধ এন্ট্রি নেই");
+      setError("কোনো বৈধ এন্ট্রি নেই — প্রতিটি ঘরে সংখ্যা লিখুন");
       setSaving(false);
       return;
     }
 
-    const table = mode === "income" ? "incomes" : "expenses";
-    const { error: saveError } = await supabase.from(table).insert(entries);
+    // ব্যাচে সেভ করি (প্রতি ব্যাচে ১০০)
+    const batchSize = 100;
+    for (let i = 0; i < entries.length; i += batchSize) {
+      const batch = entries.slice(i, i + batchSize);
+      const { error: saveError } = await supabase.from(table).insert(batch);
 
-    if (saveError) {
-      setError("সেভ করতে সমস্যা: " + saveError.message);
-      setSaving(false);
-      return;
+      if (saveError) {
+        setError("সেভ করতে সমস্যা: " + saveError.message);
+        setSaving(false);
+        return;
+      }
     }
 
     setMessage(
@@ -263,7 +252,7 @@ export default function ExcelEntryClient({
     setEntryDate(todayISO());
   }
 
-  // ==================== প্রথম স্ক্রিন — বাটন ====================
+  // ==================== প্রথম স্ক্রিন ====================
   if (mode === "select") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
