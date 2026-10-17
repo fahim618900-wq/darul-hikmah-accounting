@@ -74,6 +74,46 @@ $$;
 ALTER FUNCTION "public"."get_my_role"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."guard_event_payment_over_payable"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_payable numeric(12,2);
+  v_already_paid numeric(12,2);
+begin
+  -- শিক্ষার্থীর প্রাপ্য ফি
+  select coalesce(payable_amount, 0) - coalesce(discount, 0)
+  into v_payable
+  from event_student_fees
+  where event_id = new.event_id and student_id = new.student_id;
+
+  if v_payable is null then
+    raise exception 'এই শিক্ষার্থীর জন্য এই ইভেন্টে কোনো ফি নির্ধারিত নেই';
+  end if;
+
+  -- আগে যত টাকা জমা হয়েছে
+  select coalesce(sum(amount), 0)
+  into v_already_paid
+  from event_payments
+  where event_id = new.event_id 
+    and student_id = new.student_id
+    and (TG_OP = 'INSERT' or id != new.id);
+
+  -- নতুন পেমেন্ট যোগ করলে প্রাপ্যের বেশি হলে ব্লক
+  if v_already_paid + new.amount > v_payable then
+    raise exception 'প্রাপ্যের (৳%) বেশি টাকা নেওয়া যাবে না। আগে জমা: ৳%, এখন দিতে চাইছেন: ৳%',
+      v_payable, v_already_paid, new.amount;
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."guard_event_payment_over_payable"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -387,6 +427,102 @@ ALTER SEQUENCE "public"."closed_months_id_seq" OWNED BY "public"."closed_months"
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."event_payments" (
+    "id" bigint NOT NULL,
+    "event_id" bigint,
+    "student_id" bigint,
+    "amount" numeric(12,2) NOT NULL,
+    "payment_date" "date" DEFAULT CURRENT_DATE NOT NULL,
+    "payment_method" "text" DEFAULT 'cash'::"text",
+    "receipt_no" "text",
+    "note" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "event_payments_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['cash'::"text", 'bkash'::"text", 'nagad'::"text", 'bank'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."event_payments" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."event_payments_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."event_payments_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."event_payments_id_seq" OWNED BY "public"."event_payments"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."event_student_fees" (
+    "id" bigint NOT NULL,
+    "event_id" bigint,
+    "student_id" bigint,
+    "payable_amount" numeric(12,2) DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "discount" numeric(12,2) DEFAULT 0,
+    "discount_reason" "text"
+);
+
+
+ALTER TABLE "public"."event_student_fees" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."event_student_fees_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."event_student_fees_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."event_student_fees_id_seq" OWNED BY "public"."event_student_fees"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."excel_column_templates" (
+    "id" bigint NOT NULL,
+    "page_type" "text" NOT NULL,
+    "column_key" "text" NOT NULL,
+    "column_label" "text" NOT NULL,
+    "column_type" "text" DEFAULT 'text'::"text",
+    "column_order" integer DEFAULT 0,
+    "is_default" boolean DEFAULT false,
+    "is_active" boolean DEFAULT true,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "excel_column_templates_column_type_check" CHECK (("column_type" = ANY (ARRAY['text'::"text", 'number'::"text", 'date'::"text"]))),
+    CONSTRAINT "excel_column_templates_page_type_check" CHECK (("page_type" = ANY (ARRAY['income'::"text", 'expense'::"text", 'fee'::"text"])))
+);
+
+
+ALTER TABLE "public"."excel_column_templates" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."excel_column_templates_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."excel_column_templates_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."excel_column_templates_id_seq" OWNED BY "public"."excel_column_templates"."id";
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."expense_categories" (
     "id" bigint NOT NULL,
     "name" "text" NOT NULL,
@@ -425,6 +561,8 @@ CREATE TABLE IF NOT EXISTS "public"."expenses" (
     "voucher_no" "text",
     "is_deleted" boolean DEFAULT false,
     "deleted_at" timestamp with time zone,
+    "extra_fields" "jsonb" DEFAULT '{}'::"jsonb",
+    "extra_columns" "jsonb" DEFAULT '{}'::"jsonb",
     CONSTRAINT "expenses_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['cash'::"text", 'bkash'::"text", 'nagad'::"text", 'bank'::"text", 'other'::"text"])))
 );
 
@@ -462,6 +600,7 @@ CREATE TABLE IF NOT EXISTS "public"."fee_payments" (
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "monthly_fee_id" bigint,
     "deleted_at" timestamp with time zone,
+    "extra_fields" "jsonb" DEFAULT '{}'::"jsonb",
     CONSTRAINT "fee_payments_month_check" CHECK ((("month" >= 1) AND ("month" <= 12))),
     CONSTRAINT "fee_payments_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['cash'::"text", 'bkash'::"text", 'nagad'::"text", 'bank'::"text", 'other'::"text"])))
 );
@@ -556,6 +695,9 @@ CREATE TABLE IF NOT EXISTS "public"."incomes" (
     "receipt_no" "text",
     "is_deleted" boolean DEFAULT false,
     "deleted_at" timestamp with time zone,
+    "extra_fields" "jsonb" DEFAULT '{}'::"jsonb",
+    "voucher_no" "text",
+    "extra_columns" "jsonb" DEFAULT '{}'::"jsonb",
     CONSTRAINT "incomes_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['cash'::"text", 'bkash'::"text", 'nagad'::"text", 'bank'::"text", 'other'::"text"])))
 );
 
@@ -599,6 +741,44 @@ ALTER SEQUENCE "public"."keep_alive_id_seq" OWNER TO "postgres";
 
 
 ALTER SEQUENCE "public"."keep_alive_id_seq" OWNED BY "public"."keep_alive"."id";
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."madrasah_events" (
+    "id" bigint NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "start_date" "date",
+    "end_date" "date",
+    "default_fee" numeric(12,2) DEFAULT 0,
+    "fee_mode" "text" DEFAULT 'same'::"text",
+    "class_fees" "jsonb" DEFAULT '{}'::"jsonb",
+    "applies_to" "text" DEFAULT 'all'::"text",
+    "applies_to_value" "text",
+    "is_closed" boolean DEFAULT false,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "madrasah_events_applies_to_check" CHECK (("applies_to" = ANY (ARRAY['all'::"text", 'class'::"text", 'selected'::"text"]))),
+    CONSTRAINT "madrasah_events_fee_mode_check" CHECK (("fee_mode" = ANY (ARRAY['same'::"text", 'per_class'::"text"])))
+);
+
+
+ALTER TABLE "public"."madrasah_events" OWNER TO "postgres";
+
+
+CREATE SEQUENCE IF NOT EXISTS "public"."madrasah_events_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE "public"."madrasah_events_id_seq" OWNER TO "postgres";
+
+
+ALTER SEQUENCE "public"."madrasah_events_id_seq" OWNED BY "public"."madrasah_events"."id";
 
 
 
@@ -807,6 +987,18 @@ ALTER TABLE ONLY "public"."closed_months" ALTER COLUMN "id" SET DEFAULT "nextval
 
 
 
+ALTER TABLE ONLY "public"."event_payments" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."event_payments_id_seq"'::"regclass");
+
+
+
+ALTER TABLE ONLY "public"."event_student_fees" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."event_student_fees_id_seq"'::"regclass");
+
+
+
+ALTER TABLE ONLY "public"."excel_column_templates" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."excel_column_templates_id_seq"'::"regclass");
+
+
+
 ALTER TABLE ONLY "public"."expense_categories" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."expense_categories_id_seq"'::"regclass");
 
 
@@ -828,6 +1020,10 @@ ALTER TABLE ONLY "public"."incomes" ALTER COLUMN "id" SET DEFAULT "nextval"('"pu
 
 
 ALTER TABLE ONLY "public"."keep_alive" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."keep_alive_id_seq"'::"regclass");
+
+
+
+ALTER TABLE ONLY "public"."madrasah_events" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."madrasah_events_id_seq"'::"regclass");
 
 
 
@@ -864,6 +1060,31 @@ ALTER TABLE ONLY "public"."closed_months"
 
 ALTER TABLE ONLY "public"."closed_months"
     ADD CONSTRAINT "closed_months_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."event_payments"
+    ADD CONSTRAINT "event_payments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."event_student_fees"
+    ADD CONSTRAINT "event_student_fees_event_id_student_id_key" UNIQUE ("event_id", "student_id");
+
+
+
+ALTER TABLE ONLY "public"."event_student_fees"
+    ADD CONSTRAINT "event_student_fees_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."excel_column_templates"
+    ADD CONSTRAINT "excel_column_templates_page_type_column_key_key" UNIQUE ("page_type", "column_key");
+
+
+
+ALTER TABLE ONLY "public"."excel_column_templates"
+    ADD CONSTRAINT "excel_column_templates_pkey" PRIMARY KEY ("id");
 
 
 
@@ -904,6 +1125,11 @@ ALTER TABLE ONLY "public"."incomes"
 
 ALTER TABLE ONLY "public"."keep_alive"
     ADD CONSTRAINT "keep_alive_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."madrasah_events"
+    ADD CONSTRAINT "madrasah_events_pkey" PRIMARY KEY ("id");
 
 
 
@@ -962,6 +1188,30 @@ CREATE INDEX "idx_closed_months" ON "public"."closed_months" USING "btree" ("yea
 
 
 
+CREATE INDEX "idx_event_payments_event" ON "public"."event_payments" USING "btree" ("event_id");
+
+
+
+CREATE INDEX "idx_event_payments_student" ON "public"."event_payments" USING "btree" ("student_id");
+
+
+
+CREATE INDEX "idx_event_student_fees_event" ON "public"."event_student_fees" USING "btree" ("event_id");
+
+
+
+CREATE INDEX "idx_event_student_fees_student" ON "public"."event_student_fees" USING "btree" ("student_id");
+
+
+
+CREATE INDEX "idx_events_created_at" ON "public"."madrasah_events" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_events_is_closed" ON "public"."madrasah_events" USING "btree" ("is_closed");
+
+
+
 CREATE UNIQUE INDEX "monthly_fees_unique_idx" ON "public"."monthly_fees" USING "btree" ("student_id", "month", "year") WHERE ("is_deleted" = false);
 
 
@@ -990,6 +1240,10 @@ CREATE OR REPLACE TRIGGER "audit_students" AFTER INSERT OR DELETE OR UPDATE ON "
 
 
 
+CREATE OR REPLACE TRIGGER "guard_event_payment_over_payable" BEFORE INSERT OR UPDATE ON "public"."event_payments" FOR EACH ROW EXECUTE FUNCTION "public"."guard_event_payment_over_payable"();
+
+
+
 CREATE OR REPLACE TRIGGER "on_student_created" AFTER INSERT ON "public"."students" FOR EACH ROW EXECUTE FUNCTION "public"."create_monthly_fee_for_student"();
 
 
@@ -1008,6 +1262,36 @@ CREATE OR REPLACE TRIGGER "prevent_closed_month_payment" BEFORE INSERT OR DELETE
 
 ALTER TABLE ONLY "public"."closed_months"
     ADD CONSTRAINT "closed_months_closed_by_fkey" FOREIGN KEY ("closed_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."event_payments"
+    ADD CONSTRAINT "event_payments_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."event_payments"
+    ADD CONSTRAINT "event_payments_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."madrasah_events"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."event_payments"
+    ADD CONSTRAINT "event_payments_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."event_student_fees"
+    ADD CONSTRAINT "event_student_fees_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."madrasah_events"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."event_student_fees"
+    ADD CONSTRAINT "event_student_fees_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."excel_column_templates"
+    ADD CONSTRAINT "excel_column_templates_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
 
 
@@ -1048,6 +1332,11 @@ ALTER TABLE ONLY "public"."incomes"
 
 ALTER TABLE ONLY "public"."incomes"
     ADD CONSTRAINT "incomes_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id");
+
+
+
+ALTER TABLE ONLY "public"."madrasah_events"
+    ADD CONSTRAINT "madrasah_events_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
 
 
@@ -1099,6 +1388,10 @@ CREATE POLICY "admin manage closed_months" ON "public"."closed_months" TO "authe
 
 
 
+CREATE POLICY "admin manage excel_column_templates" ON "public"."excel_column_templates" TO "authenticated" USING (("public"."get_my_role"() = 'admin'::"text")) WITH CHECK (("public"."get_my_role"() = 'admin'::"text"));
+
+
+
 CREATE POLICY "admin manage print_templates" ON "public"."print_templates" TO "authenticated" USING (("public"."get_my_role"() = 'admin'::"text")) WITH CHECK (("public"."get_my_role"() = 'admin'::"text"));
 
 
@@ -1143,6 +1436,22 @@ CREATE POLICY "admin/accountant insert monthly_fees" ON "public"."monthly_fees" 
 
 
 
+CREATE POLICY "admin/accountant manage event_payments" ON "public"."event_payments" TO "authenticated" USING (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"]))) WITH CHECK (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"])));
+
+
+
+CREATE POLICY "admin/accountant manage event_student_fees" ON "public"."event_student_fees" TO "authenticated" USING (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"]))) WITH CHECK (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"])));
+
+
+
+CREATE POLICY "admin/accountant manage excel_column_templates" ON "public"."excel_column_templates" TO "authenticated" USING (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"]))) WITH CHECK (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"])));
+
+
+
+CREATE POLICY "admin/accountant manage madrasah_events" ON "public"."madrasah_events" TO "authenticated" USING (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"]))) WITH CHECK (("public"."get_my_role"() = ANY (ARRAY['admin'::"text", 'accountant'::"text"])));
+
+
+
 CREATE POLICY "admin/accountant update fee_payments" ON "public"."fee_payments" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -1170,6 +1479,15 @@ ALTER TABLE "public"."audit_logs" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."closed_months" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."event_payments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."event_student_fees" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."excel_column_templates" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."expense_categories" ENABLE ROW LEVEL SECURITY;
@@ -1214,6 +1532,9 @@ CREATE POLICY "logged in users read fee_payments" ON "public"."fee_payments" FOR
 
 
 
+ALTER TABLE "public"."madrasah_events" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."monthly_fees" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1235,6 +1556,22 @@ CREATE POLICY "public read student basic info" ON "public"."students" FOR SELECT
 
 
 CREATE POLICY "read closed_months" ON "public"."closed_months" FOR SELECT TO "authenticated" USING (true);
+
+
+
+CREATE POLICY "read event_payments" ON "public"."event_payments" FOR SELECT TO "authenticated" USING (true);
+
+
+
+CREATE POLICY "read event_student_fees" ON "public"."event_student_fees" FOR SELECT TO "authenticated" USING (true);
+
+
+
+CREATE POLICY "read excel_column_templates" ON "public"."excel_column_templates" FOR SELECT TO "authenticated" USING (true);
+
+
+
+CREATE POLICY "read madrasah_events" ON "public"."madrasah_events" FOR SELECT TO "authenticated" USING (true);
 
 
 
@@ -1436,6 +1773,12 @@ GRANT ALL ON FUNCTION "public"."get_my_role"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."guard_event_payment_over_payable"() TO "anon";
+GRANT ALL ON FUNCTION "public"."guard_event_payment_over_payable"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."guard_event_payment_over_payable"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "anon";
 GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
@@ -1523,6 +1866,42 @@ GRANT ALL ON SEQUENCE "public"."closed_months_id_seq" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."event_payments" TO "anon";
+GRANT ALL ON TABLE "public"."event_payments" TO "authenticated";
+GRANT ALL ON TABLE "public"."event_payments" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."event_payments_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."event_payments_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."event_payments_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."event_student_fees" TO "anon";
+GRANT ALL ON TABLE "public"."event_student_fees" TO "authenticated";
+GRANT ALL ON TABLE "public"."event_student_fees" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."event_student_fees_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."event_student_fees_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."event_student_fees_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."excel_column_templates" TO "anon";
+GRANT ALL ON TABLE "public"."excel_column_templates" TO "authenticated";
+GRANT ALL ON TABLE "public"."excel_column_templates" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."excel_column_templates_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."excel_column_templates_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."excel_column_templates_id_seq" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."expense_categories" TO "anon";
 GRANT ALL ON TABLE "public"."expense_categories" TO "authenticated";
 GRANT ALL ON TABLE "public"."expense_categories" TO "service_role";
@@ -1604,6 +1983,18 @@ GRANT ALL ON TABLE "public"."keep_alive" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."keep_alive_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."keep_alive_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."keep_alive_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."madrasah_events" TO "anon";
+GRANT ALL ON TABLE "public"."madrasah_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."madrasah_events" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."madrasah_events_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."madrasah_events_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."madrasah_events_id_seq" TO "service_role";
 
 
 
