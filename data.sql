@@ -4,7 +4,7 @@ SET session_replication_role = replica;
 -- PostgreSQL database dump
 --
 
--- \restrict yd4XIbAxmVG1M1M06CHRyW4UNqmfymNidVUGn3zLg56Irazj86hrSbquxEHf8q1
+-- \restrict eb3PWwsNNzV0FLApNaSnXO54eFSnYHEP1W8hk7WZDx9pI87PJB8BVJ2D9NYBInq
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.11
@@ -51,7 +51,7 @@ COPY "auth"."flow_state" ("id", "user_id", "auth_code", "code_challenge_method",
 --
 
 COPY "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "invited_at", "confirmation_token", "confirmation_sent_at", "recovery_token", "recovery_sent_at", "email_change_token_new", "email_change", "email_change_sent_at", "last_sign_in_at", "raw_app_meta_data", "raw_user_meta_data", "is_super_admin", "created_at", "updated_at", "phone", "phone_confirmed_at", "phone_change", "phone_change_token", "phone_change_sent_at", "email_change_token_current", "email_change_confirm_status", "banned_until", "reauthentication_token", "reauthentication_sent_at", "is_sso_user", "deleted_at", "is_anonymous") FROM stdin;
-00000000-0000-0000-0000-000000000000	29a1258f-1247-4ed0-8087-5ecfdaa942aa	authenticated	authenticated	fahim618900@gmail.com	$2a$10$H1aX0Sa.lIXkozJP98.R1uur/R9K7dkDxMgfN689sHkmblklrV4Me	2026-10-12 17:17:13.30874+00	\N		\N		\N			\N	2026-10-14 16:48:28.126301+00	{"provider": "email", "providers": ["email"]}	{"email_verified": true}	\N	2026-10-12 17:17:13.296626+00	2026-10-17 21:15:17.590711+00	\N	\N			\N		0	\N		\N	f	\N	f
+00000000-0000-0000-0000-000000000000	29a1258f-1247-4ed0-8087-5ecfdaa942aa	authenticated	authenticated	fahim618900@gmail.com	$2a$10$H1aX0Sa.lIXkozJP98.R1uur/R9K7dkDxMgfN689sHkmblklrV4Me	2026-10-12 17:17:13.30874+00	\N		\N		\N			\N	2026-10-14 16:48:28.126301+00	{"provider": "email", "providers": ["email"]}	{"email_verified": true}	\N	2026-10-12 17:17:13.296626+00	2026-10-20 02:55:07.695536+00	\N	\N			\N		0	\N		\N	f	\N	f
 00000000-0000-0000-0000-000000000000	ec8e2ef4-d76f-40e7-b668-0d15f4f347a8	authenticated	authenticated	sadek5182@gmail.com	$2a$10$m3RdFe0QG8GpADAVHgzyT.yBhwEDHNqJzezxh6bFLuVbzOeUKhrVW	2026-10-12 17:03:38.552293+00	\N		2026-10-12 17:03:15.348299+00		2026-10-12 17:14:44.542098+00			\N	2026-10-12 17:15:08.950219+00	{"provider": "email", "providers": ["email"]}	{"sub": "ec8e2ef4-d76f-40e7-b668-0d15f4f347a8", "email": "sadek5182@gmail.com", "full_name": "Fahim", "email_verified": true, "phone_verified": false}	\N	2026-10-12 17:03:15.246017+00	2026-10-12 17:15:08.967747+00	\N	\N			\N		0	\N		\N	f	\N	f
 00000000-0000-0000-0000-000000000000	1740c62f-4d87-4331-863e-7fcfc69dde86	authenticated	authenticated	sadik618900@gmail.com	$2a$10$ClY.v2uQTREUQg0fJ5K/YOO3fIgCFjMicllHS98dGX0FkVL8oGrHu	2026-10-12 18:03:41.144829+00	\N		2026-10-12 18:03:17.520226+00		\N			\N	2026-10-13 11:56:13.87783+00	{"provider": "email", "providers": ["email"]}	{"sub": "1740c62f-4d87-4331-863e-7fcfc69dde86", "email": "sadik618900@gmail.com", "full_name": "Sadik ex", "email_verified": true, "phone_verified": false}	\N	2026-10-12 18:03:17.508113+00	2026-10-13 13:29:24.577668+00	\N	\N			\N		0	\N		\N	f	\N	f
 \.
@@ -92,7 +92,7 @@ COPY "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id"
 f32af805-15f2-4f7e-80b1-6d9ce92b6d99	ec8e2ef4-d76f-40e7-b668-0d15f4f347a8	2026-10-12 17:15:08.950973+00	2026-10-12 17:15:08.950973+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36	103.153.48.249	\N	\N	\N	\N	\N
 38434868-5073-4cfe-ad80-2fe83c3e23a9	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 16:20:42.042366+00	2026-10-17 04:29:11.875439+00	\N	aal1	\N	2026-10-17 04:29:11.87533	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36	104.28.208.83	\N	\N	\N	\N	\N
 33b1cc3d-5ec9-41d4-a6ea-7323eb28a154	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 11:42:25.806473+00	2026-10-17 09:11:02.039117+00	\N	aal1	\N	2026-10-17 09:11:02.039019	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36	103.52.135.23	\N	\N	\N	\N	\N
-677a7bd5-fbda-44d8-b5da-c4754b7da108	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-14 11:04:06.040381+00	2026-10-17 21:15:17.610593+00	\N	aal1	\N	2026-10-17 21:15:17.610465	Vercel Edge Functions	13.207.202.182	\N	\N	\N	\N	\N
+677a7bd5-fbda-44d8-b5da-c4754b7da108	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-14 11:04:06.040381+00	2026-10-20 02:55:07.714617+00	\N	aal1	\N	2026-10-20 02:55:07.714513	Vercel Edge Functions	15.206.174.241	\N	\N	\N	\N	\N
 b66a313c-ea59-477c-a428-9ad69d77b07c	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 13:29:51.606338+00	2026-10-13 15:50:18.594979+00	\N	aal1	\N	2026-10-13 15:50:18.594871	Vercel Edge Functions	15.207.101.246	\N	\N	\N	\N	\N
 9bae22a8-4111-46b4-8a52-8493f1c90a30	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 16:37:14.3629+00	2026-10-13 16:37:14.3629+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36	103.60.204.104	\N	\N	\N	\N	\N
 5c7f6c16-aefc-48fa-a81a-a31c65b7e4e5	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-14 01:25:49.013111+00	2026-10-14 01:25:49.013111+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36	103.60.204.104	\N	\N	\N	\N	\N
@@ -228,7 +228,9 @@ COPY "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked"
 00000000-0000-0000-0000-000000000000	75	2e6msfeyykje	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-17 08:11:30.09768+00	2026-10-17 09:11:01.989737+00	6liqcdwi64uj	33b1cc3d-5ec9-41d4-a6ea-7323eb28a154
 00000000-0000-0000-0000-000000000000	76	vjpy73oypdww	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-17 09:11:02.009674+00	2026-10-17 09:11:02.009674+00	2e6msfeyykje	33b1cc3d-5ec9-41d4-a6ea-7323eb28a154
 00000000-0000-0000-0000-000000000000	73	elwbmw3qr4vl	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-16 19:15:55.362055+00	2026-10-17 21:15:17.556783+00	2drwmshl3fpz	677a7bd5-fbda-44d8-b5da-c4754b7da108
-00000000-0000-0000-0000-000000000000	77	eilhfawfxtvf	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-17 21:15:17.576739+00	2026-10-17 21:15:17.576739+00	elwbmw3qr4vl	677a7bd5-fbda-44d8-b5da-c4754b7da108
+00000000-0000-0000-0000-000000000000	77	eilhfawfxtvf	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-17 21:15:17.576739+00	2026-10-19 16:48:22.124881+00	elwbmw3qr4vl	677a7bd5-fbda-44d8-b5da-c4754b7da108
+00000000-0000-0000-0000-000000000000	78	yzfufosg4lu6	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-19 16:48:22.142749+00	2026-10-20 02:55:07.666852+00	eilhfawfxtvf	677a7bd5-fbda-44d8-b5da-c4754b7da108
+00000000-0000-0000-0000-000000000000	79	fmuy4ljlp2p7	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-20 02:55:07.689376+00	2026-10-20 02:55:07.689376+00	yzfufosg4lu6	677a7bd5-fbda-44d8-b5da-c4754b7da108
 \.
 
 
@@ -377,6 +379,14 @@ COPY "public"."audit_logs" ("id", "user_id", "user_email", "user_role", "action"
 64	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	insert	incomes	8	\N	{"id": 8, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 7, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	নতুন রেকর্ড যোগ করা হয়েছে	2026-10-17 08:44:37.400579+00
 65	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	insert	incomes	9	\N	{"id": 9, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 23, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	নতুন রেকর্ড যোগ করা হয়েছে	2026-10-17 08:44:37.400579+00
 66	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	insert	incomes	10	\N	{"id": 10, "amount": 20.00, "created_at": "2026-10-17T09:32:45.0474+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": null, "description": "ভাউচার", "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	নতুন রেকর্ড যোগ করা হয়েছে	2026-10-17 09:32:45.0474+00
+67	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	3	{"id": 3, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 1, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+68	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	4	{"id": 4, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 9, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+69	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	5	{"id": 5, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 2, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+70	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	6	{"id": 6, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 5, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+71	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	7	{"id": 7, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 6, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+72	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	8	{"id": 8, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 7, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+73	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	9	{"id": 9, "amount": 10.00, "created_at": "2026-10-17T08:44:37.400579+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": 23, "description": null, "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
+74	29a1258f-1247-4ed0-8087-5ecfdaa942aa	fahim618900@gmail.com	admin	delete	incomes	10	{"id": 10, "amount": 20.00, "created_at": "2026-10-17T09:32:45.0474+00:00", "created_by": "29a1258f-1247-4ed0-8087-5ecfdaa942aa", "deleted_at": null, "entry_date": "2026-10-17", "is_deleted": false, "receipt_no": null, "student_id": null, "voucher_no": null, "category_id": null, "description": "ভাউচার", "extra_fields": {}, "extra_columns": {}, "payment_method": "cash"}	\N	রেকর্ড ডিলিট করা হয়েছে	2026-10-19 16:50:38.124079+00
 \.
 
 
@@ -521,14 +531,6 @@ COPY "public"."income_categories" ("id", "name", "description", "created_at") FR
 --
 
 COPY "public"."incomes" ("id", "category_id", "student_id", "amount", "entry_date", "payment_method", "description", "created_by", "created_at", "receipt_no", "is_deleted", "deleted_at", "extra_fields", "voucher_no", "extra_columns") FROM stdin;
-3	1	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-4	9	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-5	2	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-6	5	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-7	6	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-8	7	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-9	23	\N	10.00	2026-10-17	cash	\N	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 08:44:37.400579+00	\N	f	\N	{}	\N	{}
-10	\N	\N	20.00	2026-10-17	cash	ভাউচার	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-17 09:32:45.0474+00	\N	f	\N	{}	\N	{}
 \.
 
 
@@ -543,6 +545,7 @@ COPY "public"."keep_alive" ("id", "pinged_at") FROM stdin;
 4	2026-10-17 02:26:59+00
 5	2026-10-18 02:27:15+00
 6	2026-10-19 02:41:22+00
+7	2026-10-20 02:53:11+00
 \.
 
 
@@ -641,14 +644,14 @@ COPY "storage"."vector_indexes" ("id", "name", "bucket_id", "data_type", "dimens
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 77, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 79, true);
 
 
 --
 -- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."audit_logs_id_seq"', 66, true);
+SELECT pg_catalog.setval('"public"."audit_logs_id_seq"', 74, true);
 
 
 --
@@ -718,7 +721,7 @@ SELECT pg_catalog.setval('"public"."incomes_id_seq"', 10, true);
 -- Name: keep_alive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 6, true);
+SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 7, true);
 
 
 --
@@ -760,6 +763,6 @@ SELECT pg_catalog.setval('"public"."students_id_seq"', 12, true);
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict yd4XIbAxmVG1M1M06CHRyW4UNqmfymNidVUGn3zLg56Irazj86hrSbquxEHf8q1
+-- \unrestrict eb3PWwsNNzV0FLApNaSnXO54eFSnYHEP1W8hk7WZDx9pI87PJB8BVJ2D9NYBInq
 
 RESET ALL;
