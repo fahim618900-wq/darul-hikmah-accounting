@@ -4,7 +4,7 @@ SET session_replication_role = replica;
 -- PostgreSQL database dump
 --
 
--- \restrict iVXOrrXILPYdT57Q8wrkot9H4UxIKNH35nL9oQFJPvGm43NIqC4KybKAI2tGKr0
+-- \restrict YNnhkTHRMbdUaO9s6AckwDEv2CBqgklDQyleTIfTT56SNtT66riXAJhF8hCvK3O
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.11
@@ -51,7 +51,7 @@ COPY "auth"."flow_state" ("id", "user_id", "auth_code", "code_challenge_method",
 --
 
 COPY "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "invited_at", "confirmation_token", "confirmation_sent_at", "recovery_token", "recovery_sent_at", "email_change_token_new", "email_change", "email_change_sent_at", "last_sign_in_at", "raw_app_meta_data", "raw_user_meta_data", "is_super_admin", "created_at", "updated_at", "phone", "phone_confirmed_at", "phone_change", "phone_change_token", "phone_change_sent_at", "email_change_token_current", "email_change_confirm_status", "banned_until", "reauthentication_token", "reauthentication_sent_at", "is_sso_user", "deleted_at", "is_anonymous") FROM stdin;
-00000000-0000-0000-0000-000000000000	29a1258f-1247-4ed0-8087-5ecfdaa942aa	authenticated	authenticated	fahim618900@gmail.com	$2a$10$H1aX0Sa.lIXkozJP98.R1uur/R9K7dkDxMgfN689sHkmblklrV4Me	2026-10-12 17:17:13.30874+00	\N		\N		\N			\N	2026-10-14 16:48:28.126301+00	{"provider": "email", "providers": ["email"]}	{"email_verified": true}	\N	2026-10-12 17:17:13.296626+00	2026-10-20 02:55:07.695536+00	\N	\N			\N		0	\N		\N	f	\N	f
+00000000-0000-0000-0000-000000000000	29a1258f-1247-4ed0-8087-5ecfdaa942aa	authenticated	authenticated	fahim618900@gmail.com	$2a$10$H1aX0Sa.lIXkozJP98.R1uur/R9K7dkDxMgfN689sHkmblklrV4Me	2026-10-12 17:17:13.30874+00	\N		\N		\N			\N	2026-10-14 16:48:28.126301+00	{"provider": "email", "providers": ["email"]}	{"email_verified": true}	\N	2026-10-12 17:17:13.296626+00	2026-10-21 15:56:15.68165+00	\N	\N			\N		0	\N		\N	f	\N	f
 00000000-0000-0000-0000-000000000000	ec8e2ef4-d76f-40e7-b668-0d15f4f347a8	authenticated	authenticated	sadek5182@gmail.com	$2a$10$m3RdFe0QG8GpADAVHgzyT.yBhwEDHNqJzezxh6bFLuVbzOeUKhrVW	2026-10-12 17:03:38.552293+00	\N		2026-10-12 17:03:15.348299+00		2026-10-12 17:14:44.542098+00			\N	2026-10-12 17:15:08.950219+00	{"provider": "email", "providers": ["email"]}	{"sub": "ec8e2ef4-d76f-40e7-b668-0d15f4f347a8", "email": "sadek5182@gmail.com", "full_name": "Fahim", "email_verified": true, "phone_verified": false}	\N	2026-10-12 17:03:15.246017+00	2026-10-12 17:15:08.967747+00	\N	\N			\N		0	\N		\N	f	\N	f
 00000000-0000-0000-0000-000000000000	1740c62f-4d87-4331-863e-7fcfc69dde86	authenticated	authenticated	sadik618900@gmail.com	$2a$10$ClY.v2uQTREUQg0fJ5K/YOO3fIgCFjMicllHS98dGX0FkVL8oGrHu	2026-10-12 18:03:41.144829+00	\N		2026-10-12 18:03:17.520226+00		\N			\N	2026-10-13 11:56:13.87783+00	{"provider": "email", "providers": ["email"]}	{"sub": "1740c62f-4d87-4331-863e-7fcfc69dde86", "email": "sadik618900@gmail.com", "full_name": "Sadik ex", "email_verified": true, "phone_verified": false}	\N	2026-10-12 18:03:17.508113+00	2026-10-13 13:29:24.577668+00	\N	\N			\N		0	\N		\N	f	\N	f
 \.
@@ -90,9 +90,9 @@ COPY "auth"."oauth_clients" ("id", "client_secret_hash", "registration_type", "r
 
 COPY "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag", "oauth_client_id", "refresh_token_hmac_key", "refresh_token_counter", "scopes") FROM stdin;
 f32af805-15f2-4f7e-80b1-6d9ce92b6d99	ec8e2ef4-d76f-40e7-b668-0d15f4f347a8	2026-10-12 17:15:08.950973+00	2026-10-12 17:15:08.950973+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36	103.153.48.249	\N	\N	\N	\N	\N
-38434868-5073-4cfe-ad80-2fe83c3e23a9	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 16:20:42.042366+00	2026-10-17 04:29:11.875439+00	\N	aal1	\N	2026-10-17 04:29:11.87533	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36	104.28.208.83	\N	\N	\N	\N	\N
 33b1cc3d-5ec9-41d4-a6ea-7323eb28a154	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 11:42:25.806473+00	2026-10-17 09:11:02.039117+00	\N	aal1	\N	2026-10-17 09:11:02.039019	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36	103.52.135.23	\N	\N	\N	\N	\N
 677a7bd5-fbda-44d8-b5da-c4754b7da108	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-14 11:04:06.040381+00	2026-10-20 02:55:07.714617+00	\N	aal1	\N	2026-10-20 02:55:07.714513	Vercel Edge Functions	15.206.174.241	\N	\N	\N	\N	\N
+38434868-5073-4cfe-ad80-2fe83c3e23a9	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 16:20:42.042366+00	2026-10-21 15:56:15.702279+00	\N	aal1	\N	2026-10-21 15:56:15.702175	Vercel Edge Functions	13.201.31.71	\N	\N	\N	\N	\N
 b66a313c-ea59-477c-a428-9ad69d77b07c	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 13:29:51.606338+00	2026-10-13 15:50:18.594979+00	\N	aal1	\N	2026-10-13 15:50:18.594871	Vercel Edge Functions	15.207.101.246	\N	\N	\N	\N	\N
 9bae22a8-4111-46b4-8a52-8493f1c90a30	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-13 16:37:14.3629+00	2026-10-13 16:37:14.3629+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36	103.60.204.104	\N	\N	\N	\N	\N
 5c7f6c16-aefc-48fa-a81a-a31c65b7e4e5	29a1258f-1247-4ed0-8087-5ecfdaa942aa	2026-10-14 01:25:49.013111+00	2026-10-14 01:25:49.013111+00	\N	aal1	\N	\N	Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36	103.60.204.104	\N	\N	\N	\N	\N
@@ -219,7 +219,6 @@ COPY "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked"
 00000000-0000-0000-0000-000000000000	41	oqtejyevfvbf	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-13 16:20:42.068178+00	2026-10-13 17:19:19.017768+00	\N	38434868-5073-4cfe-ad80-2fe83c3e23a9
 00000000-0000-0000-0000-000000000000	70	dup4qn2xgjmj	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-16 16:46:10.791103+00	2026-10-17 04:29:11.823384+00	s6r7h2oelo6u	38434868-5073-4cfe-ad80-2fe83c3e23a9
 00000000-0000-0000-0000-000000000000	43	frt63k7vpv6k	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-13 17:19:19.039766+00	2026-10-13 18:19:06.246403+00	oqtejyevfvbf	38434868-5073-4cfe-ad80-2fe83c3e23a9
-00000000-0000-0000-0000-000000000000	74	wa2o2pxc4czr	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-17 04:29:11.840107+00	2026-10-17 04:29:11.840107+00	dup4qn2xgjmj	38434868-5073-4cfe-ad80-2fe83c3e23a9
 00000000-0000-0000-0000-000000000000	44	oelohbcyg67c	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-13 18:19:06.261582+00	2026-10-14 01:18:19.539941+00	frt63k7vpv6k	38434868-5073-4cfe-ad80-2fe83c3e23a9
 00000000-0000-0000-0000-000000000000	67	6liqcdwi64uj	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-15 12:29:08.409602+00	2026-10-17 08:11:30.074739+00	ndhuqdtx7v2t	33b1cc3d-5ec9-41d4-a6ea-7323eb28a154
 00000000-0000-0000-0000-000000000000	46	z2wpzel6m63q	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-14 01:25:49.039771+00	2026-10-14 01:25:49.039771+00	\N	5c7f6c16-aefc-48fa-a81a-a31c65b7e4e5
@@ -231,6 +230,8 @@ COPY "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked"
 00000000-0000-0000-0000-000000000000	77	eilhfawfxtvf	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-17 21:15:17.576739+00	2026-10-19 16:48:22.124881+00	elwbmw3qr4vl	677a7bd5-fbda-44d8-b5da-c4754b7da108
 00000000-0000-0000-0000-000000000000	78	yzfufosg4lu6	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-19 16:48:22.142749+00	2026-10-20 02:55:07.666852+00	eilhfawfxtvf	677a7bd5-fbda-44d8-b5da-c4754b7da108
 00000000-0000-0000-0000-000000000000	79	fmuy4ljlp2p7	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-20 02:55:07.689376+00	2026-10-20 02:55:07.689376+00	yzfufosg4lu6	677a7bd5-fbda-44d8-b5da-c4754b7da108
+00000000-0000-0000-0000-000000000000	74	wa2o2pxc4czr	29a1258f-1247-4ed0-8087-5ecfdaa942aa	t	2026-10-17 04:29:11.840107+00	2026-10-21 15:56:15.642972+00	dup4qn2xgjmj	38434868-5073-4cfe-ad80-2fe83c3e23a9
+00000000-0000-0000-0000-000000000000	80	rplu4hg2o5wx	29a1258f-1247-4ed0-8087-5ecfdaa942aa	f	2026-10-21 15:56:15.666336+00	2026-10-21 15:56:15.666336+00	wa2o2pxc4czr	38434868-5073-4cfe-ad80-2fe83c3e23a9
 \.
 
 
@@ -547,6 +548,7 @@ COPY "public"."keep_alive" ("id", "pinged_at") FROM stdin;
 6	2026-10-19 02:41:22+00
 7	2026-10-20 02:53:11+00
 8	2026-10-21 02:47:28+00
+9	2026-10-22 02:45:55+00
 \.
 
 
@@ -645,7 +647,7 @@ COPY "storage"."vector_indexes" ("id", "name", "bucket_id", "data_type", "dimens
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 79, true);
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 80, true);
 
 
 --
@@ -722,7 +724,7 @@ SELECT pg_catalog.setval('"public"."incomes_id_seq"', 10, true);
 -- Name: keep_alive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 8, true);
+SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 9, true);
 
 
 --
@@ -764,6 +766,6 @@ SELECT pg_catalog.setval('"public"."students_id_seq"', 12, true);
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict iVXOrrXILPYdT57Q8wrkot9H4UxIKNH35nL9oQFJPvGm43NIqC4KybKAI2tGKr0
+-- \unrestrict YNnhkTHRMbdUaO9s6AckwDEv2CBqgklDQyleTIfTT56SNtT66riXAJhF8hCvK3O
 
 RESET ALL;
