@@ -4,10 +4,10 @@ SET session_replication_role = replica;
 -- PostgreSQL database dump
 --
 
--- \restrict TY4FXyUKb8U6unXT3ACairqgLiquXH8nfSbOabH9UZwYpBGyw0KlXZ2mQ9ChdWd
+-- \restrict xmHDxlRz2YbnI09pA0v1xxhbvOfrNcsazU9xcyum23EdI0TG0UR3pYdK3R9xO5V
 
 -- Dumped from database version 17.11
--- Dumped by pg_dump version 17.11
+-- Dumped by pg_dump version 17.12
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -178,7 +178,7 @@ COPY "auth"."oauth_consents" ("id", "user_id", "client_id", "scopes", "granted_a
 -- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
-COPY "auth"."one_time_tokens" ("id", "user_id", "token_type", "token_hash", "relates_to", "created_at", "updated_at", "expires_at") FROM stdin;
+COPY "auth"."one_time_tokens" ("id", "user_id", "token_type", "token_hash", "relates_to", "created_at", "updated_at", "expires_at", "link_token_hash") FROM stdin;
 \.
 
 
@@ -250,7 +250,7 @@ COPY "auth"."sso_providers" ("id", "resource_id", "created_at", "updated_at", "d
 -- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
-COPY "auth"."saml_providers" ("id", "sso_provider_id", "entity_id", "metadata_xml", "metadata_url", "attribute_mapping", "created_at", "updated_at", "name_id_format") FROM stdin;
+COPY "auth"."saml_providers" ("id", "sso_provider_id", "entity_id", "metadata_xml", "metadata_url", "attribute_mapping", "created_at", "updated_at", "name_id_format", "dedicated_scope") FROM stdin;
 \.
 
 
@@ -580,6 +580,7 @@ COPY "public"."keep_alive" ("id", "pinged_at") FROM stdin;
 32	2026-11-14 04:24:26+00
 33	2026-11-15 04:09:46+00
 34	2026-11-16 04:08:32+00
+35	2026-11-17 05:56:53+00
 \.
 
 
@@ -772,7 +773,7 @@ SELECT pg_catalog.setval('"public"."incomes_id_seq"', 10, true);
 -- Name: keep_alive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 34, true);
+SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 35, true);
 
 
 --
@@ -814,6 +815,6 @@ SELECT pg_catalog.setval('"public"."students_id_seq"', 13, true);
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict TY4FXyUKb8U6unXT3ACairqgLiquXH8nfSbOabH9UZwYpBGyw0KlXZ2mQ9ChdWd
+-- \unrestrict xmHDxlRz2YbnI09pA0v1xxhbvOfrNcsazU9xcyum23EdI0TG0UR3pYdK3R9xO5V
 
 RESET ALL;
