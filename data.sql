@@ -4,7 +4,7 @@ SET session_replication_role = replica;
 -- PostgreSQL database dump
 --
 
--- \restrict 4FpyzQXLTsv4KfBVmcP4iOZEWsyLE833sPfA1rhdr1IHFdFxgF8waGXDvvDlsDt
+-- \restrict oFfIDdSaU2YuEHoiUJlHiOZ0YyXKhRxVRmtzPlhNnyMefdfV1AGb2yMEKqbB5NM
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.12
@@ -33,7 +33,7 @@ COPY "auth"."audit_log_entries" ("instance_id", "id", "payload", "created_at", "
 -- Data for Name: custom_oauth_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
-COPY "auth"."custom_oauth_providers" ("id", "provider_type", "identifier", "name", "client_id", "client_secret", "acceptable_client_ids", "scopes", "pkce_enabled", "attribute_mapping", "authorization_params", "enabled", "email_optional", "issuer", "discovery_url", "skip_nonce_check", "cached_discovery", "discovery_cached_at", "authorization_url", "token_url", "userinfo_url", "jwks_uri", "created_at", "updated_at", "custom_claims_allowlist") FROM stdin;
+COPY "auth"."custom_oauth_providers" ("id", "provider_type", "identifier", "name", "client_id", "client_secret", "acceptable_client_ids", "scopes", "pkce_enabled", "attribute_mapping", "authorization_params", "enabled", "email_optional", "issuer", "discovery_url", "skip_nonce_check", "cached_discovery", "discovery_cached_at", "authorization_url", "token_url", "userinfo_url", "jwks_uri", "created_at", "updated_at", "custom_claims_allowlist", "client_auth_method", "client_assertion_audience") FROM stdin;
 \.
 
 
@@ -589,6 +589,7 @@ COPY "public"."keep_alive" ("id", "pinged_at") FROM stdin;
 41	2026-11-23 05:02:06+00
 42	2026-11-24 07:50:33+00
 43	2026-11-25 06:23:24+00
+44	2026-11-26 06:16:29+00
 \.
 
 
@@ -781,7 +782,7 @@ SELECT pg_catalog.setval('"public"."incomes_id_seq"', 10, true);
 -- Name: keep_alive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 43, true);
+SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 44, true);
 
 
 --
@@ -823,6 +824,6 @@ SELECT pg_catalog.setval('"public"."students_id_seq"', 13, true);
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 4FpyzQXLTsv4KfBVmcP4iOZEWsyLE833sPfA1rhdr1IHFdFxgF8waGXDvvDlsDt
+-- \unrestrict oFfIDdSaU2YuEHoiUJlHiOZ0YyXKhRxVRmtzPlhNnyMefdfV1AGb2yMEKqbB5NM
 
 RESET ALL;
