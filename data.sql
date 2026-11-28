@@ -4,7 +4,7 @@ SET session_replication_role = replica;
 -- PostgreSQL database dump
 --
 
--- \restrict eKanB8MZWYoGKnDAHBvvfEKycCKRyv9DG2QVimYUB4UhNWiImPcr1UeongREPBk
+-- \restrict v3mBEaVuSEKE8yxJSqMFxPUdf3tokvkRiacCuyZBAi3yRUJLJyQ2pEbLeNq4emv
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.12
@@ -591,6 +591,7 @@ COPY "public"."keep_alive" ("id", "pinged_at") FROM stdin;
 43	2026-11-25 06:23:24+00
 44	2026-11-26 06:16:29+00
 45	2026-11-27 06:05:29+00
+46	2026-11-28 05:46:37+00
 \.
 
 
@@ -783,7 +784,7 @@ SELECT pg_catalog.setval('"public"."incomes_id_seq"', 10, true);
 -- Name: keep_alive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 45, true);
+SELECT pg_catalog.setval('"public"."keep_alive_id_seq"', 46, true);
 
 
 --
@@ -825,6 +826,6 @@ SELECT pg_catalog.setval('"public"."students_id_seq"', 13, true);
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict eKanB8MZWYoGKnDAHBvvfEKycCKRyv9DG2QVimYUB4UhNWiImPcr1UeongREPBk
+-- \unrestrict v3mBEaVuSEKE8yxJSqMFxPUdf3tokvkRiacCuyZBAi3yRUJLJyQ2pEbLeNq4emv
 
 RESET ALL;
